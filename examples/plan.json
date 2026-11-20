@@ -1,0 +1,455 @@
+{
+  "format": "eateryplan",
+  "schemaVersion": "1.0.0",
+  "planId": "bistro_001",
+  "name": "Sample Bistro",
+  "revision": 1,
+  "locale": "en",
+  "createdAt": "2026-11-01T09:00:00Z",
+  "updatedAt": "2026-11-20T18:00:00Z",
+  "assets": [
+    {
+      "id": "asset_bg",
+      "mimeType": "image/png",
+      "url": "assets/ground-floor.png",
+      "widthPx": 1600,
+      "heightPx": 992
+    }
+  ],
+  "floors": [
+    {
+      "id": "floor_0",
+      "name": "Ground floor",
+      "level": 0,
+      "coordinateSpace": {
+        "unit": "unit",
+        "origin": "top-left",
+        "xAxis": "right",
+        "yAxis": "down",
+        "width": 1000,
+        "height": 620,
+        "realWorldScale": {
+          "metersPerUnit": 0.02,
+          "source": "dimension_label"
+        }
+      },
+      "background": {
+        "assetId": "asset_bg",
+        "opacity": 0.35,
+        "transform": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 620
+        }
+      },
+      "zones": [
+        {
+          "id": "zone_salon",
+          "floorId": "floor_0",
+          "name": "Main Hall",
+          "kind": "dining",
+          "capacity": 40,
+          "shape": {
+            "kind": "polygon",
+            "points": [
+              {
+                "x": 40,
+                "y": 40
+              },
+              {
+                "x": 650,
+                "y": 40
+              },
+              {
+                "x": 650,
+                "y": 560
+              },
+              {
+                "x": 40,
+                "y": 560
+              }
+            ]
+          },
+          "style": {
+            "fill": "#DCFCE7",
+            "stroke": "#4B5563"
+          }
+        },
+        {
+          "id": "zone_bar",
+          "floorId": "floor_0",
+          "name": "Bar",
+          "kind": "bar",
+          "parentZoneId": "zone_salon",
+          "shape": {
+            "kind": "rect",
+            "x": 60,
+            "y": 410,
+            "width": 290,
+            "height": 140
+          }
+        },
+        {
+          "id": "zone_terrace",
+          "floorId": "floor_0",
+          "name": "Terrace",
+          "kind": "terrace",
+          "capacity": 24,
+          "shape": {
+            "kind": "rect",
+            "x": 680,
+            "y": 40,
+            "width": 280,
+            "height": 520
+          },
+          "style": {
+            "fill": "#DBEAFE"
+          }
+        }
+      ],
+      "walls": [
+        {
+          "id": "wall_n",
+          "floorId": "floor_0",
+          "a": {
+            "x": 40,
+            "y": 40
+          },
+          "b": {
+            "x": 650,
+            "y": 40
+          },
+          "thickness": 8,
+          "kind": "external"
+        },
+        {
+          "id": "wall_e",
+          "floorId": "floor_0",
+          "a": {
+            "x": 650,
+            "y": 40
+          },
+          "b": {
+            "x": 650,
+            "y": 560
+          },
+          "thickness": 8,
+          "kind": "glass"
+        },
+        {
+          "id": "wall_s",
+          "floorId": "floor_0",
+          "a": {
+            "x": 650,
+            "y": 560
+          },
+          "b": {
+            "x": 40,
+            "y": 560
+          },
+          "thickness": 8,
+          "kind": "external"
+        },
+        {
+          "id": "wall_w",
+          "floorId": "floor_0",
+          "a": {
+            "x": 40,
+            "y": 560
+          },
+          "b": {
+            "x": 40,
+            "y": 40
+          },
+          "thickness": 8,
+          "kind": "external"
+        },
+        {
+          "id": "wall_bar_curve",
+          "floorId": "floor_0",
+          "a": {
+            "x": 345,
+            "y": 420
+          },
+          "b": {
+            "x": 345,
+            "y": 540
+          },
+          "thickness": 6,
+          "kind": "half_height",
+          "bulge": -0.3,
+          "source": "ai",
+          "confidence": 0.72
+        }
+      ],
+      "openings": [
+        {
+          "id": "door_main",
+          "floorId": "floor_0",
+          "wallId": "wall_n",
+          "kind": "door",
+          "position": 0.5,
+          "width": 80,
+          "swing": "right",
+          "opensToward": "inside",
+          "hinge": "start"
+        },
+        {
+          "id": "arch_terrace",
+          "floorId": "floor_0",
+          "wallId": "wall_e",
+          "kind": "archway",
+          "position": 0.5,
+          "width": 90,
+          "swing": "none",
+          "opensToward": "none",
+          "hinge": "none"
+        },
+        {
+          "id": "window_w1",
+          "floorId": "floor_0",
+          "wallId": "wall_w",
+          "kind": "window",
+          "position": 0.6,
+          "width": 120
+        }
+      ],
+      "tables": [
+        {
+          "id": "table_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_salon",
+          "number": "A1",
+          "seats": 6,
+          "externalTableId": "pos-312",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 250,
+            "cy": 220,
+            "rx": 70,
+            "ry": 40,
+            "rotationDeg": 25
+          },
+          "kind": "standard"
+        },
+        {
+          "id": "table_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_salon",
+          "number": "A2",
+          "seats": 2,
+          "externalTableId": "pos-313",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 480,
+            "cy": 300,
+            "rx": 40,
+            "ry": 40
+          },
+          "kind": "high"
+        },
+        {
+          "id": "table_2",
+          "floorId": "floor_0",
+          "zoneId": "zone_terrace",
+          "number": "T1",
+          "seats": 4,
+          "shape": {
+            "kind": "rect",
+            "x": 760,
+            "y": 180,
+            "width": 100,
+            "height": 75,
+            "cornerRadius": 12
+          },
+          "kind": "outdoor",
+          "chairs": [
+            {
+              "x": 785,
+              "y": 168
+            },
+            {
+              "x": 835,
+              "y": 168
+            },
+            {
+              "x": 785,
+              "y": 267,
+              "rotationDeg": 180
+            },
+            {
+              "x": 835,
+              "y": 267,
+              "rotationDeg": 180
+            }
+          ]
+        }
+      ],
+      "fixtures": [
+        {
+          "id": "counter_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_bar",
+          "kind": "bar_counter",
+          "shape": {
+            "kind": "rect",
+            "x": 70,
+            "y": 430,
+            "width": 260,
+            "height": 75
+          },
+          "name": "Bar counter"
+        },
+        {
+          "id": "sofa_round",
+          "floorId": "floor_0",
+          "zoneId": "zone_salon",
+          "kind": "sofa",
+          "name": "Half-round sofa",
+          "shape": {
+            "kind": "path",
+            "closed": true,
+            "commands": [
+              {
+                "cmd": "M",
+                "x": 420,
+                "y": 520
+              },
+              {
+                "cmd": "A",
+                "rx": 60,
+                "ry": 60,
+                "largeArc": false,
+                "sweep": true,
+                "x": 540,
+                "y": 520
+              },
+              {
+                "cmd": "L",
+                "x": 540,
+                "y": 545
+              },
+              {
+                "cmd": "L",
+                "x": 420,
+                "y": 545
+              },
+              {
+                "cmd": "Z"
+              }
+            ]
+          }
+        }
+      ],
+      "climateDevices": [
+        {
+          "id": "ac_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_salon",
+          "name": "Main hall wall AC",
+          "kind": "air_conditioner",
+          "shape": {
+            "kind": "rect",
+            "x": 420,
+            "y": 47,
+            "width": 90,
+            "height": 22,
+            "rotationDeg": 0
+          },
+          "mount": "wall",
+          "airflowDirectionDeg": 90,
+          "coveredZoneIds": [
+            "zone_salon"
+          ],
+          "capabilities": [
+            "cooling",
+            "heating",
+            "fan_speed",
+            "setpoint",
+            "power_switch"
+          ],
+          "externalDeviceId": "hvac-01",
+          "source": "manual"
+        },
+        {
+          "id": "vent_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_salon",
+          "name": "Fresh air supply",
+          "kind": "air_supply_vent",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 520,
+            "cy": 130,
+            "rx": 18,
+            "ry": 12
+          },
+          "mount": "ceiling",
+          "coveredZoneIds": [
+            "zone_salon"
+          ]
+        }
+      ],
+      "environmentalSensors": [
+        {
+          "id": "sensor_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_salon",
+          "name": "Main hall sensor",
+          "position": {
+            "x": 640,
+            "y": 200
+          },
+          "mount": "wall",
+          "heightMeters": 1.5,
+          "metrics": [
+            "temperature",
+            "humidity",
+            "co2"
+          ],
+          "associatedDeviceId": "ac_1",
+          "externalSensorId": "iot-salon-01",
+          "source": "manual"
+        }
+      ],
+      "labels": [
+        {
+          "id": "label_note",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "Quiet area",
+          "position": {
+            "x": 150,
+            "y": 330
+          },
+          "fontSize": 14,
+          "zoneId": "zone_salon"
+        },
+        {
+          "id": "dim_north",
+          "floorId": "floor_0",
+          "kind": "dimension",
+          "text": "12.20 m",
+          "position": {
+            "x": 345,
+            "y": 22
+          },
+          "a": {
+            "x": 40,
+            "y": 30
+          },
+          "b": {
+            "x": 650,
+            "y": 30
+          },
+          "valueMeters": 12.2
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "method": "manual",
+    "createdAt": "2026-11-01T09:00:00Z"
+  }
+}

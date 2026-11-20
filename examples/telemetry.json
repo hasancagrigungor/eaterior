@@ -1,0 +1,13 @@
+{
+  "format": "eateryplan-telemetry",
+  "schemaVersion": "1.0.0",
+  "planId": "bistro_001",
+  "sensorId": "sensor_1",
+  "timestamp": "2026-11-20T19:00:00Z",
+  "quality": "ok",
+  "readings": {
+    "temperatureC": 23.4,
+    "relativeHumidityPct": 48.2,
+    "co2Ppm": 720
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "eateryplan-render",
+  "version": "1.0.0",
+  "description": "Dependency-free reference renderer for Eatery Plan floor plans (web, React Native, Canvas)",
+  "type": "module",
+  "main": "src/eateryplan-render.mjs",
+  "exports": "./src/eateryplan-render.mjs",
+  "files": ["src"],
+  "license": "MIT",
+  "scripts": { "test": "node --test test/*.test.mjs" },
+  "keywords": ["floor-plan", "restaurant", "svg", "react-native"]
+}

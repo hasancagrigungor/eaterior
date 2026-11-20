@@ -1,0 +1,30 @@
+{
+  "format": "eateryplan-table-state",
+  "schemaVersion": "1.0.0",
+  "planId": "bistro_001",
+  "planRevision": 1,
+  "generatedAt": "2026-11-20T19:00:05Z",
+  "tables": [
+    {
+      "tableId": "table_1",
+      "status": "occupied",
+      "updatedAt": "2026-11-20T18:42:10Z",
+      "since": "2026-11-20T18:42:10Z",
+      "guestCount": 5,
+      "orderId": "ord-88213"
+    },
+    {
+      "tableId": "table_2",
+      "status": "reserved",
+      "updatedAt": "2026-11-20T17:00:00Z",
+      "reservationId": "rsv-1204",
+      "reservedFrom": "2026-11-20T20:00:00Z",
+      "reservedUntil": "2026-11-20T22:00:00Z"
+    },
+    {
+      "tableId": "table_3",
+      "status": "available",
+      "updatedAt": "2026-11-20T18:55:00Z"
+    }
+  ]
+}

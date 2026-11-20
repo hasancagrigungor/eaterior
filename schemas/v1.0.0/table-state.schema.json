@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.0.0/table-state.schema.json",
+  "title": "Eatery Plan Table State v1.0.0",
+  "description": "Live table status, kept separate from plan geometry and produced by the POS / order system. tableId refers to table.id in the plan. Status colours belong to the client theme.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "planId",
+    "generatedAt",
+    "tables"
+  ],
+  "properties": {
+    "format": {
+      "const": "eateryplan-table-state"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "planRevision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Plan revision this state was produced for. Clients reload the plan on mismatch."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tableState"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+      },
+      "additionalProperties": true,
+      "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+    }
+  },
+  "$defs": {
+    "tableState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tableId",
+        "status",
+        "updatedAt"
+      ],
+      "properties": {
+        "tableId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "occupied",
+            "reserved",
+            "blocked",
+            "cleaning",
+            "unknown"
+          ]
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "since": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the table entered this status."
+        },
+        "guestCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Open order reference in the POS."
+        },
+        "reservationId": {
+          "type": "string"
+        },
+        "reservedFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reservedUntil": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "mergedWithTableIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+          },
+          "description": "Tables currently joined with this one."
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "extensions": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+          },
+          "additionalProperties": true,
+          "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+        }
+      }
+    }
+  }
+}

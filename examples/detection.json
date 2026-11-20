@@ -1,0 +1,301 @@
+{
+  "image": {
+    "widthPx": 1600,
+    "heightPx": 992
+  },
+  "scale": {
+    "pixelsPerMeter": null,
+    "evidence": null
+  },
+  "rooms": [
+    {
+      "name": null,
+      "kind": "dining",
+      "polygon": [
+        {
+          "x": 64,
+          "y": 64
+        },
+        {
+          "x": 1040,
+          "y": 64
+        },
+        {
+          "x": 1040,
+          "y": 896
+        },
+        {
+          "x": 64,
+          "y": 896
+        }
+      ],
+      "confidence": 0.9
+    },
+    {
+      "name": "Kitchen",
+      "kind": "kitchen",
+      "polygon": [
+        {
+          "x": 1072,
+          "y": 64
+        },
+        {
+          "x": 1536,
+          "y": 64
+        },
+        {
+          "x": 1536,
+          "y": 500
+        },
+        {
+          "x": 1072,
+          "y": 500
+        }
+      ],
+      "confidence": 0.85
+    },
+    {
+      "name": null,
+      "kind": "restroom",
+      "polygon": [
+        {
+          "x": 1072,
+          "y": 530
+        },
+        {
+          "x": 1536,
+          "y": 530
+        },
+        {
+          "x": 1536,
+          "y": 896
+        },
+        {
+          "x": 1072,
+          "y": 896
+        }
+      ],
+      "confidence": 0.55
+    }
+  ],
+  "walls": [
+    {
+      "x1": 62,
+      "y1": 63,
+      "x2": 1541,
+      "y2": 66,
+      "thicknessPx": 12,
+      "kind": "external",
+      "confidence": 0.95
+    },
+    {
+      "x1": 1539,
+      "y1": 61,
+      "x2": 1537,
+      "y2": 899,
+      "thicknessPx": 12,
+      "kind": "external",
+      "confidence": 0.95
+    },
+    {
+      "x1": 1540,
+      "y1": 897,
+      "x2": 66,
+      "y2": 894,
+      "thicknessPx": 12,
+      "kind": "external",
+      "confidence": 0.93
+    },
+    {
+      "x1": 63,
+      "y1": 898,
+      "x2": 61,
+      "y2": 60,
+      "thicknessPx": 12,
+      "kind": "external",
+      "confidence": 0.94
+    },
+    {
+      "x1": 1056,
+      "y1": 70,
+      "x2": 1058,
+      "y2": 890,
+      "thicknessPx": 8,
+      "kind": "partition",
+      "confidence": 0.8
+    },
+    {
+      "x1": 1060,
+      "y1": 515,
+      "x2": 1535,
+      "y2": 517,
+      "thicknessPx": 8,
+      "kind": "partition",
+      "confidence": 0.7
+    }
+  ],
+  "openings": [
+    {
+      "kind": "door",
+      "x": 550,
+      "y": 66,
+      "widthPx": 130,
+      "swing": "right",
+      "confidence": 0.9
+    },
+    {
+      "kind": "door",
+      "x": 1057,
+      "y": 300,
+      "widthPx": 110,
+      "swing": "left",
+      "confidence": 0.75
+    },
+    {
+      "kind": "door",
+      "x": 1300,
+      "y": 516,
+      "widthPx": 100,
+      "swing": null,
+      "confidence": 0.5
+    },
+    {
+      "kind": "window",
+      "x": 62,
+      "y": 480,
+      "widthPx": 200,
+      "swing": null,
+      "confidence": 0.8
+    }
+  ],
+  "tables": [
+    {
+      "label": "1",
+      "shape": "round",
+      "cx": 250,
+      "cy": 250,
+      "width": 110,
+      "height": 106,
+      "rotationDeg": 0,
+      "seats": 4,
+      "kind": null,
+      "confidence": 0.92
+    },
+    {
+      "label": "2",
+      "shape": "round",
+      "cx": 500,
+      "cy": 250,
+      "width": 108,
+      "height": 110,
+      "rotationDeg": 0,
+      "seats": 4,
+      "kind": null,
+      "confidence": 0.9
+    },
+    {
+      "label": "3",
+      "shape": "rect",
+      "cx": 800,
+      "cy": 260,
+      "width": 180,
+      "height": 100,
+      "rotationDeg": 0,
+      "seats": 6,
+      "kind": null,
+      "confidence": 0.88
+    },
+    {
+      "label": "4",
+      "shape": "rect",
+      "cx": 300,
+      "cy": 560,
+      "width": 120,
+      "height": 120,
+      "rotationDeg": 45,
+      "seats": null,
+      "kind": null,
+      "confidence": 0.6
+    },
+    {
+      "label": "4",
+      "shape": "oval",
+      "cx": 700,
+      "cy": 600,
+      "width": 200,
+      "height": 110,
+      "rotationDeg": 0,
+      "seats": 8,
+      "kind": "communal",
+      "confidence": 0.7
+    }
+  ],
+  "fixtures": [
+    {
+      "kind": "bar_counter",
+      "shape": "rect",
+      "cx": 500,
+      "cy": 820,
+      "width": 600,
+      "height": 70,
+      "rotationDeg": 0,
+      "name": "Bar",
+      "confidence": 0.85
+    },
+    {
+      "kind": "stove",
+      "shape": "rect",
+      "cx": 1300,
+      "cy": 120,
+      "width": 300,
+      "height": 70,
+      "rotationDeg": 0,
+      "name": null,
+      "confidence": 0.7
+    }
+  ],
+  "climateDevices": [
+    {
+      "kind": "air_conditioner",
+      "cx": 700,
+      "cy": 80,
+      "width": 140,
+      "height": 24,
+      "rotationDeg": 0,
+      "mount": "wall",
+      "confidence": 0.65
+    }
+  ],
+  "labels": [
+    {
+      "text": "Dining",
+      "x": 200,
+      "y": 120,
+      "dimension": null,
+      "confidence": 0.9
+    },
+    {
+      "text": "WC",
+      "x": 1300,
+      "y": 720,
+      "dimension": null,
+      "confidence": 0.8
+    },
+    {
+      "text": "14.80 m",
+      "x": 800,
+      "y": 40,
+      "dimension": {
+        "x1": 62,
+        "y1": 40,
+        "x2": 1541,
+        "y2": 40,
+        "valueMeters": 14.8
+      },
+      "confidence": 0.85
+    }
+  ],
+  "notes": [
+    "Restroom boundary is faint in the drawing."
+  ]
+}

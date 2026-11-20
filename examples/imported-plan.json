@@ -1,0 +1,433 @@
+{
+  "format": "eateryplan",
+  "schemaVersion": "1.0.0",
+  "planId": "imported_001",
+  "name": "Imported sketch",
+  "revision": 1,
+  "createdAt": "2026-11-20T19:48:32Z",
+  "updatedAt": "2026-11-20T19:48:32Z",
+  "assets": [],
+  "floors": [
+    {
+      "id": "floor_0",
+      "name": "Ground floor",
+      "level": 0,
+      "coordinateSpace": {
+        "unit": "unit",
+        "origin": "top-left",
+        "xAxis": "right",
+        "yAxis": "down",
+        "width": 1000.0,
+        "height": 620.0,
+        "realWorldScale": {
+          "metersPerUnit": 0.016011,
+          "source": "dimension_label"
+        }
+      },
+      "zones": [
+        {
+          "id": "zone_1",
+          "floorId": "floor_0",
+          "name": "Dining",
+          "kind": "dining",
+          "shape": {
+            "kind": "polygon",
+            "points": [
+              {
+                "x": 40.0,
+                "y": 40.0
+              },
+              {
+                "x": 650.0,
+                "y": 40.0
+              },
+              {
+                "x": 650.0,
+                "y": 560.0
+              },
+              {
+                "x": 40.0,
+                "y": 560.0
+              }
+            ]
+          },
+          "source": "ai",
+          "confidence": 0.9
+        },
+        {
+          "id": "zone_2",
+          "floorId": "floor_0",
+          "name": "Kitchen",
+          "kind": "kitchen",
+          "shape": {
+            "kind": "polygon",
+            "points": [
+              {
+                "x": 670.0,
+                "y": 40.0
+              },
+              {
+                "x": 960.0,
+                "y": 40.0
+              },
+              {
+                "x": 960.0,
+                "y": 312.5
+              },
+              {
+                "x": 670.0,
+                "y": 312.5
+              }
+            ]
+          },
+          "source": "ai",
+          "confidence": 0.85
+        },
+        {
+          "id": "zone_3",
+          "floorId": "floor_0",
+          "name": "WC",
+          "kind": "restroom",
+          "shape": {
+            "kind": "polygon",
+            "points": [
+              {
+                "x": 670.0,
+                "y": 331.25
+              },
+              {
+                "x": 960.0,
+                "y": 331.25
+              },
+              {
+                "x": 960.0,
+                "y": 560.0
+              },
+              {
+                "x": 670.0,
+                "y": 560.0
+              }
+            ]
+          },
+          "source": "ai",
+          "confidence": 0.55,
+          "needsReview": true
+        }
+      ],
+      "walls": [
+        {
+          "id": "wall_1",
+          "floorId": "floor_0",
+          "a": {
+            "x": 39.38,
+            "y": 40.0
+          },
+          "b": {
+            "x": 961.5,
+            "y": 40.0
+          },
+          "thickness": 7.5,
+          "kind": "external",
+          "source": "ai",
+          "confidence": 0.95
+        },
+        {
+          "id": "wall_2",
+          "floorId": "floor_0",
+          "a": {
+            "x": 961.5,
+            "y": 40.0
+          },
+          "b": {
+            "x": 961.5,
+            "y": 559.75
+          },
+          "thickness": 7.5,
+          "kind": "external",
+          "source": "ai",
+          "confidence": 0.95
+        },
+        {
+          "id": "wall_3",
+          "floorId": "floor_0",
+          "a": {
+            "x": 961.5,
+            "y": 559.75
+          },
+          "b": {
+            "x": 39.38,
+            "y": 559.75
+          },
+          "thickness": 7.5,
+          "kind": "external",
+          "source": "ai",
+          "confidence": 0.93
+        },
+        {
+          "id": "wall_4",
+          "floorId": "floor_0",
+          "a": {
+            "x": 39.38,
+            "y": 559.75
+          },
+          "b": {
+            "x": 39.38,
+            "y": 40.0
+          },
+          "thickness": 7.5,
+          "kind": "external",
+          "source": "ai",
+          "confidence": 0.94
+        },
+        {
+          "id": "wall_5",
+          "floorId": "floor_0",
+          "a": {
+            "x": 661.25,
+            "y": 40.0
+          },
+          "b": {
+            "x": 661.25,
+            "y": 559.75
+          },
+          "thickness": 5.0,
+          "kind": "partition",
+          "source": "ai",
+          "confidence": 0.8
+        },
+        {
+          "id": "wall_6",
+          "floorId": "floor_0",
+          "a": {
+            "x": 661.25,
+            "y": 322.5
+          },
+          "b": {
+            "x": 961.5,
+            "y": 322.5
+          },
+          "thickness": 5.0,
+          "kind": "partition",
+          "source": "ai",
+          "confidence": 0.7
+        }
+      ],
+      "openings": [
+        {
+          "id": "door_1",
+          "floorId": "floor_0",
+          "wallId": "wall_1",
+          "kind": "door",
+          "position": 0.3301,
+          "width": 81.25,
+          "source": "ai",
+          "confidence": 0.9,
+          "swing": "right"
+        },
+        {
+          "id": "door_2",
+          "floorId": "floor_0",
+          "wallId": "wall_5",
+          "kind": "door",
+          "position": 0.2838,
+          "width": 68.75,
+          "source": "ai",
+          "confidence": 0.75,
+          "swing": "left"
+        },
+        {
+          "id": "door_3",
+          "floorId": "floor_0",
+          "wallId": "wall_6",
+          "kind": "door",
+          "position": 0.5037,
+          "width": 62.5,
+          "source": "ai",
+          "confidence": 0.5,
+          "needsReview": true
+        },
+        {
+          "id": "window_1",
+          "floorId": "floor_0",
+          "wallId": "wall_4",
+          "kind": "window",
+          "position": 0.4998,
+          "width": 125.0,
+          "source": "ai",
+          "confidence": 0.8
+        }
+      ],
+      "tables": [
+        {
+          "id": "table_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "number": "1",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 156.25,
+            "cy": 156.25,
+            "rx": 33.75,
+            "ry": 33.75
+          },
+          "seats": 4,
+          "source": "ai",
+          "confidence": 0.92
+        },
+        {
+          "id": "table_2",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "number": "2",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 312.5,
+            "cy": 156.25,
+            "rx": 34.06,
+            "ry": 34.06
+          },
+          "seats": 4,
+          "source": "ai",
+          "confidence": 0.9
+        },
+        {
+          "id": "table_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "number": "3",
+          "shape": {
+            "kind": "rect",
+            "x": 443.75,
+            "y": 131.25,
+            "width": 112.5,
+            "height": 62.5
+          },
+          "seats": 6,
+          "source": "ai",
+          "confidence": 0.88
+        },
+        {
+          "id": "table_4",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "number": "4",
+          "shape": {
+            "kind": "rect",
+            "x": 150.0,
+            "y": 312.5,
+            "width": 75.0,
+            "height": 75.0,
+            "rotationDeg": 45
+          },
+          "seats": 6,
+          "source": "ai",
+          "confidence": 0.6,
+          "needsReview": true
+        },
+        {
+          "id": "table_5",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "number": "T5",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 437.5,
+            "cy": 375.0,
+            "rx": 62.5,
+            "ry": 34.38
+          },
+          "seats": 8,
+          "source": "ai",
+          "confidence": 0.7,
+          "kind": "communal"
+        }
+      ],
+      "fixtures": [
+        {
+          "id": "bar_counter_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "kind": "bar_counter",
+          "shape": {
+            "kind": "rect",
+            "x": 125.0,
+            "y": 490.62,
+            "width": 375.0,
+            "height": 43.75
+          },
+          "source": "ai",
+          "confidence": 0.85,
+          "name": "Bar"
+        },
+        {
+          "id": "stove_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_2",
+          "kind": "stove",
+          "shape": {
+            "kind": "rect",
+            "x": 718.75,
+            "y": 53.12,
+            "width": 187.5,
+            "height": 43.75
+          },
+          "source": "ai",
+          "confidence": 0.7
+        }
+      ],
+      "climateDevices": [
+        {
+          "id": "climate_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_1",
+          "kind": "air_conditioner",
+          "shape": {
+            "kind": "rect",
+            "x": 393.75,
+            "y": 42.5,
+            "width": 87.5,
+            "height": 15.0
+          },
+          "source": "ai",
+          "confidence": 0.65,
+          "mount": "wall",
+          "coveredZoneIds": [
+            "zone_1"
+          ]
+        }
+      ],
+      "environmentalSensors": [],
+      "labels": [
+        {
+          "id": "label_1",
+          "floorId": "floor_0",
+          "kind": "dimension",
+          "text": "14.80 m",
+          "position": {
+            "x": 500.94,
+            "y": 13.0
+          },
+          "source": "ai",
+          "confidence": 0.85,
+          "a": {
+            "x": 38.75,
+            "y": 25.0
+          },
+          "b": {
+            "x": 963.12,
+            "y": 25.0
+          },
+          "valueMeters": 14.8
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "method": "image_import",
+    "createdAt": "2026-11-20T19:48:32Z",
+    "tool": "example-detector/1.0",
+    "notes": [
+      "Restroom boundary is faint in the drawing."
+    ]
+  }
+}

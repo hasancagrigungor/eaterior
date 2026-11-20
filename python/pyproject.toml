@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eateryplan"
+version = "1.0.0"
+description = "Reference validator, migrator and image-detection importer for the Eatery Plan floor-plan format"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["jsonschema>=4.18"]
+keywords = ["floor-plan", "restaurant", "cafe", "json-schema", "pos"]
+
+[project.scripts]
+eateryplan = "eateryplan.cli:main"
+
+[tool.setuptools]
+packages = ["eateryplan"]
+
+[tool.setuptools.package-data]
+eateryplan = ["schemas/*.json"]

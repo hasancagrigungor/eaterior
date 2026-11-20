@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eatery Plan Viewer</title>
+<style>
+  :root { --bg: #f6f7f9; --panel: #ffffff; --text: #1f2328; --muted: #6b7280; --line: #e5e7eb; --accent: #0f766e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111418; --panel: #1a1f25; --text: #e6e8eb; --muted: #9aa3ad; --line: #2b323a; --accent: #2dd4bf; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  h1 { font-size: 16px; margin: 0 12px 0 0; }
+  label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+  select, button { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
+  .stage { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+  .stage svg { width: 100%; height: auto; display: block; }
+  .stage [data-ref-type="table"] { cursor: pointer; }
+  aside { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; align-self: start; }
+  aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 8px; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 16px; }
+  dt { color: var(--muted); } dd { margin: 0; word-break: break-word; }
+  .legend { display: grid; grid-template-columns: 14px 1fr; gap: 6px 8px; align-items: center; }
+  .sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid #0002; }
+  .err { color: #b91c1c; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Eatery Plan viewer</h1>
+  <label>Plan
+    <select id="plan">
+      <option value="../examples/plan.json">Sample bistro</option>
+      <option value="../examples/imported-plan.json">Imported sketch</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="live" checked> Live table state</label>
+  <label><input type="checkbox" id="chairs" checked> Chairs</label>
+  <label><input type="checkbox" id="review" checked> Highlight “needs review”</label>
+  <label><input type="file" id="file" accept="application/json,.json" hidden><button id="open" type="button">Open JSON…</button></label>
+</header>
+<main>
+  <div class="stage" id="stage" aria-live="polite"></div>
+  <aside>
+    <h2>Selection</h2>
+    <dl id="info"><dt>Tip</dt><dd>Click a table.</dd></dl>
+    <h2>Table status</h2>
+    <div class="legend" id="legend"></div>
+  </aside>
+</main>
+<script type="module">
+  import { buildScene, toSvg, DEFAULT_THEME } from "../js/src/eateryplan-render.mjs";
+
+  const $ = (id) => document.getElementById(id);
+  let plan = null, state = null, telemetry = null;
+
+  const legend = $("legend");
+  for (const [k, c] of Object.entries(DEFAULT_THEME.status)) {
+    legend.insertAdjacentHTML("beforeend", `<span class="sw" style="background:${c}"></span><span>${k}</span>`);
+  }
+
+  async function getJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); }
+
+  function render() {
+    if (!plan) return;
+    const live = $("live").checked && state && state.planId === plan.planId;
+    const scene = buildScene(plan, {
+      tableStates: live ? state : null,
+      readings: live && telemetry ? { [telemetry.sensorId]: telemetry } : null,
+      showChairs: $("chairs").checked,
+      highlightReview: $("review").checked,
+      showBackground: false,
+    });
+    $("stage").innerHTML = toSvg(scene, { title: plan.name });
+  }
+
+  function show(type, id) {
+    const floor = plan.floors[0];
+    const list = { table: floor.tables, zone: floor.zones, climateDevice: floor.climateDevices, sensor: floor.environmentalSensors }[type] || [];
+    const o = list.find((x) => x.id === id);
+    if (!o) return;
+    const st = state?.planId === plan.planId ? state.tables.find((t) => t.tableId === id) : null;
+    const zone = floor.zones.find((z) => z.id === o.zoneId);
+    const rows = { id: o.id, number: o.number, name: o.name, kind: o.kind, seats: o.seats, zone: zone ? zone.name : o.zoneId,
+      status: st?.status, guests: st?.guestCount, order: st?.orderId, confidence: o.confidence,
+      "needs review": o.needsReview ? "yes" : undefined };
+    $("info").innerHTML = Object.entries(rows).filter(([, v]) => v != null)
+      .map(([k, v]) => `<dt>${k}</dt><dd>${String(v).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</dd>`).join("");
+  }
+
+  $("stage").addEventListener("click", (e) => {
+    const el = e.target.closest("[data-ref-id]");
+    if (el) show(el.dataset.refType, el.dataset.refId);
+  });
+
+  async function loadPlan(url) {
+    try { plan = await getJson(url); render(); }
+    catch (err) { $("stage").innerHTML = `<p class="err">Could not load ${url}. Serve the repository over HTTP (e.g. <code>python -m http.server</code>) and open /demo/.</p>`; }
+  }
+
+  $("plan").addEventListener("change", (e) => loadPlan(e.target.value));
+  for (const id of ["live", "chairs", "review"]) $(id).addEventListener("change", render);
+  $("open").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    try { plan = JSON.parse(await f.text()); render(); }
+    catch (err) { $("stage").innerHTML = `<p class="err">Not a valid JSON file.</p>`; }
+  });
+
+  try { [state, telemetry] = await Promise.all([getJson("../examples/table-state.json"), getJson("../examples/telemetry.json")]); } catch {}
+  loadPlan($("plan").value);
+</script>
+</body>
+</html>
