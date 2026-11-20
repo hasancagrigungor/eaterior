@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 — 2026-11-20
+
+Tooling only; the document format stays at 1.0.0.
+
+- `js/bin/render.mjs`: render a plan to SVG or HTML from the command line.
+- The Python package ships its schemas, so `pip install` from GitHub works without cloning.
+
 ## 1.0.0 — 2026-11-20
 
 First public release as **Eatery Plan** (previously developed privately as CafePlan 1.0.0 – 1.1.1).

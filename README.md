@@ -68,6 +68,12 @@ element.innerHTML = toSvg(scene);          // web
 // Canvas:       scene.items.forEach(i => i.type === "path" && ctx.fill(new Path2D(i.d)))
 ```
 
+From the command line:
+
+```bash
+node js/bin/render.mjs examples/plan.json plan.html --state examples/table-state.json
+```
+
 Open the viewer locally:
 
 ```bash

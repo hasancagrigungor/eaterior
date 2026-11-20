@@ -80,3 +80,15 @@ test("needsReview objects get a highlight", () => {
   const sc = buildScene(load("imported-plan.json"));
   assert.ok(sc.items.some((i) => i.layer === "review"));
 });
+
+test("render CLI writes an SVG", async () => {
+  const { execFileSync } = await import("node:child_process");
+  const { mkdtempSync, readFileSync: rf } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const out = join(mkdtempSync(join(tmpdir(), "ep-")), "plan.svg");
+  const cli = new URL("../bin/render.mjs", import.meta.url).pathname;
+  const plan = new URL("../../examples/plan.json", import.meta.url).pathname;
+  execFileSync(process.execPath, [cli, plan, out]);
+  assert.match(rf(out, "utf8"), /^<svg /);
+});
