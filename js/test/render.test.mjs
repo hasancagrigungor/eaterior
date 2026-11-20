@@ -86,9 +86,10 @@ test("render CLI writes an SVG", async () => {
   const { mkdtempSync, readFileSync: rf } = await import("node:fs");
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
   const out = join(mkdtempSync(join(tmpdir(), "ep-")), "plan.svg");
-  const cli = new URL("../bin/render.mjs", import.meta.url).pathname;
-  const plan = new URL("../../examples/plan.json", import.meta.url).pathname;
+  const cli = fileURLToPath(new URL("../bin/render.mjs", import.meta.url));
+  const plan = fileURLToPath(new URL("../../examples/plan.json", import.meta.url));
   execFileSync(process.execPath, [cli, plan, out]);
   assert.match(rf(out, "utf8"), /^<svg /);
 });
