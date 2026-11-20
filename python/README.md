@@ -7,5 +7,11 @@ pip install -e python
 eateryplan validate examples/plan.json
 ```
 
-When installed outside the repository, copy `schemas/v1.0.0/*.json` into `eateryplan/schemas/`
-or set `EATERYPLAN_SCHEMA_DIR`.
+Install without cloning:
+
+```bash
+pip install "git+https://github.com/hasancagrigungor/eatery-plan#subdirectory=python"
+```
+
+The schemas ship inside the package (`eateryplan/schemas/`, kept identical to `schemas/v1.0.0/` by a test).
+Set `EATERYPLAN_SCHEMA_DIR` to use another copy.

@@ -257,3 +257,13 @@ class DetectionSchemaIsStrictFriendly(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PackagedSchemas(unittest.TestCase):
+    def test_packaged_schemas_match_canonical(self):
+        canon = ROOT / "schemas" / "v1.0.0"
+        packaged = ROOT / "python" / "eateryplan" / "schemas"
+        names = sorted(p.name for p in canon.glob("*.json"))
+        self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))
+        for n in names:
+            self.assertEqual((canon / n).read_bytes(), (packaged / n).read_bytes(), n)
