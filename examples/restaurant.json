@@ -1,6 +1,6 @@
 {
-  "format": "eateryplan",
-  "schemaVersion": "1.7.0",
+  "format": "eaterior",
+  "schemaVersion": "1.8.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,

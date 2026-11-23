@@ -1,4 +1,4 @@
-"""Command line interface: `eateryplan <command> ...` or `python -m eateryplan ...`."""
+"""Command line interface: `eaterior <command> ...` or `python -m eaterior ...`."""
 from __future__ import annotations
 
 import argparse
@@ -25,7 +25,7 @@ def _emit(rep: v.Report, as_json: bool) -> int:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="eateryplan", description="Eatery Plan tools")
+    ap = argparse.ArgumentParser(prog="eaterior", description="Eaterior tools")
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("validate", help="validate a plan (schema + semantics)")
     p.add_argument("plan"); p.add_argument("--json", action="store_true")

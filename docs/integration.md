@@ -1,6 +1,6 @@
-# Integrating Eatery Plan with other systems
+# Integrating Eaterior with other systems
 
-Eatery Plan is meant to sit between a venue's physical layout and the systems that run it: POS / order management,
+Eaterior is meant to sit between a venue's physical layout and the systems that run it: POS / order management,
 reservations, kitchen equipment, building management (HVAC, lighting), IoT sensors and analytics. The plan stays the
 single description of *where things are*; every other system keeps its own data and talks to the plan through ids.
 Together with the live documents this gives a **digital twin** of the venue.
@@ -43,7 +43,7 @@ an external system can publish state without knowing plan ids:
 
 ```json
 {
-  "format": "eateryplan-table-state", "schemaVersion": "1.7.0", "planId": "restaurant_001",
+  "format": "eaterior-table-state", "schemaVersion": "1.8.0", "planId": "restaurant_001",
   "source": "pos", "generatedAt": "2026-11-23T19:30:00Z",
   "tables": [
     { "externalRef": { "system": "pos", "id": "T-A1" }, "status": "occupied", "guestCount": 2, "orderId": "ord-88213",
@@ -54,7 +54,7 @@ an external system can publish state without knowing plan ids:
 
 ```json
 {
-  "format": "eateryplan-object-state", "schemaVersion": "1.7.0", "planId": "restaurant_001",
+  "format": "eaterior-object-state", "schemaVersion": "1.8.0", "planId": "restaurant_001",
   "source": "bms", "generatedAt": "2026-11-23T20:00:00Z",
   "objects": [
     { "externalRef": { "system": "bms", "id": "heater-3" }, "power": "on", "level": 0.8 },
@@ -70,14 +70,14 @@ an external system can publish state without knowing plan ids:
 | `object-state` | `active`, `open` (0–1), `power`, `level` (0–1), `mode` | BMS, kitchen, staff app |
 | `environment-telemetry` | sensor readings in fixed units | IoT platform |
 
-`eateryplan check-state` and `check-objects` resolve external references and report unknown ones (`missing_ref`) or an
+`eaterior check-state` and `check-objects` resolve external references and report unknown ones (`missing_ref`) or an
 id and a reference that point to different objects (`ref_conflict`).
 
 ## 3. Rendering live state
 
 ```js
-import { toSvg } from "eateryplan-render";
-import { buildIllustratedScene } from "eateryplan-render/illustrated";
+import { toSvg } from "eaterior-render";
+import { buildIllustratedScene } from "eaterior-render/illustrated";
 
 const scene = buildIllustratedScene(plan, { tableStates, objectStates, readings });
 element.innerHTML = toSvg(scene, { animate: true });
@@ -96,5 +96,5 @@ element.innerHTML = toSvg(scene, { animate: true });
 - Keep plan ids stable; renumbering tables is a change of `number`, not of `id`.
 - Bump `revision` on every plan change and send `planRevision` with live documents; clients reload the plan on mismatch.
 - Put integration-specific data in `extensions` with a namespace (`acme.priceTier`), never in new top-level fields.
-- Validate every document at the boundary (`eateryplan validate`, `check-state`, `check-objects`, `check-telemetry`).
+- Validate every document at the boundary (`eaterior validate`, `check-state`, `check-objects`, `check-telemetry`).
 - External ids are lookup keys, never credentials.

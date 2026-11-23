@@ -1,30 +1,30 @@
-# eateryplan
+# eaterior
 
-Validator, migrator and image-detection importer for **[Eatery Plan](https://github.com/hasancagrigungor/eatery-plan)**,
+Validator, migrator and image-detection importer for **[Eaterior](https://github.com/hasancagrigungor/eaterior)**,
 an open JSON format for restaurant, cafe and bar floor plans: zones, walls, doors, tables, furniture, HVAC equipment and
 sensors, plus live table and device state for a digital twin of the venue.
 
-![Garden Bistro](https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/docs/images/restaurant-illustrated.png)
+![Garden Bistro](https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/docs/images/restaurant-illustrated.png)
 
 ## Install
 
 ```bash
-pip install eateryplan
+pip install eaterior
 ```
 
 The JSON Schemas ship inside the package. The canonical copies, the specification and examples live on
-[GitHub](https://github.com/hasancagrigungor/eatery-plan).
+[GitHub](https://github.com/hasancagrigungor/eaterior).
 
 ## Command line
 
 ```bash
-eateryplan validate plan.json                    # schema + references + geometry
-eateryplan validate plan.json --json             # machine-readable issues
-eateryplan check-state plan.json table-state.json
-eateryplan check-objects plan.json object-state.json
-eateryplan check-telemetry plan.json telemetry.json
-eateryplan import detection.json plan.json --image drawing.png --name "My cafe"
-eateryplan migrate old.json new.json             # older Eatery Plan or legacy CafePlan files
+eaterior validate plan.json                    # schema + references + geometry
+eaterior validate plan.json --json             # machine-readable issues
+eaterior check-state plan.json table-state.json
+eaterior check-objects plan.json object-state.json
+eaterior check-telemetry plan.json telemetry.json
+eaterior import detection.json plan.json --image drawing.png --name "My cafe"
+eaterior migrate old.json new.json             # older Eaterior or legacy CafePlan files
 ```
 
 Exit code `0` = valid (warnings allowed), `1` = errors.
@@ -33,7 +33,7 @@ Exit code `0` = valid (warnings allowed), `1` = errors.
 
 ```python
 import json
-from eateryplan import validate_plan, check_object_state, detection_to_plan
+from eaterior import validate_plan, check_object_state, detection_to_plan
 
 plan = json.load(open("plan.json"))
 report = validate_plan(plan)
@@ -53,9 +53,9 @@ if not report.ok:
 
 ## Links
 
-- [Specification](https://github.com/hasancagrigungor/eatery-plan/blob/main/docs/specification.md)
-- [Integration with POS, reservations, kitchen, BMS and IoT systems](https://github.com/hasancagrigungor/eatery-plan/blob/main/docs/integration.md)
-- [Converting drawings](https://github.com/hasancagrigungor/eatery-plan/blob/main/docs/image-import.md)
-- UI library for web and React Native: [`eateryplan` on npm](https://www.npmjs.com/package/eateryplan)
+- [Specification](https://github.com/hasancagrigungor/eaterior/blob/main/docs/specification.md)
+- [Integration with POS, reservations, kitchen, BMS and IoT systems](https://github.com/hasancagrigungor/eaterior/blob/main/docs/integration.md)
+- [Converting drawings](https://github.com/hasancagrigungor/eaterior/blob/main/docs/image-import.md)
+- UI library for web and React Native: [`eaterior` on npm](https://www.npmjs.com/package/eaterior)
 
 MIT licensed.

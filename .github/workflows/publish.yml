@@ -1,8 +1,8 @@
 name: Publish packages
 
 # Runs when a GitHub release is published (or by hand). Uses trusted publishing (OIDC), so no tokens are stored:
-#  - PyPI: add a trusted publisher for project "eateryplan" -> this repository, workflow "publish.yml", environment "pypi"
-#  - npm:  add a trusted publisher for package "eateryplan" -> this repository, workflow "publish.yml"
+#  - PyPI: add a trusted publisher for project "eaterior" -> this repository, workflow "publish.yml", environment "pypi"
+#  - npm:  add a trusted publisher for package "eaterior" -> this repository, workflow "publish.yml"
 on:
   release:
     types: [published]
@@ -45,4 +45,4 @@ jobs:
         working-directory: js
         run: |
           V=$(node -p "require('./package.json').version")
-          if npm view "eateryplan@$V" version >/dev/null 2>&1; then echo "eateryplan@$V already published"; else npm publish --provenance --access public; fi
+          if npm view "eaterior@$V" version >/dev/null 2>&1; then echo "eaterior@$V already published"; else npm publish --provenance --access public; fi

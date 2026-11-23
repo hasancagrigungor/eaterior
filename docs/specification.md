@@ -1,8 +1,8 @@
-# Eatery Plan 1.7.0 — Specification
+# Eaterior 1.8.0 — Specification
 
-Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
+Eaterior describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
-[`schemas/v1.1.0/eateryplan.schema.json`](../schemas/v1.1.0/eateryplan.schema.json) (JSON Schema Draft 2020-12)
+[`schemas/v1.1.0/eaterior.schema.json`](../schemas/v1.1.0/eaterior.schema.json) (JSON Schema Draft 2020-12)
 plus the semantic rules in this document.
 
 The key words MUST, SHOULD and MAY are used as in RFC 2119.
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.7.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eaterior", schemaVersion: "1.8.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -145,7 +145,7 @@ cassette.
 
 ## 6. Semantic rules
 
-JSON Schema cannot express these; [`python/eateryplan`](../python) implements them. A plan MUST pass them before
+JSON Schema cannot express these; [`python/eaterior`](../python) implements them. A plan MUST pass them before
 it is stored.
 
 **Errors**: duplicate ids (plan-wide), `floorId` different from the containing floor, references to missing
@@ -160,10 +160,10 @@ low confidence without `needsReview`, dimension labels disagreeing with the scal
 
 ## 7. Live data
 
-- **Table state** (`format: "eateryplan-table-state"`): one entry per table with `status`
+- **Table state** (`format: "eaterior-table-state"`): one entry per table with `status`
   (`available | occupied | reserved | blocked | cleaning | unknown`) and optional guest count, order and reservation
   references. Colours are defined by the client theme, never in the data.
-- **Telemetry** (`format: "eateryplan-telemetry"`): one reading per sensor and timestamp, in fixed units
+- **Telemetry** (`format: "eaterior-telemetry"`): one reading per sensor and timestamp, in fixed units
   (`temperatureC`, `relativeHumidityPct`, `co2Ppm`, `pm25UgM3`, `pm10UgM3`, `vocPpb`, `pressureHpa`, `noiseDbA`,
   `occupancyCount`, `illuminanceLux`). Readings MUST only contain metrics the sensor declares.
 
@@ -179,8 +179,8 @@ Every plan object is a component that can be switched on and off.
 
 - **Default** in the plan: optional `active` (default `true`) on zones, walls, openings, tables, fixtures, climate
   devices, sensors and labels — e.g. a terrace closed for the winter or a table taken out of service.
-- **Live** in an object-state document ([`object-state`](../schemas/v1.7.0/object-state.schema.json),
-  `format: "eateryplan-object-state"`): one entry per `objectId` with any of
+- **Live** in an object-state document ([`object-state`](../schemas/v1.8.0/object-state.schema.json),
+  `format: "eaterior-object-state"`): one entry per `objectId` with any of
   - `active`: `true` / `false`
   - `open`: `0` (closed) … `1` (fully open) — pergola louvers or retractable roofs, `glass_folding` / `glass_sliding`
     walls, doors and windows
@@ -188,7 +188,7 @@ Every plan object is a component that can be switched on and off.
     freezer, display case, TV, POS terminal); `level` 0–1 (heat, fan speed, flame); `mode` free-form
 
 Live values override the plan's defaults. Like table state, the object state never changes the plan or its revision.
-`eateryplan check-objects plan.json objects.json` checks references and that `open` / `power` are used only where they
+`eaterior check-objects plan.json objects.json` checks references and that `open` / `power` are used only where they
 apply.
 
 ## 8. Extensibility and versioning
@@ -196,6 +196,6 @@ apply.
 - Every object has `extensions`, a map whose keys MUST be namespaced (`vendor.field`, e.g. `acme.priceTier`).
   Clients MUST ignore unknown keys and SHOULD preserve them when saving.
 - **Patch** (1.0.x): descriptions, new optional fields only.
-- **Minor** (1.x.0): new object lists or enum values; documents are upgraded by `eateryplan migrate`.
+- **Minor** (1.x.0): new object lists or enum values; documents are upgraded by `eaterior migrate`.
 - **Major** (x.0.0): removals or changed meaning.
-- Legacy CafePlan 1.0.0 – 1.1.1 files are converted with `eateryplan migrate`.
+- Legacy CafePlan 1.0.0 – 1.1.1 files are converted with `eaterior migrate`.

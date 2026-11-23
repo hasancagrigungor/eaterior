@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Eatery Plan Viewer</title>
+<title>Eaterior Viewer</title>
 <style>
   :root { --bg: #f6f7f9; --panel: #ffffff; --text: #1f2328; --muted: #6b7280; --line: #e5e7eb; --accent: #0f766e; }
   @media (prefers-color-scheme: dark) {
@@ -35,7 +35,7 @@
 </head>
 <body>
 <header>
-  <h1>Eatery Plan viewer</h1>
+  <h1>Eaterior viewer</h1>
   <label>Plan
     <select id="plan">
       <option value="../examples/restaurant.json">Garden Bistro (restaurant)</option>
@@ -68,8 +68,8 @@
   </aside>
 </main>
 <script type="module">
-  import { buildScene, toSvg, DEFAULT_THEME, objectStateMap, resolveState } from "../js/src/eateryplan-render.mjs";
-  import { buildIllustratedScene, ILLUSTRATED_THEME } from "../js/src/eateryplan-illustrated.mjs";
+  import { buildScene, toSvg, DEFAULT_THEME, objectStateMap, resolveState } from "../js/src/eaterior-render.mjs";
+  import { buildIllustratedScene, ILLUSTRATED_THEME } from "../js/src/eaterior-illustrated.mjs";
 
   const $ = (id) => document.getElementById(id);
   let plan = null, telemetry = null;

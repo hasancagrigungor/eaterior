@@ -1,5 +1,5 @@
 {
-  "format": "eateryplan",
+  "format": "eaterior",
   "schemaVersion": "1.5.0",
   "planId": "showcase_001",
   "name": "Component gallery",
@@ -1668,7 +1668,7 @@
           "id": "label_43",
           "floorId": "floor_0",
           "kind": "text",
-          "text": "Eatery Plan — component gallery",
+          "text": "Eaterior — component gallery",
           "position": {
             "x": 500,
             "y": 16

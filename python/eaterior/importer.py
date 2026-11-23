@@ -1,4 +1,4 @@
-"""Convert an image detection (pixel coordinates) into an Eatery Plan document.
+"""Convert an image detection (pixel coordinates) into an Eaterior document.
 
 The detection can come from any source: a vision model asked to fill detection.schema.json,
 a classic CV pipeline, or a person tracing the image. This module does the deterministic part:
@@ -147,7 +147,7 @@ def detection_to_plan(det: dict, *, plan_id: str = "plan_1", name: str = "Import
     if mpu:
         floor["coordinateSpace"]["realWorldScale"] = {"metersPerUnit": round(mpu, 6), "source": scale_src}
 
-    plan = {"format": "eateryplan", "schemaVersion": SCHEMA_VERSION, "planId": plan_id, "name": name,
+    plan = {"format": "eaterior", "schemaVersion": SCHEMA_VERSION, "planId": plan_id, "name": name,
             "revision": 1, "createdAt": _now(), "updatedAt": _now(), "assets": [], "floors": [floor],
             "provenance": {"method": "image_import", "createdAt": _now()}}
     if locale:

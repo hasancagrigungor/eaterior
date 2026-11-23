@@ -10,7 +10,7 @@ Two themes ship with the reference renderer; both read the same plan:
 Everything in both themes is generated in code from the plan; no image files are used.
 
 Any client may draw a plan its own way, but plans should look the same everywhere. These rules are what
-[`js/src/eateryplan-render.mjs`](../js/src/eateryplan-render.mjs) implements; follow them when you write another
+[`js/src/eaterior-render.mjs`](../js/src/eaterior-render.mjs) implements; follow them when you write another
 renderer (Swift, Kotlin, Flutter, Canvas …).
 
 ## Viewport

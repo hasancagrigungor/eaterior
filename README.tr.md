@@ -1,10 +1,12 @@
-# Eatery Plan
+# Eaterior
 
 **Restoran, kafe ve bar kat planları için açık bir JSON formatı.** Masalar, bölgeler, duvarlar, kapılar,
 mobilyalar, iklimlendirme cihazları ve sensörler tek bir dosyada tutulur. Aynı plan web, iOS, Android ve
 masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya fotoğraftan da üretilebilir.
 
 [English](README.md)
+
+> Eski adı *Eatery Plan*. Eski `eateryplan` kimliğiyle yazılmış dosyalar geçerli kalır; `eaterior migrate` onları günceller.
 
 ## Temel fikir
 
@@ -27,21 +29,21 @@ masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya foto
 ## Kullanım
 
 ```bash
-pip install eateryplan
-npm install eateryplan
-eateryplan validate examples/plan.json
-eateryplan import examples/detection.json plan.json --image cizim.png --name "Kafem"
+pip install eaterior
+npm install eaterior
+eaterior validate examples/plan.json
+eaterior import examples/detection.json plan.json --image cizim.png --name "Kafem"
 ```
 
 ```js
-import { toSvg } from "./js/src/eateryplan-render.mjs";
-import { buildIllustratedScene } from "./js/src/eateryplan-illustrated.mjs";
+import { toSvg } from "./js/src/eaterior-render.mjs";
+import { buildIllustratedScene } from "./js/src/eaterior-illustrated.mjs";
 element.innerHTML = toSvg(buildIllustratedScene(plan, { tableStates }));
 ```
 
 ![Garden Bistro](docs/images/restaurant-illustrated.png)
 
-React Native için örnek bileşen: `examples/react-native/EateryPlanView.tsx`.
+React Native için örnek bileşen: `examples/react-native/EateriorView.tsx`.
 
 ## Belgeler
 

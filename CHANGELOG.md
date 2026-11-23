@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.8.0 — 2026-11-23
+
+- **Renamed to Eaterior** (formerly Eatery Plan). Format identifier `eaterior`; live documents use
+  `eaterior-table-state`, `eaterior-object-state` and `eaterior-telemetry`.
+- The old identifiers (`eateryplan`, `eateryplan-*`) remain valid when reading; the validator warns with
+  `legacy_format` and `eaterior migrate` rewrites plans to `eaterior` 1.8.0.
+- Packages: `pip install eaterior` (CLI `eaterior`), `npm install eaterior` (CLI `eaterior-render`).
+- Schemas move to `schemas/v1.8.0/eaterior.schema.json`; earlier versions are unchanged.
+
 ## 1.7.0 — 2026-11-23
 
 - Integration: `externalRefs` (`[{system, id, type?}]`) on the plan, floors and every object; unique per plan.
@@ -34,7 +43,7 @@
 ## 1.4.0 — 2026-11-23
 
 - Components: optional `active` default on every plan object; new object-state document (`object-state.schema.json`)
-  with live `active`, `open` (0–1) and `power` per object; `eateryplan check-objects`.
+  with live `active`, `open` (0–1) and `power` per object; `eaterior check-objects`.
 - Renderers: passive objects faded and hatched; louvered pergolas open/close, fabric roofs retract, folding/sliding glass
   panels stack when open; heaters and ACs show power state.
 - `groupByObject(scene)` for rendering each object as a component without changing draw order; React Native example
@@ -74,7 +83,7 @@ Format 1.1.0 (backwards compatible: every 1.0.0 document is valid).
 - `chairStyle` on tables: chair, armchair, stool, bench or booth, with colour and material.
 - New fixture kinds for restaurants: prep counter, armchair, bar stool, planter, tree, parasol, rug, hand sink, oven,
   freezer, dishwasher, coffee machine, display case, wine rack, shelf, host stand, TV, piano, urinal.
-- Illustrated theme (`js/src/eateryplan-illustrated.mjs`): floor textures, furniture symbols, shadows and live-status
+- Illustrated theme (`js/src/eaterior-illustrated.mjs`): floor textures, furniture symbols, shadows and live-status
   badges, all generated in code; `render.mjs --style illustrated`.
 - SVG output supports `defs` (patterns, gradients).
 - New example: `examples/restaurant.json` with live state.
@@ -88,7 +97,7 @@ Tooling only; the document format stays at 1.0.0.
 
 ## 1.0.0 — 2026-11-20
 
-First public release as **Eatery Plan** (previously developed privately as CafePlan 1.0.0 – 1.1.1).
+First public release as **Eaterior** (previously developed privately as CafePlan 1.0.0 – 1.1.1).
 
 - Plan schema: floors, zones, walls (straight and curved via `bulge`), openings, tables, fixtures,
   climate devices, environmental sensors, labels and dimension lines.

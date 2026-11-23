@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { buildScene, toSvg, shapeToPath, WallGeom } from "../src/eateryplan-render.mjs";
+import { buildScene, toSvg, shapeToPath, WallGeom } from "../src/eaterior-render.mjs";
 
 const load = (n) => JSON.parse(readFileSync(new URL(`../../examples/${n}`, import.meta.url), "utf8"));
 const plan = load("plan.json");

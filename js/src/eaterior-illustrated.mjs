@@ -1,5 +1,5 @@
 /**
- * Eatery Plan "illustrated" theme: a colourful, flat top-down drawing produced entirely in code.
+ * Eaterior "illustrated" theme: a colourful, flat top-down drawing produced entirely in code.
  *
  * The plan only says what things are (`kind`, `appearance.floor`, `appearance.material`, colours, `chairStyle`).
  * This module decides how they look: floor textures, furniture symbols, shadows and highlights.
@@ -8,7 +8,7 @@
  * `fill: "url(#id)"`. toSvg() renders it; react-native-svg supports the same Defs/Pattern/LinearGradient.
  */
 import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asMap, formatReadings,
-  objectStateMap, stateMap, resolveState, applyInactive } from "./eateryplan-render.mjs";
+  objectStateMap, stateMap, resolveState, applyInactive } from "./eaterior-render.mjs";
 
 export const ILLUSTRATED_LAYERS = ["background", "shadow", "zones", "fixtures", "walls", "openings", "chairs",
   "tables", "canopy", "climate", "badges", "sensors", "labels", "review"];
@@ -1203,7 +1203,7 @@ function drawClimate(dv, ctx) {
 
 // ------------------------------------------------------------------ scene
 /**
- * @param plan    Eatery Plan document
+ * @param plan    Eaterior document
  * @param options floorId, tableStates, readings, theme (partial), showZoneNames (default true),
  *                objectStates (object-state document: active / open / power),
  *                walls3d (default true), camera {x, y} (default: floor centre), wallDepth (default 1),

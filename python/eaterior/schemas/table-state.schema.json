@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.7.0/object-state.schema.json",
-  "title": "Eatery Plan Object State v1.7.0",
-  "description": "Live state of any plan object (component): active/passive, how far it is open, device power. Kept outside the plan like table state; objectId refers to an id in the plan. Values here override the plan's defaults.",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.8.0/table-state.schema.json",
+  "title": "Eaterior Table State v1.8.0",
+  "description": "Live table status, kept separate from plan geometry and produced by the POS / order system. tableId refers to table.id in the plan. Status colours belong to the client theme.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,18 +10,28 @@
     "schemaVersion",
     "planId",
     "generatedAt",
-    "objects"
+    "tables"
   ],
   "properties": {
     "format": {
-      "const": "eateryplan-object-state"
+      "enum": [
+        "eaterior-table-state",
+        "eateryplan-table-state"
+      ],
+      "description": "\"eaterior-table-state\" is the identifier written since 1.8.0. \"eateryplan-table-state\" is the pre-1.8 name of the same format and stays accepted when reading."
     },
     "schemaVersion": {
       "enum": [
+        "1.0.0",
+        "1.1.0",
+        "1.1.1",
+        "1.2.0",
+        "1.3.0",
         "1.4.0",
         "1.5.0",
         "1.6.0",
-        "1.7.0"
+        "1.7.0",
+        "1.8.0"
       ]
     },
     "planId": {
@@ -30,16 +40,17 @@
     },
     "planRevision": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "description": "Plan revision this state was produced for. Clients reload the plan on mismatch."
     },
     "generatedAt": {
       "type": "string",
       "format": "date-time"
     },
-    "objects": {
+    "tables": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/objectState"
+        "$ref": "#/$defs/tableState"
       }
     },
     "extensions": {
@@ -57,39 +68,68 @@
     }
   },
   "$defs": {
-    "objectState": {
+    "tableState": {
       "type": "object",
       "additionalProperties": false,
-      "required": [],
+      "required": [
+        "status",
+        "updatedAt"
+      ],
       "properties": {
-        "objectId": {
+        "tableId": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
         },
-        "active": {
-          "type": "boolean",
-          "description": "false = passive: closed, out of service or disabled."
-        },
-        "open": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "0 = closed, 1 = fully open. Pergola louvers / retractable roofs, folding and sliding glass walls, doors and windows."
-        },
-        "power": {
+        "status": {
           "enum": [
-            "on",
-            "off"
-          ],
-          "description": "Climate devices and appliance fixtures (stove, oven, coffee machine, dishwasher, fridge, freezer, display case, TV, POS terminal)."
-        },
-        "mode": {
-          "type": "string",
-          "description": "Free-form device mode, e.g. cooling, heating, fan."
+            "available",
+            "occupied",
+            "reserved",
+            "blocked",
+            "cleaning",
+            "unknown"
+          ]
         },
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "since": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the table entered this status."
+        },
+        "guestCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Open order reference in the POS."
+        },
+        "reservationId": {
+          "type": "string"
+        },
+        "reservedFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reservedUntil": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "mergedWithTableIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+          },
+          "description": "Tables currently joined with this one."
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 280
         },
         "extensions": {
           "type": "object",
@@ -101,19 +141,13 @@
         },
         "externalRef": {
           "$ref": "#/$defs/externalRef",
-          "description": "Identify the object by its id in an external system instead of objectId."
-        },
-        "level": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Intensity 0–1 where it applies: heat level, fan speed, burner flame. Renderers scale effects with it."
+          "description": "Identify the object by its id in an external system instead of tableId."
         }
       },
       "anyOf": [
         {
           "required": [
-            "objectId"
+            "tableId"
           ]
         },
         {

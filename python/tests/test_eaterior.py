@@ -3,9 +3,9 @@ import json
 import unittest
 from pathlib import Path
 
-from eateryplan import (check_detection, check_object_state, check_table_state, check_telemetry, detection_to_plan, migrate,
+from eaterior import (check_detection, check_object_state, check_table_state, check_telemetry, detection_to_plan, migrate,
                         validate_plan)
-from eateryplan.validate import load_schema
+from eaterior.validate import load_schema
 
 ROOT = Path(__file__).resolve().parents[2]
 EX = ROOT / "examples"
@@ -48,9 +48,9 @@ class Examples(unittest.TestCase):
         plan["floors"][0]["zones"][0]["appearance"]["floor"] = "lava"
         self.assertIn("schema", codes(validate_plan(plan)))
 
-    def test_eateryplan_1_0_0_upgrades(self):
+    def test_eaterior_1_0_0_upgrades(self):
         new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
-        self.assertEqual(new["schemaVersion"], "1.7.0")
+        self.assertEqual(new["schemaVersion"], "1.8.0")
         self.assertTrue(validate_plan(new).ok)
 
     def test_imported_example_is_valid(self):
@@ -224,7 +224,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.7.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.8.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -331,9 +331,26 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.7.0"
-        packaged = ROOT / "python" / "eateryplan" / "schemas"
+        canon = ROOT / "schemas" / "v1.8.0"
+        packaged = ROOT / "python" / "eaterior" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))
         for n in names:
             self.assertEqual((canon / n).read_bytes(), (packaged / n).read_bytes(), n)
+
+
+class LegacyName(unittest.TestCase):
+    """'eateryplan' is the pre-1.8 name of the format; it must keep validating and migrate cleanly."""
+
+    def test_old_identifier_still_valid_with_warning(self):
+        old = copy.deepcopy(PLAN); old["format"] = "eateryplan"; old["schemaVersion"] = "1.7.0"
+        rep = validate_plan(old)
+        self.assertTrue(rep.ok, rep.format())
+        self.assertIn("legacy_format", {i.code for i in rep.warnings})
+
+    def test_old_identifier_migrates(self):
+        old = copy.deepcopy(PLAN); old["format"] = "eateryplan"; old["schemaVersion"] = "1.7.0"
+        new, _ = migrate(old)
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.8.0"))
+        rep = validate_plan(new)
+        self.assertTrue(rep.ok and not any(i.code == "legacy_format" for i in rep.warnings))

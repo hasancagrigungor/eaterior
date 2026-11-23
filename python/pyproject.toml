@@ -3,9 +3,9 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eateryplan"
-version = "1.7.0"
-description = "Validator, migrator and image-detection importer for Eatery Plan, an open JSON format for restaurant, cafe and bar floor plans"
+name = "eaterior"
+version = "1.8.0"
+description = "Validator, migrator and image-detection importer for Eaterior, an open JSON format for restaurant, cafe and bar floor plans"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -29,17 +29,17 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/hasancagrigungor/eatery-plan"
-Documentation = "https://github.com/hasancagrigungor/eatery-plan/blob/main/docs/specification.md"
-Repository = "https://github.com/hasancagrigungor/eatery-plan"
-Issues = "https://github.com/hasancagrigungor/eatery-plan/issues"
-Changelog = "https://github.com/hasancagrigungor/eatery-plan/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/hasancagrigungor/eaterior"
+Documentation = "https://github.com/hasancagrigungor/eaterior/blob/main/docs/specification.md"
+Repository = "https://github.com/hasancagrigungor/eaterior"
+Issues = "https://github.com/hasancagrigungor/eaterior/issues"
+Changelog = "https://github.com/hasancagrigungor/eaterior/blob/main/CHANGELOG.md"
 
 [project.scripts]
-eateryplan = "eateryplan.cli:main"
+eaterior = "eaterior.cli:main"
 
 [tool.setuptools]
-packages = ["eateryplan"]
+packages = ["eaterior"]
 
 [tool.setuptools.package-data]
-eateryplan = ["schemas/*.json", "py.typed"]
+eaterior = ["schemas/*.json", "py.typed"]

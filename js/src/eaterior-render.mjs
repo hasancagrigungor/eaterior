@@ -1,5 +1,5 @@
 /**
- * Eatery Plan reference renderer.
+ * Eaterior reference renderer.
  *
  * buildScene() turns a plan into a flat, platform-neutral display list:
  *   { type: "path",  d, fill, stroke, strokeWidth, dash, opacity, layer, ref }
@@ -127,7 +127,7 @@ export function shapeToPath(s) {
   }
 }
 
-/** Straight or curved wall; t in [0,1] from a to b. Mirrors python/eateryplan/geometry.py WallGeom. */
+/** Straight or curved wall; t in [0,1] from a to b. Mirrors python/eaterior/geometry.py WallGeom. */
 export class WallGeom {
   constructor(w) {
     this.a = [w.a.x, w.a.y]; this.b = [w.b.x, w.b.y];
@@ -328,7 +328,7 @@ export function groupByObject(scene) {
 
 // ------------------------------------------------------------------ scene
 /**
- * @param plan      Eatery Plan document
+ * @param plan      Eaterior document
  * @param options   floorId, tableStates (table-state document, array or map by tableId),
  *                  readings (map sensorId -> readings object), theme (partial override),
  *                  objectStates (object-state document: active / open / power),

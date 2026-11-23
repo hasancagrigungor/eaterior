@@ -1,12 +1,12 @@
-# eateryplan (UI library)
+# eaterior (UI library)
 
-Render **[Eatery Plan](https://github.com/hasancagrigungor/eatery-plan)** floor plans — restaurants, cafes and bars —
+Render **[Eaterior](https://github.com/hasancagrigungor/eaterior)** floor plans — restaurants, cafes and bars —
 on the web, in React Native or on a Canvas. Everything is drawn in code from the plan JSON; no images needed.
 
-![Garden Bistro](https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/docs/images/restaurant-illustrated.png)
+![Garden Bistro](https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/docs/images/restaurant-illustrated.png)
 
 ```bash
-npm install eateryplan
+npm install eaterior
 ```
 
 Zero dependencies. ES modules, TypeScript types included.
@@ -14,20 +14,20 @@ Zero dependencies. ES modules, TypeScript types included.
 ## Web
 
 ```js
-import { toSvg } from "eateryplan";
-import { buildIllustratedScene } from "eateryplan/illustrated";
+import { toSvg } from "eaterior";
+import { buildIllustratedScene } from "eaterior/illustrated";
 
 const scene = buildIllustratedScene(plan, { tableStates, objectStates, readings });
 document.querySelector("#plan").innerHTML = toSvg(scene, { animate: true });
 ```
 
-`buildScene()` from `eateryplan` gives the plain architectural theme instead.
+`buildScene()` from `eaterior` gives the plain architectural theme instead.
 
 ## React Native
 
 The scene is a list of SVG path strings, so `react-native-svg` draws it directly. A complete component (patterns,
 gradients, one pressable group per object) is in
-[`examples/react-native/EateryPlanView.tsx`](https://github.com/hasancagrigungor/eatery-plan/blob/main/examples/react-native/EateryPlanView.tsx).
+[`examples/react-native/EateriorView.tsx`](https://github.com/hasancagrigungor/eaterior/blob/main/examples/react-native/EateriorView.tsx).
 
 ```tsx
 <Svg viewBox={scene.viewBox} preserveAspectRatio="xMidYMid meet">
@@ -61,12 +61,12 @@ for (const it of scene.items) if (it.type === "path") { ctx.fillStyle = it.fill;
 ## Command line
 
 ```bash
-npx eateryplan-render plan.json plan.html --style illustrated --state table-state.json
+npx eaterior-render plan.json plan.html --style illustrated --state table-state.json
 ```
 
 ## Related
 
-- JSON Schemas, specification and examples: [GitHub](https://github.com/hasancagrigungor/eatery-plan)
-- Validator and importer for Python: [`eateryplan` on PyPI](https://pypi.org/project/eateryplan/)
+- JSON Schemas, specification and examples: [GitHub](https://github.com/hasancagrigungor/eaterior)
+- Validator and importer for Python: [`eaterior` on PyPI](https://pypi.org/project/eaterior/)
 
 MIT licensed.

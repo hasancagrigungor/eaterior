@@ -1,5 +1,5 @@
 {
-  "format": "eateryplan-telemetry",
+  "format": "eaterior-telemetry",
   "schemaVersion": "1.0.0",
   "planId": "bistro_001",
   "sensorId": "sensor_1",

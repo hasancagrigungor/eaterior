@@ -1,15 +1,15 @@
 /**
- * React Native view for Eatery Plan, using react-native-svg.
+ * React Native view for Eaterior, using react-native-svg.
  *
  *   npm install react-native-svg
- *   copy js/src/eateryplan-render.mjs and js/src/eateryplan-illustrated.mjs into your app
+ *   copy js/src/eaterior-render.mjs and js/src/eaterior-illustrated.mjs into your app
  *
  * The same display list drives web and mobile, so both draw identical plans.
  */
 import React, { useMemo } from "react";
 import Svg, { Defs, G, Image as SvgImage, LinearGradient, Path, Pattern, RadialGradient, Rect, Stop, Text as SvgText } from "react-native-svg";
-import { buildScene, groupByObject } from "./eateryplan-render.mjs";
-import { buildIllustratedScene } from "./eateryplan-illustrated.mjs";
+import { buildScene, groupByObject } from "./eaterior-render.mjs";
+import { buildIllustratedScene } from "./eaterior-illustrated.mjs";
 
 type Props = {
   plan: any;
@@ -24,7 +24,7 @@ type Props = {
   onPressObject?: (ref: { type: string; id: string }) => void;
 };
 
-export function EateryPlanView({ plan, floorId, theme = "illustrated", tableStates, objectStates, readings, width = "100%", height = "100%",
+export function EateriorView({ plan, floorId, theme = "illustrated", tableStates, objectStates, readings, width = "100%", height = "100%",
   resolveAsset, onPressObject }: Props) {
   const scene = useMemo(
     () => (theme === "illustrated" ? buildIllustratedScene : buildScene)(plan, { floorId, tableStates, objectStates, readings, resolveAsset }),

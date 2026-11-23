@@ -1,4 +1,4 @@
-"""Structural (JSON Schema) and semantic validation for Eatery Plan documents."""
+"""Structural (JSON Schema) and semantic validation for Eaterior documents."""
 from __future__ import annotations
 
 import json
@@ -12,8 +12,10 @@ from jsonschema import Draft202012Validator
 
 from . import geometry as g
 
-SCHEMA_VERSION = "1.7.0"
-SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0")
+SCHEMA_VERSION = "1.8.0"
+SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0")
+LEGACY_FORMATS = {"eateryplan": "eaterior", "eateryplan-table-state": "eaterior-table-state",
+                  "eateryplan-object-state": "eaterior-object-state", "eateryplan-telemetry": "eaterior-telemetry"}
 BOUNDS_TOLERANCE = 0.01  # objects may exceed the floor by 1 % of its size
 LOW_CONFIDENCE = 0.5
 METRIC_TO_READING = {
@@ -32,7 +34,7 @@ def schema_dir() -> Path:
         return Path(env)
     here = Path(__file__).resolve().parent
     for cand in (here / "schemas", here.parent.parent / "schemas" / f"v{SCHEMA_VERSION}"):
-        if (cand / "eateryplan.schema.json").exists():
+        if (cand / "eaterior.schema.json").exists():
             return cand
     raise FileNotFoundError("schemas not found; set EATERYPLAN_SCHEMA_DIR")
 
@@ -116,6 +118,9 @@ def schema_check(doc, schema, report: Report):
     v = Draft202012Validator(schema, format_checker=Draft202012Validator.FORMAT_CHECKER)
     for e in sorted(v.iter_errors(doc), key=lambda e: list(map(str, e.absolute_path))):
         report.error("schema", _jpath(e.absolute_path), e.message)
+    if isinstance(doc, dict) and (new := LEGACY_FORMATS.get(doc.get("format"))):
+        report.warn("legacy_format", "$.format", f"'{doc['format']}' is the pre-1.8 name; write '{new}' "
+                                                 "(`eaterior migrate` fixes plans)")
     _walk_dates(doc, "$", report)
 
 
@@ -314,7 +319,7 @@ def semantic_check(plan: dict, r: Report):
                                                     f"shape.rotationDeg={srot}")
                 else:
                     r.warn("deprecated_field", f"{p}.rotationDeg", "deprecated; use shape.rotationDeg "
-                                                                   "(`eateryplan migrate` fixes it)")
+                                                                   "(`eaterior migrate` fixes it)")
             if (e := d.get("externalDeviceId")):
                 if e in ext_devices:
                     r.error("duplicate_external_id", f"{p}.externalDeviceId", f"'{e}' already used by {ext_devices[e]}")
@@ -351,7 +356,7 @@ def semantic_check(plan: dict, r: Report):
 
 def validate_plan(plan: dict) -> Report:
     r = Report()
-    schema_check(plan, load_schema("eateryplan.schema.json"), r)
+    schema_check(plan, load_schema("eaterior.schema.json"), r)
     if r.ok:  # semantic checks assume a structurally valid document
         semantic_check(plan, r)
     return r

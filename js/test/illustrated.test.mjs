@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { toSvg } from "../src/eateryplan-render.mjs";
-import { buildIllustratedScene, ILLUSTRATED_LAYERS } from "../src/eateryplan-illustrated.mjs";
+import { toSvg } from "../src/eaterior-render.mjs";
+import { buildIllustratedScene, ILLUSTRATED_LAYERS } from "../src/eaterior-illustrated.mjs";
 
 const load = (n) => JSON.parse(readFileSync(new URL(`../../examples/${n}`, import.meta.url), "utf8"));
 const restaurant = load("restaurant.json");
@@ -51,7 +51,7 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -76,7 +76,7 @@ test("wall height changes the depth", () => {
 });
 
 test("every climate device kind draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.climateDevice.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
@@ -114,7 +114,7 @@ test("table badges stay above the pergola", () => {
 });
 
 test("component states: open louvers, open glass, power off, inactive", async () => {
-  const { groupByObject } = await import("../src/eateryplan-render.mjs");
+  const { groupByObject } = await import("../src/eaterior-render.mjs");
   const objs = load("restaurant-objects.json");
   const closed = buildIllustratedScene(restaurant);
   const live = buildIllustratedScene(restaurant, { objectStates: objs });
@@ -137,14 +137,14 @@ test("component states: open louvers, open glass, power off, inactive", async ()
 });
 
 test("plain theme fades inactive objects too", async () => {
-  const { buildScene } = await import("../src/eateryplan-render.mjs");
+  const { buildScene } = await import("../src/eaterior-render.mjs");
   const sc = buildScene(restaurant, { objectStates: { objects: [{ objectId: "table_1", active: false }] } });
   assert.ok(sc.items.filter((i) => i.ref?.id === "table_1" && i.ref.type === "table").every((i) => (i.opacity ?? 1) <= 0.3));
 });
 
 test("gallery: every floor, table style, seat kind and parasol variant renders", () => {
   const gallery = load("showcase.json");
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
   const sc = buildIllustratedScene(gallery);
   assert.ok(!/NaN|undefined/.test(toSvg(sc)));
   const floors = new Set(gallery.floors[0].zones.map((z) => z.appearance?.floor));
@@ -172,7 +172,7 @@ test("seats use real sizes when the floor has a scale", () => {
 });
 
 test("every rug style renders, round and rectangular, with patterns kept inside the rug", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
   const RUGS = ["persian", "kilim", "moroccan", "striped", "geometric", "shag", "jute", "floral", "bordered", "abstract", "chevron", "braided"];
   for (const r of RUGS) assert.ok(schema.$defs.appearance.properties.style.enum.includes(r), r);
   const plan = structuredClone(load("showcase.json"));
@@ -187,7 +187,7 @@ test("every rug style renders, round and rectangular, with patterns kept inside 
 });
 
 test("live effects: appliances default off, power on lights them; external ids resolve; animation is opt-in", async () => {
-  const { stateMap } = await import("../src/eateryplan-render.mjs");
+  const { stateMap } = await import("../src/eaterior-render.mjs");
   const objs = load("restaurant-objects.json");
   const flames = (sc) => sc.items.filter((i) => i.ref?.id === "stove_1" && i.effect === "flicker").length;
   assert.equal(flames(buildIllustratedScene(restaurant)), 0, "stoves are off by default");

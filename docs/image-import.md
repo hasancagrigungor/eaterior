@@ -1,16 +1,16 @@
-# Converting a drawing into Eatery Plan
+# Converting a drawing into Eaterior
 
 A photo, scan or sketch of a floor plan becomes a plan in two steps:
 
 ```
-image ──► detection.json (pixels) ──► eateryplan import ──► plan.json (floor units, validated)
+image ──► detection.json (pixels) ──► eaterior import ──► plan.json (floor units, validated)
            any detector                deterministic
 ```
 
 1. **Detect.** Something reads the image and fills
-   [`detection.schema.json`](../schemas/v1.7.0/detection.schema.json) in **image pixel coordinates**. It can be a
+   [`detection.schema.json`](../schemas/v1.8.0/detection.schema.json) in **image pixel coordinates**. It can be a
    vision-capable language model, a classic computer-vision pipeline, or a person clicking on the image.
-2. **Import.** `eateryplan import` converts the detection into a plan and validates it. Nothing is saved if the
+2. **Import.** `eaterior import` converts the detection into a plan and validates it. Nothing is saved if the
    result is invalid.
 
 Splitting the steps keeps the uncertain part (reading the drawing) separate from the exact part (geometry), so
@@ -57,5 +57,5 @@ along these lines:
 > Copy written dimensions as dimension labels with their two end points.
 > Use a lower confidence for anything faint, partly hidden or guessed, and explain it in notes.
 
-Always run the result through `eateryplan import` (or `validate`) before saving it, and show objects with
+Always run the result through `eaterior import` (or `validate`) before saving it, and show objects with
 `needsReview` to a person for confirmation.

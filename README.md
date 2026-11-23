@@ -1,10 +1,12 @@
-# Eatery Plan
+# Eaterior
 
 **An open JSON format for restaurant, cafe and bar floor plans** — tables, zones, walls, doors, furniture,
 HVAC equipment and sensors — designed to be drawn identically on the web, iOS, Android and desktop, and to be
 produced from a photo or sketch of a floor plan.
 
 [Türkçe](README.tr.md)
+
+> Formerly *Eatery Plan*. Files written with the old `eateryplan` identifier stay valid; `eaterior migrate` updates them.
 
 ![Garden Bistro, illustrated theme](docs/images/restaurant-illustrated.png)
 
@@ -27,9 +29,9 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **One plan, every screen.** Geometry is stored in floor units with a fixed origin and axis convention; clients
   scale it to fit. The aspect ratio of the real room is kept.
 - **Physical layout only.** Orders, reservations, live table status and sensor readings stay in your existing
-  systems and are joined by id ([table state](schemas/v1.7.0/table-state.schema.json),
-  [telemetry](schemas/v1.7.0/environment-telemetry.schema.json)).
-- **Made to be generated.** A pixel-based [detection format](schemas/v1.7.0/detection.schema.json) and a
+  systems and are joined by id ([table state](schemas/v1.8.0/table-state.schema.json),
+  [telemetry](schemas/v1.8.0/environment-telemetry.schema.json)).
+- **Made to be generated.** A pixel-based [detection format](schemas/v1.8.0/detection.schema.json) and a
   deterministic importer turn any drawing into a validated plan, with confidence and review flags.
 - **Strictly validated.** JSON Schema for structure, plus a reference validator for references and geometry.
 - **Looks are data, drawing is code.** Optional `appearance` fields (floor finish, material, colours, chair style)
@@ -44,11 +46,11 @@ Dashed amber outlines mark objects that need a person to confirm them.
 ## What is in the repository
 
 ```
-schemas/v1.7.0/     eateryplan · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
+schemas/v1.8.0/     eaterior · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
 docs/               specification · rendering contract · image import · integration
-python/eateryplan/  validator, migrator, detection importer — `pip install eateryplan`
-js/                 UI library (plain + illustrated themes) → SVG / react-native-svg / Canvas — `npm install eateryplan`
+python/eaterior/  validator, migrator, detection importer — `pip install eaterior`
+js/                 UI library (plain + illustrated themes) → SVG / react-native-svg / Canvas — `npm install eaterior`
 demo/               browser viewer
 ```
 
@@ -57,8 +59,8 @@ demo/               browser viewer
 ### Install
 
 ```bash
-pip install eateryplan        # validator, importer, CLI (Python)
-npm install eateryplan        # UI library for web, React Native and Canvas
+pip install eaterior        # validator, importer, CLI (Python)
+npm install eaterior        # UI library for web, React Native and Canvas
 ```
 
 The JSON Schemas live in [`schemas/`](schemas) on GitHub (and ship inside both packages' tooling).
@@ -66,17 +68,17 @@ The JSON Schemas live in [`schemas/`](schemas) on GitHub (and ship inside both p
 ### Validate
 
 ```bash
-eateryplan validate examples/plan.json
-eateryplan validate examples/plan.json --json      # machine-readable issues
-eateryplan check-state examples/plan.json examples/table-state.json
-eateryplan check-telemetry examples/plan.json examples/telemetry.json
-eateryplan check-objects examples/restaurant.json examples/restaurant-objects.json
+eaterior validate examples/plan.json
+eaterior validate examples/plan.json --json      # machine-readable issues
+eaterior check-state examples/plan.json examples/table-state.json
+eaterior check-telemetry examples/plan.json examples/telemetry.json
+eaterior check-objects examples/restaurant.json examples/restaurant-objects.json
 ```
 
 ### Import a drawing
 
 ```bash
-eateryplan import examples/detection.json my-plan.json --image drawing.png --name "My cafe"
+eaterior import examples/detection.json my-plan.json --image drawing.png --name "My cafe"
 ```
 
 How to obtain `detection.json` from an image is described in [docs/image-import.md](docs/image-import.md).
@@ -84,14 +86,14 @@ How to obtain `detection.json` from an image is described in [docs/image-import.
 ### Render
 
 ```js
-import { buildScene, toSvg } from "./js/src/eateryplan-render.mjs";
+import { buildScene, toSvg } from "./js/src/eaterior-render.mjs";
 
-import { buildIllustratedScene } from "./js/src/eateryplan-illustrated.mjs";
+import { buildIllustratedScene } from "./js/src/eaterior-illustrated.mjs";
 
 const scene = buildScene(plan, { tableStates, readings: { sensor_1: telemetry } });   // plain theme
 const art = buildIllustratedScene(plan, { tableStates });                               // illustrated theme
 element.innerHTML = toSvg(art);            // web
-// React Native: examples/react-native/EateryPlanView.tsx (react-native-svg)
+// React Native: examples/react-native/EateriorView.tsx (react-native-svg)
 // Canvas:       scene.items.forEach(i => i.type === "path" && ctx.fill(new Path2D(i.d)))
 ```
 
@@ -136,7 +138,7 @@ cd js && npm test
 
 ## Status
 
-Format version **1.7.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
+Format version **1.8.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
 rules in the [specification](docs/specification.md#8-extensibility-and-versioning). Issues and pull requests are
 welcome.
 

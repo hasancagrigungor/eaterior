@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Render an Eatery Plan file to SVG or HTML.
+// Render an Eaterior file to SVG or HTML.
 // usage: node js/bin/render.mjs plan.json out.svg|out.html [--state table-state.json] [--telemetry t.json] [--floor id] [--style plain|illustrated]
 import { readFileSync, writeFileSync } from "node:fs";
-import { buildScene, toSvg } from "../src/eateryplan-render.mjs";
-import { buildIllustratedScene } from "../src/eateryplan-illustrated.mjs";
+import { buildScene, toSvg } from "../src/eaterior-render.mjs";
+import { buildIllustratedScene } from "../src/eaterior-illustrated.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : null; };

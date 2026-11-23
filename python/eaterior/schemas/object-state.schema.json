@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.8.0/object-state.schema.json",
+  "title": "Eaterior Object State v1.8.0",
+  "description": "Live state of any plan object (component): active/passive, how far it is open, device power. Kept outside the plan like table state; objectId refers to an id in the plan. Values here override the plan's defaults.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "planId",
+    "generatedAt",
+    "objects"
+  ],
+  "properties": {
+    "format": {
+      "enum": [
+        "eaterior-object-state",
+        "eateryplan-object-state"
+      ],
+      "description": "\"eaterior-object-state\" is the identifier written since 1.8.0. \"eateryplan-object-state\" is the pre-1.8 name of the same format and stays accepted when reading."
+    },
+    "schemaVersion": {
+      "enum": [
+        "1.4.0",
+        "1.5.0",
+        "1.6.0",
+        "1.7.0",
+        "1.8.0"
+      ]
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "planRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objectState"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+      },
+      "additionalProperties": true,
+      "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "System that produced this document, e.g. 'pos' or 'bms'."
+    }
+  },
+  "$defs": {
+    "objectState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "false = passive: closed, out of service or disabled."
+        },
+        "open": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0 = closed, 1 = fully open. Pergola louvers / retractable roofs, folding and sliding glass walls, doors and windows."
+        },
+        "power": {
+          "enum": [
+            "on",
+            "off"
+          ],
+          "description": "Climate devices and appliance fixtures (stove, oven, coffee machine, dishwasher, fridge, freezer, display case, TV, POS terminal)."
+        },
+        "mode": {
+          "type": "string",
+          "description": "Free-form device mode, e.g. cooling, heating, fan."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "extensions": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+          },
+          "additionalProperties": true,
+          "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+        },
+        "externalRef": {
+          "$ref": "#/$defs/externalRef",
+          "description": "Identify the object by its id in an external system instead of objectId."
+        },
+        "level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Intensity 0–1 where it applies: heat level, fan speed, burner flame. Renderers scale effects with it."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "objectId"
+          ]
+        },
+        {
+          "required": [
+            "externalRef"
+          ]
+        }
+      ]
+    },
+    "externalRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system",
+        "id"
+      ],
+      "description": "A record in an external system (POS, reservations, BMS/IoT, inventory …) that this object corresponds to.",
+      "properties": {
+        "system": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+          "description": "Lower-case system name, e.g. 'pos', 'bms', 'reservations'."
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "The record's id in that system."
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Optional record type in that system (table, area, device …)."
+        }
+      }
+    }
+  }
+}

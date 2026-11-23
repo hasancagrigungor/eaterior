@@ -1,7 +1,7 @@
-/** Eatery Plan reference renderer: plan JSON -> platform-neutral display list -> SVG / react-native-svg / Canvas. */
+/** Eaterior reference renderer: plan JSON -> platform-neutral display list -> SVG / react-native-svg / Canvas. */
 
-/** An Eatery Plan document (see schemas/ in the repository for the full JSON Schema). */
-export type EateryPlan = { format: "eateryplan"; schemaVersion: string; planId: string; floors: Array<Record<string, any>>; [k: string]: any };
+/** An Eaterior document (see schemas/ in the repository for the full JSON Schema). */
+export type Eaterior = { format: "eaterior"; schemaVersion: string; planId: string; floors: Array<Record<string, any>>; [k: string]: any };
 
 export interface ObjectRef { type: string; id: string }
 
@@ -68,7 +68,7 @@ export const LAYERS: string[];
 export const DEFAULT_THEME: Record<string, any>;
 
 /** Plain architectural theme. */
-export function buildScene(plan: EateryPlan, options?: SceneOptions): Scene;
+export function buildScene(plan: Eaterior, options?: SceneOptions): Scene;
 /** Scene -> standalone SVG markup. `animate` adds CSS animations for live effects. */
 export function toSvg(scene: Scene, options?: { title?: string; className?: string; animate?: boolean }): string;
 /** Runs of consecutive items per plan object, for rendering each object as a component without changing draw order. */
@@ -77,11 +77,11 @@ export function groupByObject(scene: Scene): Array<{ ref: ObjectRef | null; item
 export function shapeToPath(shape: Record<string, any>): string;
 export function shapeCenter(shape: Record<string, any>): [number, number];
 export function circlePath(cx: number, cy: number, r: number): string;
-export function externalIndex(plan: EateryPlan): Map<string, string>;
-export function stateMap(input: StateInput, idKey: string, plan?: EateryPlan): Map<string, any>;
-export function objectStateMap(input: StateInput, plan?: EateryPlan): Map<string, any>;
+export function externalIndex(plan: Eaterior): Map<string, string>;
+export function stateMap(input: StateInput, idKey: string, plan?: Eaterior): Map<string, any>;
+export function objectStateMap(input: StateInput, plan?: Eaterior): Map<string, any>;
 export function resolveState(obj: Record<string, any>, states: Map<string, any>): ResolvedState;
-export function applyInactive(scene: Scene, plan: EateryPlan, floorId: string, states: Map<string, any>, overlayLayer: string): Scene;
+export function applyInactive(scene: Scene, plan: Eaterior, floorId: string, states: Map<string, any>, overlayLayer: string): Scene;
 export function autoChairs(table: Record<string, any>, unit: number, seatRadius?: number): Array<{ p: [number, number]; r: number }>;
 export function formatReadings(readings: Record<string, number> | null | undefined): string | null;
 export function asMap(input: StateInput, key: string): Map<string, any>;
