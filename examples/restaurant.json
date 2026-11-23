@@ -1826,6 +1826,41 @@
           "mount": "ceiling"
         },
         {
+          "id": "duct_2",
+          "floorId": "floor_0",
+          "name": "Back-of-house extract duct",
+          "kind": "ventilation_duct",
+          "shape": {
+            "kind": "rect",
+            "x": 270,
+            "y": 100,
+            "width": 610,
+            "height": 18
+          },
+          "mount": "ceiling",
+          "coveredZoneIds": [
+            "zone_storage",
+            "zone_corridor",
+            "zone_office",
+            "zone_kitchen"
+          ]
+        },
+        {
+          "id": "duct_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_kitchen",
+          "name": "Hood riser",
+          "kind": "ventilation_duct",
+          "shape": {
+            "kind": "rect",
+            "x": 862,
+            "y": 82,
+            "width": 18,
+            "height": 36
+          },
+          "mount": "ceiling"
+        },
+        {
           "id": "heater_2",
           "floorId": "floor_0",
           "zoneId": "zone_patio",

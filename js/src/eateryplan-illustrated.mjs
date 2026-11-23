@@ -741,15 +741,17 @@ function drawClimate(dv, ctx) {
   if (dv.kind === "ventilation_duct") {
     if (box.free) {
       const d = shapeToPath(dv.shape);
-      out(d, grad(metal), { stroke: "#7F8C96", strokeWidth: u * 0.15, opacity: 0.6 });
+      out(d, grad(metal), { stroke: "#56636D", strokeWidth: u * 0.22, opacity: 0.82 });
       return;
     }
     const long = w >= h, L = long ? w : h, S = long ? h : w;
     const R = (a, b, la, lb) => (long ? p.rect(a, b, la, lb, 0) : p.rect(b, a, lb, la, 0));
     const L2 = (a1, b1, a2, b2) => (long ? p.line(a1, b1, a2, b2) : p.line(b1, a1, b2, a2));
-    out(R(-L / 2, -S / 2, L, S), grad(metal), { stroke: "#7F8C96", strokeWidth: u * 0.15, opacity: 0.62 });
-    lineOut(L2(-L / 2, -S * 0.2, L / 2, -S * 0.2), "#FFFFFF", u * 0.2, 0.55);
-    for (let x = -L / 2 + M(1.2); x < L / 2; x += M(1.2)) lineOut(L2(x, -S / 2, x, S / 2), "#7F8C96", u * 0.12, 0.6);
+    out(translatePath(R(-L / 2, -S / 2, L, S), u * 0.8, u * 1.1), theme.shadow, { opacity: 0.12 });
+    out(R(-L / 2, -S / 2, L, S), grad(metal), { stroke: "#56636D", strokeWidth: u * 0.22, opacity: 0.82 });
+    lineOut(L2(-L / 2, -S * 0.22, L / 2, -S * 0.22), "#FFFFFF", u * 0.25, 0.7);
+    lineOut(L2(-L / 2, S * 0.3, L / 2, S * 0.3), "#7F8C96", u * 0.12, 0.6);
+    for (let x = -L / 2 + M(1.2); x < L / 2; x += M(1.2)) lineOut(L2(x, -S / 2, x, S / 2), "#56636D", u * 0.16, 0.75);
     for (let x = -L / 2 + M(1.5); x < L / 2 - M(0.5); x += M(3)) {
       const s = Math.min(S * 0.8, M(0.4));
       out(R(x - s / 2, -s / 2, s, s), "#E9EDF0", { stroke: "#7F8C96", strokeWidth: u * 0.1, opacity: 0.85 });

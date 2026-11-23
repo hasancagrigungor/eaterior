@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Example: back-of-house extract duct through storage, staff, office and kitchen, rising into the kitchen hood.
+- Illustrated theme: ventilation ducts are more visible (less transparent, darker outline and seams, soft shadow).
+
 ## 1.4.0 — 2026-11-23
 
 - Components: optional `active` default on every plan object; new object-state document (`object-state.schema.json`)
