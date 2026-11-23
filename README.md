@@ -23,19 +23,21 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **One plan, every screen.** Geometry is stored in floor units with a fixed origin and axis convention; clients
   scale it to fit. The aspect ratio of the real room is kept.
 - **Physical layout only.** Orders, reservations, live table status and sensor readings stay in your existing
-  systems and are joined by id ([table state](schemas/v1.3.0/table-state.schema.json),
-  [telemetry](schemas/v1.3.0/environment-telemetry.schema.json)).
-- **Made to be generated.** A pixel-based [detection format](schemas/v1.3.0/detection.schema.json) and a
+  systems and are joined by id ([table state](schemas/v1.4.0/table-state.schema.json),
+  [telemetry](schemas/v1.4.0/environment-telemetry.schema.json)).
+- **Made to be generated.** A pixel-based [detection format](schemas/v1.4.0/detection.schema.json) and a
   deterministic importer turn any drawing into a validated plan, with confidence and review flags.
 - **Strictly validated.** JSON Schema for structure, plus a reference validator for references and geometry.
 - **Looks are data, drawing is code.** Optional `appearance` fields (floor finish, material, colours, chair style)
   let themes render the same plan as a plain plan or a colourful illustration.
+- **Every object is a component.** Tables, zones, pergolas, glass walls and devices can be made active or passive,
+  opened or closed and switched on or off through a live object-state document — the plan never changes.
 - **Extensible.** Every object has a namespaced `extensions` map.
 
 ## What is in the repository
 
 ```
-schemas/v1.3.0/     eateryplan · table-state · environment-telemetry · detection (JSON Schema 2020-12)
+schemas/v1.4.0/     eateryplan · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
 docs/               specification · rendering contract · image import
 python/eateryplan/  validator, legacy migrator, detection importer (CLI + library)
@@ -53,6 +55,7 @@ eateryplan validate examples/plan.json
 eateryplan validate examples/plan.json --json      # machine-readable issues
 eateryplan check-state examples/plan.json examples/table-state.json
 eateryplan check-telemetry examples/plan.json examples/telemetry.json
+eateryplan check-objects examples/restaurant.json examples/restaurant-objects.json
 ```
 
 ### Import a drawing
@@ -118,7 +121,7 @@ cd js && npm test
 
 ## Status
 
-Format version **1.3.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
+Format version **1.4.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
 rules in the [specification](docs/specification.md#8-extensibility-and-versioning). Issues and pull requests are
 welcome.
 

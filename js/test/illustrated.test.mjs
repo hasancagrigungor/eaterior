@@ -51,7 +51,7 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.3.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.4.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -76,7 +76,7 @@ test("wall height changes the depth", () => {
 });
 
 test("every climate device kind draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.3.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.4.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.climateDevice.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
@@ -111,4 +111,33 @@ test("table badges stay above the pergola", () => {
   const badge = items.findIndex((i) => i.layer === "badges");
   const canopy = items.findLastIndex((i) => i.layer === "canopy");
   assert.ok(badge > canopy);
+});
+
+test("component states: open louvers, open glass, power off, inactive", async () => {
+  const { groupByObject } = await import("../src/eateryplan-render.mjs");
+  const objs = load("restaurant-objects.json");
+  const closed = buildIllustratedScene(restaurant);
+  const live = buildIllustratedScene(restaurant, { objectStates: objs });
+  const count = (sc, id, pred = () => true) => sc.items.filter((i) => i.ref?.id === id && pred(i)).length;
+  // power off removes the heater glow
+  assert.ok(count(closed, "heater_1", (i) => i.fill === "url(#ep-glow)") === 1);
+  assert.ok(count(live, "heater_1", (i) => i.fill === "url(#ep-glow)") === 0);
+  // inactive table is faded and gets an overlay
+  assert.ok(live.items.filter((i) => i.ref?.id === "table_20" && i.ref.type === "table").every((i) => (i.opacity ?? 1) <= 0.3));
+  assert.ok(live.items.some((i) => i.ref?.type === "inactive" && i.ref.id === "table_20"));
+  // open pergola louvers are drawn thinner, so the pergola path data changes
+  const pd = (sc) => sc.items.filter((i) => i.ref?.id === "pergola_1").map((i) => i.d).join("");
+  assert.notEqual(pd(closed), pd(live));
+  // a fully open glass wall keeps only the stacked panels
+  assert.ok(count(live, "w_glass_n") < count(closed, "w_glass_n"));
+  // each object can be rendered as its own component
+  const groups = groupByObject(live);
+  assert.ok(groups.some((g) => g.ref?.id === "pergola_1" && g.items.length > 5));
+  assert.deepEqual(groups.flatMap((g) => g.items), live.items);
+});
+
+test("plain theme fades inactive objects too", async () => {
+  const { buildScene } = await import("../src/eateryplan-render.mjs");
+  const sc = buildScene(restaurant, { objectStates: { objects: [{ objectId: "table_1", active: false }] } });
+  assert.ok(sc.items.filter((i) => i.ref?.id === "table_1" && i.ref.type === "table").every((i) => (i.opacity ?? 1) <= 0.3));
 });

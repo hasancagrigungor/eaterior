@@ -7,8 +7,8 @@
  * Output is the same display list as buildScene(), plus `defs` (patterns and gradients) referenced by
  * `fill: "url(#id)"`. toSvg() renders it; react-native-svg supports the same Defs/Pattern/LinearGradient.
  */
-import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asMap, formatReadings }
-  from "./eateryplan-render.mjs";
+import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asMap, formatReadings,
+  objectStateMap, resolveState, applyInactive } from "./eateryplan-render.mjs";
 
 export const ILLUSTRATED_LAYERS = ["background", "shadow", "zones", "fixtures", "walls", "openings", "chairs",
   "tables", "canopy", "climate", "badges", "sensors", "labels", "review"];
@@ -378,7 +378,7 @@ function drawFixture(fx, ctx) {
       // framed pergola (aluminium bioclimatic, glass, fabric or solid roof)
       const frame = ap.color || (metalRoof || roof === "louvered" ? "#BCA986" : theme.materials.wood);
       const roofC = ap.accentColor || { louvered: "#4A4F55", glass: "#BFE8F2", fabric: "#E9E1D0", solid: "#5A5F66" }[roof] || "#4A4F55";
-      const op = theme.canopyOpacity ?? 0.62;
+      const op = theme.canopyOpacity ?? 0.62, openness = ctx.stateOf(fx).open;
       const beam = Math.max(M(0.2), u * 0.9), post = Math.max(M(0.16), u * 0.85);
       const bays = Math.max(1, Math.round(L / M(4.2))), bayL = L / bays;
       out(translatePath(R(-L / 2, -S / 2, L, S), u * 1.8, u * 2.4), theme.shadow, { opacity: 0.12 });
@@ -386,21 +386,25 @@ function drawFixture(fx, ctx) {
         const x0 = -L / 2 + b * bayL + beam / 2 + (b === 0 ? beam / 2 : 0), x1 = -L / 2 + (b + 1) * bayL - beam / 2 - (b === bays - 1 ? beam / 2 : 0);
         const y0 = -S / 2 + beam, y1 = S / 2 - beam;
         if (roof === "louvered") {
+          // open louvers turn edge-on: thinner blades with sky between them
           const pitch = Math.max(M(0.2), u * 0.9), n = Math.max(2, Math.round((x1 - x0) / pitch)), step = (x1 - x0) / n;
+          const bw = step * 0.94 * (1 - 0.8 * openness), bop = op * (1 - 0.3 * openness);
           for (let i = 0; i < n; i++) {
-            const x = x0 + i * step;
-            out(R(x, y0, step * 0.94, y1 - y0), grad(roofC), { opacity: op });
-            out(LN(x + step * 0.12, y0, x + step * 0.12, y1), "none", { stroke: lighten(roofC, 0.45), strokeWidth: u * 0.08, opacity: op * 0.8 });
-            out(LN(x + step * 0.9, y0, x + step * 0.9, y1), "none", { stroke: darken(roofC, 0.4), strokeWidth: u * 0.06, opacity: op * 0.8 });
+            const x = x0 + i * step + (step * 0.94 - bw) / 2;
+            out(R(x, y0, bw, y1 - y0), grad(roofC), { opacity: bop });
+            out(LN(x + bw * 0.15, y0, x + bw * 0.15, y1), "none", { stroke: lighten(roofC, 0.45), strokeWidth: u * 0.08, opacity: bop * 0.8 });
+            if (openness < 0.6) out(LN(x + bw * 0.9, y0, x + bw * 0.9, y1), "none", { stroke: darken(roofC, 0.4), strokeWidth: u * 0.06, opacity: bop * 0.8 });
           }
         } else if (roof === "glass") {
           out(R(x0, y0, x1 - x0, y1 - y0), roofC, { opacity: 0.3 });
           for (let x = x0 + M(1); x < x1 - M(0.2); x += M(1)) out(LN(x, y0, x, y1), "none", { stroke: frame, strokeWidth: u * 0.25 });
           out(LN(x0 + (x1 - x0) * 0.1, y0 + (y1 - y0) * 0.15, x0 + (x1 - x0) * 0.35, y0 + (y1 - y0) * 0.15), "none", { stroke: "#FFFFFF", strokeWidth: u * 0.3, opacity: 0.6 });
         } else if (roof === "fabric") {
-          const sw = Math.max(M(0.35), u * 1.5);
+          // a retractable awning: the open part folds into a bundle at the far end of each bay
+          const sw = Math.max(M(0.35), u * 1.5), end = x0 + (x1 - x0) * (1 - openness);
           let k = 0;
-          for (let x = x0; x < x1; x += sw, k++) out(R(x, y0, Math.min(sw, x1 - x), y1 - y0), k % 2 ? grad(roofC) : grad(lighten(roofC, 0.3)), { opacity: op + 0.1 });
+          for (let x = x0; x < end; x += sw, k++) out(R(x, y0, Math.min(sw, end - x), y1 - y0), k % 2 ? grad(roofC) : grad(lighten(roofC, 0.3)), { opacity: op + 0.1 });
+          if (openness > 0.02) out(R(Math.max(x0, end - u * 0.4), y0, Math.min(x1 - x0, u * 1.6), y1 - y0), grad(darken(roofC, 0.15)), { stroke: darken(roofC, 0.4), strokeWidth: u * 0.1 });
         } else {
           out(R(x0, y0, x1 - x0, y1 - y0), grad(roofC), { opacity: op + 0.15 });
         }
@@ -731,7 +735,7 @@ function drawClimate(dv, ctx) {
   const box = boxOf(dv.shape), { w, h } = box;
   const ref = { type: "climateDevice", id: dv.id };
   const { p, out, shadow, lineOut } = kit(box, ref, "climate", ctx);
-  const metal = "#C3CAD0";
+  const metal = "#C3CAD0", on = ctx.stateOf(dv).power !== "off";
   const panel = (c, r = Math.min(w, h) * 0.2) => { const d = p.rect(-w / 2, -h / 2, w, h, r); shadow(d, 0.8); out(d, grad(c), { stroke: "#94A3AE", strokeWidth: u * 0.12 }); };
 
   if (dv.kind === "ventilation_duct") {
@@ -764,8 +768,8 @@ function drawClimate(dv, ctx) {
       lineOut(p.line(-w * 0.24 + (w * 0.48 * k) / 5, -h * 0.22, -w * 0.24 + (w * 0.48 * k) / 5, h * 0.22), "#C3CDD5", u * 0.06);
       lineOut(p.line(-w * 0.22, -h * 0.24 + (h * 0.48 * k) / 5, w * 0.22, -h * 0.24 + (h * 0.48 * k) / 5), "#C3CDD5", u * 0.06);
     }
-    out(p.circle(w * 0.4, h * 0.4, s * 0.03), "#34D399");
-    for (const a of [0, 90, 180, 270]) {
+    out(p.circle(w * 0.4, h * 0.4, s * 0.03), on ? "#34D399" : "#EF4444");
+    if (on) for (const a of [0, 90, 180, 270]) {
       const r = (a * Math.PI) / 180, d0 = s * 0.62, n = [-Math.sin(r), Math.cos(r)];
       const c = [Math.cos(r) * d0, Math.sin(r) * d0];
       out(p.raw((P) => `M${P(c[0] - n[0] * s * 0.2, c[1] - n[1] * s * 0.2)} Q${P(c[0] + Math.cos(r) * s * 0.1, c[1] + Math.sin(r) * s * 0.1)} ${P(c[0] + n[0] * s * 0.2, c[1] + n[1] * s * 0.2)}`),
@@ -776,8 +780,10 @@ function drawClimate(dv, ctx) {
 
   if (dv.kind === "patio_heater") {
     const r = Math.min(w, h) / 2;
-    out(p.circle(0, 0, r * 2.1), "url(#ep-glow)");
-    out(p.circle(0, 0, r * 1.5), "none", { stroke: "#F08A4B", strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55 });
+    if (on) {
+      out(p.circle(0, 0, r * 2.1), "url(#ep-glow)");
+      out(p.circle(0, 0, r * 1.5), "none", { stroke: "#F08A4B", strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55 });
+    }
     shadow(p.circle(0, 0, r));
     out(p.circle(0, 0, r), grad("#D2D8DD", "rad"), { stroke: "#7F8C96", strokeWidth: u * 0.15 });
     for (const k of [0.72, 0.45]) out(p.circle(0, 0, r * k), "none", { stroke: "#9AA6AF", strokeWidth: u * 0.1 });
@@ -790,9 +796,9 @@ function drawClimate(dv, ctx) {
     const n = 3;
     for (let i = 0; i < n; i++) {
       const y = -h * 0.3 + (h * 0.6 * i) / (n - 1);
-      out(p.rect(-w * 0.42, y - h * 0.07, w * 0.84, h * 0.14, h * 0.07), grad("#F06A35"), { opacity: 0.95 });
+      out(p.rect(-w * 0.42, y - h * 0.07, w * 0.84, h * 0.14, h * 0.07), grad(on ? "#F06A35" : "#6B7178"), { opacity: 0.95 });
     }
-    for (let k = 0; k < 3; k++) {
+    if (on) for (let k = 0; k < 3; k++) {
       const x = -w * 0.3 + (w * 0.6 * k) / 2, y0 = h / 2 + u * 0.8;
       out(p.raw((P) => `M${P(x, y0)} Q${P(x + u * 0.8, y0 + u * 1)} ${P(x, y0 + u * 2)} T${P(x, y0 + u * 4)}`), "none",
         { stroke: "#F08A4B", strokeWidth: u * 0.2, opacity: 0.55, linecap: "round" });
@@ -810,7 +816,7 @@ function drawClimate(dv, ctx) {
   if (["air_conditioner", "hvac_indoor_unit"].includes(dv.kind)) {
     out(p.rect(-w * 0.44, h * 0.08, w * 0.88, h * 0.26, h * 0.1), grad("#DCE3E8"));
     for (let i = 1; i <= 3; i++) lineOut(p.line(-w * 0.4, h * 0.08 + (h * 0.26 * i) / 4, w * 0.4, h * 0.08 + (h * 0.26 * i) / 4), "#AAB6BF", u * 0.07);
-    out(p.circle(w * 0.38, -h * 0.22, Math.min(w, h) * 0.08), "#34D399");
+    out(p.circle(w * 0.38, -h * 0.22, Math.min(w, h) * 0.08), on ? "#34D399" : "#EF4444");
   } else if (/vent|fan|purifier/.test(dv.kind)) {
     for (let i = 1; i < 4; i++) {
       lineOut(p.line(-w / 2 + (w * i) / 4, -h * 0.4, -w / 2 + (w * i) / 4, h * 0.4), "#9AA9B4", u * 0.1);
@@ -822,7 +828,7 @@ function drawClimate(dv, ctx) {
   } else if (dv.kind === "thermostat") {
     out(p.circle(0, 0, Math.min(w, h) * 0.3), "none", { stroke: "#3BA7D9", strokeWidth: u * 0.15 });
   }
-  if (dv.airflowDirectionDeg != null) {
+  if (dv.airflowDirectionDeg != null && on) {
     const a = (dv.airflowDirectionDeg * Math.PI) / 180;
     for (let k = 0; k < 3; k++) {
       const d0 = u * (3 + k * 1.6), mid = [box.cx + Math.cos(a) * d0, box.cy + Math.sin(a) * d0], n = [-Math.sin(a) * u * 1.4, Math.cos(a) * u * 1.4];
@@ -836,6 +842,7 @@ function drawClimate(dv, ctx) {
 /**
  * @param plan    Eatery Plan document
  * @param options floorId, tableStates, readings, theme (partial), showZoneNames (default true),
+ *                objectStates (object-state document: active / open / power),
  *                walls3d (default true), camera {x, y} (default: floor centre), wallDepth (default 1),
  *                showChairs, highlightReview, resolveAsset/showBackground (ignored: the illustration replaces the drawing)
  */
@@ -870,7 +877,9 @@ export function buildIllustratedScene(plan, options = {}) {
   };
   defs.push({ type: "radialGradient", id: "ep-glow", cx: 0.5, cy: 0.5, r: 0.5, stops: [
     { offset: 0, color: "#FFB36B", opacity: 0.55 }, { offset: 0.6, color: "#FF8A3D", opacity: 0.18 }, { offset: 1, color: "#FF8A3D", opacity: 0 }] });
-  const ctx = { theme, push, u, M, grad, softShadow };
+  const objStates = objectStateMap(options.objectStates);
+  const stateOf = (o) => resolveState(o, objStates);
+  const ctx = { theme, push, u, M, grad, softShadow, stateOf };
   const review = (d, o, type) => {
     if (options.highlightReview !== false && o.needsReview) {
       push({ type: "path", d, fill: "none", stroke: theme.review, strokeWidth: u * 0.5, dash: [u * 1.2, u * 0.8], layer: "review", ref: { type, id: o.id } });
@@ -924,7 +933,7 @@ export function buildIllustratedScene(plan, options = {}) {
     const solid = [];
     for (const [t0, t1] of cuts) { if (t0 > t) solid.push([t, t0]); t = Math.max(t, t1); }
     if (t < 1) solid.push([t, 1]);
-    wallData.push({ w, g, gaps, solid, color: w.appearance?.color || theme.wall });
+    wallData.push({ w, g, gaps, solid, color: w.appearance?.color || theme.wall, open: stateOf(w).open });
   }
 
   if (use3d) {
@@ -1020,9 +1029,11 @@ export function buildIllustratedScene(plan, options = {}) {
     }
   }
 
+  const scene = { floorId: floor.id, width: W, height: H, viewBox: `0 0 ${f(W)} ${f(H)}`, background: theme.background, defs, items };
+  applyInactive(scene, plan, floor.id, objStates, "badges");
   const order = new Map(ILLUSTRATED_LAYERS.map((l, i) => [l, i]));
-  const sorted = items.map((it, i) => [it, i]).sort((p, q) => order.get(p[0].layer) - order.get(q[0].layer) || p[1] - q[1]).map((p) => p[0]);
-  return { floorId: floor.id, width: W, height: H, viewBox: `0 0 ${f(W)} ${f(H)}`, background: theme.background, defs, items: sorted };
+  scene.items = scene.items.map((it, i) => [it, i]).sort((p, q) => order.get(p[0].layer) - order.get(q[0].layer) || p[1] - q[1]).map((p) => p[0]);
+  return scene;
 }
 
 /**
@@ -1039,24 +1050,33 @@ function glassPanels(w, g, t0, t1, M) {
   return Array.from({ length: n + 1 }, (_, k) => t0 + ((t1 - t0) * k) / n);
 }
 
-function drawGlassFlat({ w, g, solid }, { theme, push, u, M }) {
+function drawGlassFlat({ w, g, solid, open }, { theme, push, u, M }) {
   const frame = glassFrame(w), T = w.thickness, ref = { type: "wall", id: w.id };
   const off = (t, k) => { const p = g.pointAt(t), [tx, ty] = g.tangentAt(t); return [p[0] - ty * k, p[1] + tx * k]; };
   const seg = (t0, t1, k) => { const a = off(t0, k), b = off(t1, k); return `M${f(a[0])} ${f(a[1])} L${f(b[0])} ${f(b[1])}`; };
-  for (const [t0, t1] of solid) {
-    push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: theme.window, strokeWidth: T * 0.6, opacity: 0.55, layer: "walls", ref });
-    const ts = glassPanels(w, g, t0, t1, M);
+  for (const [s0, t1] of solid) {
+    const all = glassPanels(w, g, s0, t1, M), k = Math.round((all.length - 1) * open);
+    const t0 = s0, tEnd = all[all.length - 1 - k];
+    if (k > 0) {                                     // opened panels stacked at the end of the run
+      for (let j = 0; j < k; j++) {
+        const t = t1 - (j * u * 0.6) / g.length, a = off(t, -T * 0.9), b = off(t, T * 0.9);
+        push({ type: "path", d: `M${f(a[0])} ${f(a[1])} L${f(b[0])} ${f(b[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.28, layer: "walls", ref });
+      }
+    }
+    if (tEnd <= t0 + 1e-6) continue;
+    push({ type: "path", d: g.segmentPath(t0, tEnd), fill: "none", stroke: theme.window, strokeWidth: T * 0.6, opacity: 0.55, layer: "walls", ref });
+    const ts = all.slice(0, all.length - k);
     if (w.kind === "glass_sliding") {
       for (let i = 0; i < ts.length - 1; i++) {
         const k = (i % 2 ? 1 : -1) * T * 0.2;
         push({ type: "path", d: seg(ts[i] - (i ? 0.004 : 0), ts[i + 1] + (i < ts.length - 2 ? 0.004 : 0), k), fill: "none", stroke: frame, strokeWidth: u * 0.22, layer: "walls", ref });
       }
     } else {
-      for (const k of [-T * 0.3, T * 0.3]) push({ type: "path", d: seg(t0, t1, k), fill: "none", stroke: frame, strokeWidth: u * 0.14, layer: "walls", ref });
+      for (const kk of [-T * 0.3, T * 0.3]) push({ type: "path", d: seg(t0, tEnd, kk), fill: "none", stroke: frame, strokeWidth: u * 0.14, layer: "walls", ref });
     }
     for (let i = 0; i < ts.length; i++) {
-      const k = w.kind === "glass_folding" ? (i % 2 ? 0.35 : -0.35) * T : 0;
-      const a = off(ts[i], -T * 0.4 + k * 0.3), b = off(ts[i], T * 0.4 + k * 0.3);
+      const z = w.kind === "glass_folding" ? (i % 2 ? 0.35 : -0.35) * T : 0;
+      const a = off(ts[i], -T * 0.4 + z * 0.3), b = off(ts[i], T * 0.4 + z * 0.3);
       push({ type: "path", d: `M${f(a[0])} ${f(a[1])} L${f(b[0])} ${f(b[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.3, linecap: "round", layer: "walls", ref });
     }
   }
@@ -1069,7 +1089,7 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
   const poly = (pts) => pts.map((q, i) => `${i ? "L" : "M"}${f(q[0])} ${f(q[1])}`).join(" ") + " Z";
   const faceColor = theme.wallFace || "#E4ECF1";
 
-  for (const { w, g, gaps, solid, color } of wallData) {
+  for (const { w, g, gaps, solid, color, open } of wallData) {
     const isGlass = GLASS.has(w.kind);
     const hgt = w.heightMeters ?? (w.kind === "half_height" ? 1.1 : isGlass ? 2.4 : 2.8);
     const cap = Math.max(w.thickness * 2.6, u * 2.5) * depth, T = w.thickness;
@@ -1084,7 +1104,13 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
       const frame = glassFrame(w), T = w.thickness;
       const at = (t, k = 0) => { const p = g.pointAt(t), [tx, ty] = g.tangentAt(t); return [p[0] - ty * k, p[1] + tx * k]; };
       for (const [t0, t1] of solid) {
-        const ts = glassPanels(w, g, t0, t1, M);
+        const all = glassPanels(w, g, t0, t1, M), k = Math.round((all.length - 1) * open);
+        for (let j = 0; j < k; j++) {               // opened panels folded/slid to the end of the run
+          const t = t1 - (j * u * 0.6) / g.length, a = at(t, -T * 0.9), b = at(t, T * 0.9);
+          faces.push({ type: "path", d: poly([a, b, lift(b), lift(a)]), fill: theme.window, stroke: frame, strokeWidth: u * 0.12, opacity: 0.4, layer: "walls", ref });
+        }
+        const ts = all.slice(0, all.length - k);
+        if (ts.length < 2) continue;
         const zig = (i) => (w.kind === "glass_folding" ? (i % 2 ? 0.45 : -0.45) * T : w.kind === "glass_sliding" ? (i % 2 ? 0.2 : -0.2) * T : 0);
         for (let i = 0; i < ts.length - 1; i++) {
           const a = at(ts[i], zig(i)), b = at(ts[i + 1], w.kind === "glass_folding" ? zig(i + 1) : zig(i));
@@ -1097,7 +1123,7 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
           const q = at(ts[i], zig(Math.min(i, ts.length - 2) + (w.kind === "glass_folding" && i === ts.length - 1 ? 1 : 0))), tp = lift(q);
           decals.push({ type: "path", d: `M${f(q[0])} ${f(q[1])} L${f(tp[0])} ${f(tp[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.28, linecap: "round", layer: "walls", ref });
         }
-        const b0 = at(t0), b1 = at(t1), c0 = lift(b0), c1 = lift(b1);
+        const b0 = at(t0), b1 = at(ts[ts.length - 1]), c0 = lift(b0), c1 = lift(b1);
         decals.push({ type: "path", d: `M${f(b0[0])} ${f(b0[1])} L${f(b1[0])} ${f(b1[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.35, layer: "walls", ref });
         tops.push({ type: "path", d: `M${f(c0[0])} ${f(c0[1])} L${f(c1[0])} ${f(c1[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.45, layer: "walls", ref, order: 0 });
       }

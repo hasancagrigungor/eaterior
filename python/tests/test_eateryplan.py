@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from eateryplan import (check_detection, check_table_state, check_telemetry, detection_to_plan, migrate,
+from eateryplan import (check_detection, check_object_state, check_table_state, check_telemetry, detection_to_plan, migrate,
                         validate_plan)
 from eateryplan.validate import load_schema
 
@@ -47,7 +47,7 @@ class Examples(unittest.TestCase):
 
     def test_eateryplan_1_0_0_upgrades(self):
         new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
-        self.assertEqual(new["schemaVersion"], "1.3.0")
+        self.assertEqual(new["schemaVersion"], "1.4.0")
         self.assertTrue(validate_plan(new).ok)
 
     def test_imported_example_is_valid(self):
@@ -151,6 +151,34 @@ class StateAndTelemetry(unittest.TestCase):
         self.assertIn("missing_ref", codes(check_telemetry(PLAN, t)))
 
 
+class ObjectState(unittest.TestCase):
+    def setUp(self):
+        self.plan = load("restaurant.json")
+        self.doc = load("restaurant-objects.json")
+
+    def test_example_is_clean(self):
+        self.assertEqual(check_object_state(self.plan, self.doc).issues, [])
+
+    def test_errors(self):
+        cases = {
+            "missing_ref": {"objectId": "nope", "active": False},
+            "not_openable": {"objectId": "table_1", "open": 0.5},
+            "no_power": {"objectId": "pergola_1", "power": "off"},
+        }
+        for code, entry in cases.items():
+            with self.subTest(code=code):
+                d = copy.deepcopy(self.doc); d["objects"].append(entry)
+                self.assertIn(code, codes(check_object_state(self.plan, d)))
+
+    def test_open_out_of_range(self):
+        d = copy.deepcopy(self.doc); d["objects"][0]["open"] = 2
+        self.assertFalse(check_object_state(self.plan, d).ok)
+
+    def test_plan_active_default(self):
+        p = copy.deepcopy(self.plan); p["floors"][0]["zones"][0]["active"] = False
+        self.assertTrue(validate_plan(p).ok)
+
+
 class Migration(unittest.TestCase):
     def legacy(self, version):
         old = copy.deepcopy(PLAN)
@@ -169,7 +197,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.3.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.4.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -276,7 +304,7 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.3.0"
+        canon = ROOT / "schemas" / "v1.4.0"
         packaged = ROOT / "python" / "eateryplan" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))

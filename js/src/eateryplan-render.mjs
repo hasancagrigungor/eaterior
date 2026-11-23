@@ -231,11 +231,79 @@ export function asMap(x, key) {
   return new Map(Object.entries(x));
 }
 
+// ------------------------------------------------------------------ component state
+/** Object-state document / array / Map / {id: state} -> Map(objectId -> state). */
+export function objectStateMap(x) {
+  if (!x) return new Map();
+  if (x instanceof Map) return x;
+  const list = Array.isArray(x) ? x : Array.isArray(x.objects) ? x.objects : null;
+  if (list) return new Map(list.map((e) => [e.objectId, e]));
+  return new Map(Object.entries(x));
+}
+
+/** Effective state of a plan object: live state overrides the plan's defaults. */
+export function resolveState(obj, states) {
+  const live = states.get(obj.id) || {};
+  return {
+    active: live.active ?? obj.active ?? true,
+    open: Math.max(0, Math.min(1, live.open ?? 0)),
+    power: live.power ?? "on",
+    mode: live.mode ?? null,
+  };
+}
+
+const INACTIVE_FILL = "#9CA3AF";
+
+/** Fade every item of passive objects and mark them with a hatched outline. Mutates and returns the scene. */
+export function applyInactive(scene, plan, floorId, states, overlayLayer) {
+  const floor = plan.floors.find((x) => x.id === floorId) || plan.floors[0];
+  const inactive = new Map();
+  for (const k of ["zones", "walls", "openings", "tables", "fixtures", "climateDevices", "environmentalSensors", "labels"]) {
+    for (const o of floor[k] || []) if (!resolveState(o, states).active) inactive.set(o.id, o);
+  }
+  if (!inactive.size) return scene;
+  for (const it of scene.items) {
+    if (it.ref && inactive.has(it.ref.id)) {
+      it.opacity = (it.opacity ?? 1) * 0.3;
+      it.inactive = true;
+    }
+  }
+  scene.defs = scene.defs || [];
+  if (!scene.defs.some((d) => d.id === "ep-inactive")) {
+    scene.defs.push({ type: "pattern", id: "ep-inactive", width: 8, height: 8, rotation: 45, items: [
+      { type: "path", d: "M0 0 L0 8", fill: "none", stroke: INACTIVE_FILL, strokeWidth: 2.2, opacity: 0.9 }] });
+  }
+  for (const [id, o] of inactive) {
+    if (!o.shape) continue;
+    scene.items.push({ type: "path", d: shapeToPath(o.shape), fill: "url(#ep-inactive)", stroke: INACTIVE_FILL, strokeWidth: 1.2,
+      dash: [4, 3], opacity: 0.85, layer: overlayLayer, ref: { type: "inactive", id } });
+  }
+  return scene;
+}
+
+/**
+ * Split a scene's display list into runs of consecutive items that belong to the same plan object, so a UI can
+ * render each run as a component (tap target, hover, enable/disable) without changing the drawing order. An object
+ * spread over several layers (e.g. a table's chairs, top and badge) yields several runs with the same `ref`.
+ * Returns [{ ref, items }]; decoration without a ref has ref null.
+ */
+export function groupByObject(scene) {
+  const runs = [];
+  let last = null;
+  for (const it of scene.items) {
+    const key = it.ref ? `${it.ref.type}:${it.ref.id}` : "";
+    if (!last || last.key !== key) { last = { key, ref: it.ref || null, items: [] }; runs.push(last); }
+    last.items.push(it);
+  }
+  return runs.map(({ ref, items }) => ({ ref, items }));
+}
+
 // ------------------------------------------------------------------ scene
 /**
  * @param plan      Eatery Plan document
  * @param options   floorId, tableStates (table-state document, array or map by tableId),
  *                  readings (map sensorId -> readings object), theme (partial override),
+ *                  objectStates (object-state document: active / open / power),
  *                  resolveAsset(asset) -> href | null, showBackground, showChairs, showZoneNames,
  *                  highlightReview
  */
@@ -425,10 +493,12 @@ export function buildScene(plan, options = {}) {
       fill: lb.kind === "dimension" ? theme.dimension : theme.label, rotation, layer: "labels", ref: ref("label", lb) });
   }
 
+  const scene = { floorId: floor.id, width: W, height: H, viewBox: `0 0 ${f(W)} ${f(H)}`, background: theme.background, items, defs: [] };
+  applyInactive(scene, plan, floor.id, objectStateMap(options.objectStates), "review");
   const order = new Map(LAYERS.map((l, i) => [l, i]));
-  const sorted = items.map((it, i) => [it, i]).sort((p, q) => order.get(p[0].layer) - order.get(q[0].layer) || p[1] - q[1])
+  scene.items = scene.items.map((it, i) => [it, i]).sort((p, q) => order.get(p[0].layer) - order.get(q[0].layer) || p[1] - q[1])
     .map((p) => p[0]);
-  return { floorId: floor.id, width: W, height: H, viewBox: `0 0 ${f(W)} ${f(H)}`, background: theme.background, items: sorted };
+  return scene;
 }
 
 // ------------------------------------------------------------------ SVG adapter
@@ -471,6 +541,7 @@ export function toSvg(scene, { title, className } = {}) {
       out.push(pathToSvg(it, data));
     } else if (it.type === "text") {
       out.push(`<text x="${f(it.x)}" y="${f(it.y)}" font-size="${f(it.fontSize)}" font-weight="${it.weight || 400}" fill="${esc(it.fill)}"` +
+        `${it.opacity != null && it.opacity !== 1 ? ` opacity="${f(it.opacity)}"` : ""}` +
         ` text-anchor="middle" dominant-baseline="central" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"` +
         `${it.rotation ? ` transform="rotate(${f(it.rotation)} ${f(it.x)} ${f(it.y)})"` : ""}${data}>${esc(it.text)}</text>`);
     } else if (it.type === "image") {

@@ -1,0 +1,1759 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.4.0/eateryplan.schema.json",
+  "title": "Eatery Plan v1.4.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "planId",
+    "name",
+    "revision",
+    "floors"
+  ],
+  "properties": {
+    "format": {
+      "const": "eateryplan"
+    },
+    "schemaVersion": {
+      "enum": [
+        "1.0.0",
+        "1.1.0",
+        "1.1.1",
+        "1.2.0",
+        "1.3.0",
+        "1.4.0"
+      ],
+      "description": "1.0.0 documents remain valid. Legacy CafePlan 1.x files are converted with `eateryplan migrate`."
+    },
+    "planId": {
+      "$ref": "#/$defs/id",
+      "description": "Stable identifier of the plan."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Incremented on every saved change."
+    },
+    "locale": {
+      "type": "string",
+      "description": "BCP 47 language tag for names and labels."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 date-time with timezone."
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 date-time with timezone."
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/asset"
+      },
+      "default": []
+    },
+    "floors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/floor"
+      }
+    },
+    "extensions": {
+      "$ref": "#/$defs/extensions",
+      "description": "Plan-level extensions."
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$",
+      "description": "Identifier, unique within the whole plan (checked by the semantic validator)."
+    },
+    "point": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false,
+      "description": "Point in floor units. Origin top-left, x to the right, y downwards."
+    },
+    "style": {
+      "type": "object",
+      "properties": {
+        "fill": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+        },
+        "stroke": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+        },
+        "strokeWidth": {
+          "type": "number",
+          "minimum": 0
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false,
+      "description": "Optional per-object style override. Clients should prefer their own theme."
+    },
+    "shape": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "rect"
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "cornerRadius": {
+              "type": "number",
+              "minimum": 0
+            },
+            "rotationDeg": {
+              "type": "number",
+              "description": "Degrees, clockwise positive. Pivot: rect = rectangle centre, ellipse = (cx, cy), polygon = centre of the bounding box of its points, path = centre of the bounding box of every coordinate written in its commands (end points and control points; arc radii ignored)."
+            }
+          },
+          "required": [
+            "kind",
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "ellipse"
+            },
+            "cx": {
+              "type": "number"
+            },
+            "cy": {
+              "type": "number"
+            },
+            "rx": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "ry": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rotationDeg": {
+              "type": "number",
+              "description": "Degrees, clockwise positive. Pivot: rect = rectangle centre, ellipse = (cx, cy), polygon = centre of the bounding box of its points, path = centre of the bounding box of every coordinate written in its commands (end points and control points; arc radii ignored)."
+            }
+          },
+          "required": [
+            "kind",
+            "cx",
+            "cy",
+            "rx",
+            "ry"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "polygon"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/point"
+              },
+              "minItems": 3
+            },
+            "rotationDeg": {
+              "type": "number",
+              "description": "Degrees, clockwise positive. Pivot: rect = rectangle centre, ellipse = (cx, cy), polygon = centre of the bounding box of its points, path = centre of the bounding box of every coordinate written in its commands (end points and control points; arc radii ignored)."
+            }
+          },
+          "required": [
+            "kind",
+            "points"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "path"
+            },
+            "commands": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cmd": {
+                        "const": "M"
+                      },
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cmd",
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cmd": {
+                        "const": "L"
+                      },
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cmd",
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cmd": {
+                        "const": "Q"
+                      },
+                      "cx": {
+                        "type": "number"
+                      },
+                      "cy": {
+                        "type": "number"
+                      },
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cmd",
+                      "cx",
+                      "cy",
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cmd": {
+                        "const": "C"
+                      },
+                      "c1x": {
+                        "type": "number"
+                      },
+                      "c1y": {
+                        "type": "number"
+                      },
+                      "c2x": {
+                        "type": "number"
+                      },
+                      "c2y": {
+                        "type": "number"
+                      },
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cmd",
+                      "c1x",
+                      "c1y",
+                      "c2x",
+                      "c2y",
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cmd": {
+                        "const": "A"
+                      },
+                      "rx": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "ry": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "xAxisRotationDeg": {
+                        "type": "number"
+                      },
+                      "largeArc": {
+                        "type": "boolean"
+                      },
+                      "sweep": {
+                        "type": "boolean"
+                      },
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cmd",
+                      "rx",
+                      "ry",
+                      "largeArc",
+                      "sweep",
+                      "x",
+                      "y"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "cmd": {
+                        "const": "Z"
+                      }
+                    },
+                    "required": [
+                      "cmd"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "description": "First command must be M. Same semantics as SVG path commands."
+            },
+            "closed": {
+              "type": "boolean",
+              "description": "Whether the outline is closed (filled)."
+            },
+            "rotationDeg": {
+              "type": "number",
+              "description": "Degrees, clockwise positive. Pivot: rect = rectangle centre, ellipse = (cx, cy), polygon = centre of the bounding box of its points, path = centre of the bounding box of every coordinate written in its commands (end points and control points; arc radii ignored)."
+            }
+          },
+          "required": [
+            "kind",
+            "commands"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "description": "Geometry primitive. A circle is an ellipse with rx = ry."
+    },
+    "zone": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "kind": {
+          "enum": [
+            "dining",
+            "terrace",
+            "bar",
+            "kitchen",
+            "storage",
+            "restroom",
+            "corridor",
+            "entrance",
+            "staff",
+            "outdoor",
+            "other"
+          ]
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "capacity": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum guests. Seats of tables in the zone should not exceed it."
+        },
+        "parentZoneId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Containing zone on the same floor (no cycles)."
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "shape",
+        "floorId"
+      ],
+      "additionalProperties": false
+    },
+    "wall": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "a": {
+          "$ref": "#/$defs/point"
+        },
+        "b": {
+          "$ref": "#/$defs/point"
+        },
+        "thickness": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Floor units, centred on the a-b line."
+        },
+        "kind": {
+          "enum": [
+            "solid",
+            "glass",
+            "partition",
+            "external",
+            "half_height",
+            "glass_folding",
+            "glass_sliding"
+          ],
+          "description": "half_height: low partition such as a counter back or railing. glass: fixed glazing. glass_folding / glass_sliding: frameless folding or sliding glass panels (glass balcony enclosure), with or without a pergola above."
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "bulge": {
+          "type": "number",
+          "default": 0,
+          "description": "Curved wall. 0 = straight, 1 = semicircle. Value is tan(sweepAngle/4) as in DXF. Positive bulges to the right of a->b (clockwise on screen, y down)."
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "heightMeters": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Physical wall height in metres (optional). Renderers use it for depth effects; defaults: 2.8 m, half_height 1.1 m."
+        },
+        "panelWidthMeters": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Glass walls: width of one panel in metres (default 0.8 for folding/sliding, 1.5 for fixed glass)."
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      },
+      "required": [
+        "id",
+        "floorId",
+        "a",
+        "b",
+        "thickness",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "opening": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "wallId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "door",
+            "window",
+            "archway"
+          ]
+        },
+        "position": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Centre of the opening along the wall, a = 0 to b = 1 (arc length on curved walls)."
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Floor units. Must fit within the wall."
+        },
+        "swing": {
+          "enum": [
+            "none",
+            "left",
+            "right",
+            "double",
+            "sliding"
+          ],
+          "description": "Door leaf direction. Use 'none' for archways."
+        },
+        "opensToward": {
+          "enum": [
+            "inside",
+            "outside",
+            "none"
+          ],
+          "description": "'inside' = to the right of a->b, 'outside' = to the left."
+        },
+        "hinge": {
+          "enum": [
+            "start",
+            "end",
+            "none"
+          ],
+          "description": "Which end of the opening (towards a = start, towards b = end) carries the hinge."
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      },
+      "required": [
+        "id",
+        "floorId",
+        "wallId",
+        "kind",
+        "position",
+        "width"
+      ],
+      "additionalProperties": false
+    },
+    "table": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "zoneId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "number": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Display number, unique within the plan."
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "seats": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Number of seats."
+        },
+        "externalTableId": {
+          "type": "string",
+          "description": "Matching record in a POS / order system. Unique within the plan."
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "kind": {
+          "enum": [
+            "standard",
+            "high",
+            "bar_stool",
+            "booth",
+            "sofa",
+            "communal",
+            "outdoor",
+            "other"
+          ],
+          "default": "standard",
+          "description": "Table type."
+        },
+        "combinableWithTableIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "description": "Tables this one can physically be joined with."
+        },
+        "chairs": {
+          "type": "array",
+          "description": "Optional explicit chair positions. If omitted, clients may place chairs automatically from 'seats'.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "x",
+              "y"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "rotationDeg": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "chairStyle": {
+          "$ref": "#/$defs/chairStyle"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      },
+      "required": [
+        "id",
+        "floorId",
+        "number",
+        "shape",
+        "seats"
+      ],
+      "additionalProperties": false
+    },
+    "fixture": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "zoneId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "enum": [
+            "counter",
+            "bar_counter",
+            "prep_counter",
+            "sofa",
+            "chair",
+            "armchair",
+            "bar_stool",
+            "plant",
+            "planter",
+            "tree",
+            "parasol",
+            "pergola",
+            "palm_tree",
+            "rug",
+            "sink",
+            "hand_sink",
+            "stove",
+            "oven",
+            "fridge",
+            "freezer",
+            "dishwasher",
+            "coffee_machine",
+            "display_case",
+            "wine_rack",
+            "shelf",
+            "host_stand",
+            "pos_terminal",
+            "tv",
+            "piano",
+            "toilet",
+            "urinal",
+            "stairs",
+            "elevator",
+            "column",
+            "equipment",
+            "other"
+          ],
+          "description": "Fixture type; renderers draw a symbol per kind."
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      },
+      "required": [
+        "id",
+        "floorId",
+        "kind",
+        "shape"
+      ],
+      "additionalProperties": false
+    },
+    "floor": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id",
+          "description": "Every object inside the floor must use this value as floorId."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "type": "integer",
+          "description": "0 = ground floor, negative = basement."
+        },
+        "coordinateSpace": {
+          "type": "object",
+          "properties": {
+            "unit": {
+              "const": "unit"
+            },
+            "origin": {
+              "const": "top-left"
+            },
+            "xAxis": {
+              "const": "right"
+            },
+            "yAxis": {
+              "const": "down"
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "realWorldScale": {
+              "type": "object",
+              "properties": {
+                "metersPerUnit": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "source": {
+                  "enum": [
+                    "measured",
+                    "dimension_label",
+                    "user_input"
+                  ],
+                  "description": "Where the scale came from."
+                }
+              },
+              "required": [
+                "metersPerUnit"
+              ],
+              "additionalProperties": false,
+              "description": "Optional. Only set when the scale is known; never invent it."
+            }
+          },
+          "required": [
+            "unit",
+            "origin",
+            "xAxis",
+            "yAxis",
+            "width",
+            "height"
+          ],
+          "additionalProperties": false,
+          "description": "Virtual coordinate system of the floor. Width/height keep the real aspect ratio (e.g. 1000 x 562.5 for a 16:9 drawing). Clients scale to fit the screen."
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/zone"
+          }
+        },
+        "walls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/wall"
+          }
+        },
+        "openings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/opening"
+          }
+        },
+        "tables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/table"
+          }
+        },
+        "fixtures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fixture"
+          }
+        },
+        "background": {
+          "type": "object",
+          "properties": {
+            "assetId": {
+              "$ref": "#/$defs/id"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "transform": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                },
+                "width": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "height": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "rotationDeg": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y",
+                "width",
+                "height"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "assetId"
+          ],
+          "additionalProperties": false,
+          "description": "Original drawing placed under the plan, in floor units."
+        },
+        "climateDevices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/climateDevice"
+          }
+        },
+        "environmentalSensors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/environmentalSensor"
+          }
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/label"
+          },
+          "description": "Optional since 1.2.0."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "level",
+        "coordinateSpace",
+        "zones",
+        "walls",
+        "openings",
+        "tables",
+        "fixtures",
+        "climateDevices",
+        "environmentalSensors"
+      ],
+      "additionalProperties": false
+    },
+    "asset": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "mimeType": {
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/webp",
+            "application/pdf"
+          ]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "Relative or absolute URI of the file."
+        },
+        "widthPx": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "heightPx": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Lowercase hex SHA-256 of the file content."
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions"
+        }
+      },
+      "required": [
+        "id",
+        "mimeType"
+      ],
+      "additionalProperties": false
+    },
+    "climateDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "floorId",
+        "kind",
+        "shape"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "zoneId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "air_conditioner",
+            "hvac_indoor_unit",
+            "hvac_outdoor_unit",
+            "ventilation_fan",
+            "exhaust_hood",
+            "air_supply_vent",
+            "air_return_vent",
+            "air_purifier",
+            "heater",
+            "radiator",
+            "underfloor_heating",
+            "thermostat",
+            "humidifier",
+            "dehumidifier",
+            "ceiling_cassette",
+            "ventilation_duct",
+            "patio_heater",
+            "wall_heater",
+            "other"
+          ],
+          "description": "Device type. ceiling_cassette: ceiling-recessed AC; ventilation_duct: a duct run (use a long rect, polygon or path); patio_heater: free-standing outdoor heater; wall_heater: wall-mounted heater."
+        },
+        "shape": {
+          "$ref": "#/$defs/shape"
+        },
+        "rotationDeg": {
+          "type": "number",
+          "deprecated": true,
+          "description": "DEPRECATED since 1.1.1: use shape.rotationDeg. Removed in 2.0.0."
+        },
+        "mount": {
+          "enum": [
+            "ceiling",
+            "wall",
+            "floor",
+            "window",
+            "duct",
+            "other"
+          ]
+        },
+        "coveredZoneIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "description": "Zones served by the device (same floor)."
+        },
+        "externalDeviceId": {
+          "type": "string",
+          "description": "ID in an external BMS/IoT system. Not a credential."
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "model": {
+          "type": "string"
+        },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "cooling",
+              "heating",
+              "ventilation",
+              "air_quality",
+              "humidification",
+              "dehumidification",
+              "fan_speed",
+              "setpoint",
+              "power_switch"
+            ]
+          }
+        },
+        "ratedCapacityW": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Rated capacity in watts. Never inferred from images."
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "airflowDirectionDeg": {
+          "type": "number",
+          "description": "Optional supply direction (degrees, clockwise, 0 = +x). Visual hint only."
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      }
+    },
+    "environmentalSensor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "floorId",
+        "position",
+        "metrics"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "zoneId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/point"
+        },
+        "mount": {
+          "enum": [
+            "ceiling",
+            "wall",
+            "desk",
+            "floor",
+            "other"
+          ]
+        },
+        "heightMeters": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Mounting height in metres (physical, independent of plan units)."
+        },
+        "externalSensorId": {
+          "type": "string",
+          "description": "ID in an external IoT system. Not a credential."
+        },
+        "associatedDeviceId": {
+          "$ref": "#/$defs/id",
+          "description": "climateDevice this sensor belongs to (e.g. a thermostat's unit)."
+        },
+        "metrics": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "temperature",
+              "humidity",
+              "co2",
+              "pm25",
+              "pm10",
+              "voc",
+              "pressure",
+              "noise",
+              "occupancy",
+              "light"
+            ]
+          },
+          "description": "Metrics the sensor reports. Telemetry mapping: temperature->temperatureC, humidity->relativeHumidityPct, co2->co2Ppm, pm25->pm25UgM3, pm10->pm10UgM3, voc->vocPpb, pressure->pressureHpa, noise->noiseDbA, occupancy->occupancyCount, light->illuminanceLux"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ],
+          "description": "Who created the object: manual edit, automatic generation ('ai'), or import."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0..1 confidence for generated or imported objects."
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions",
+          "description": "Namespaced application data."
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "needsReview": {
+          "type": "boolean",
+          "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+      },
+      "additionalProperties": true,
+      "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "description": "How the plan was produced.",
+      "properties": {
+        "method": {
+          "enum": [
+            "manual",
+            "image_import",
+            "text_prompt",
+            "cad_import",
+            "other"
+          ]
+        },
+        "sourceAssetId": {
+          "$ref": "#/$defs/id",
+          "description": "Asset the plan was traced from (image_import)."
+        },
+        "tool": {
+          "type": "string",
+          "description": "Free-form name/version of the tool or model that generated the plan."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Uncertainties or assumptions recorded during generation."
+        }
+      }
+    },
+    "label": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "floorId",
+        "kind",
+        "position",
+        "text"
+      ],
+      "description": "Text annotation (room names, notes) or a dimension line.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "floorId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "text",
+            "dimension"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Displayed text, e.g. 'Kitchen' or '5.40 m'."
+        },
+        "position": {
+          "$ref": "#/$defs/point",
+          "description": "Text anchor (centre)."
+        },
+        "fontSize": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Floor units. Clients may clamp for readability."
+        },
+        "rotationDeg": {
+          "type": "number"
+        },
+        "a": {
+          "$ref": "#/$defs/point",
+          "description": "dimension: start of measured segment."
+        },
+        "b": {
+          "$ref": "#/$defs/point",
+          "description": "dimension: end of measured segment."
+        },
+        "valueMeters": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "dimension: real length the drawing states. Used to derive realWorldScale."
+        },
+        "zoneId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "zIndex": {
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "ai",
+            "import"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "needsReview": {
+          "type": "boolean"
+        },
+        "extensions": {
+          "$ref": "#/$defs/extensions"
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default operational state. false = out of service / closed (e.g. a winter-closed terrace). Live changes go in an object-state document."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "dimension"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "a",
+              "b"
+            ]
+          }
+        }
+      ]
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "description": "sRGB colour as #RRGGBB."
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Semantic look of an object: what it is made of and its colours. Renderers decide how to draw it (textures, shading, symbols). All fields are optional; omitted fields use the renderer's defaults. Use `style` only for low-level fill/stroke overrides.",
+      "properties": {
+        "color": {
+          "$ref": "#/$defs/color",
+          "description": "Main colour (floor base, table top, upholstery, wall paint …)."
+        },
+        "accentColor": {
+          "$ref": "#/$defs/color",
+          "description": "Secondary colour (second tile colour, cushions, trim …)."
+        },
+        "floor": {
+          "enum": [
+            "wood_planks",
+            "wood_herringbone",
+            "tile_checker",
+            "tile_square",
+            "marble",
+            "terrazzo",
+            "concrete",
+            "carpet",
+            "terrace_deck",
+            "grass",
+            "stone"
+          ],
+          "description": "Zones only: floor finish."
+        },
+        "material": {
+          "enum": [
+            "wood",
+            "wood_light",
+            "wood_dark",
+            "marble",
+            "metal",
+            "aluminium",
+            "glass",
+            "fabric",
+            "leather",
+            "plastic",
+            "stone",
+            "concrete"
+          ],
+          "description": "Tables, fixtures, devices: main material."
+        },
+        "tablecloth": {
+          "$ref": "#/$defs/color",
+          "description": "Tables only: tablecloth colour."
+        },
+        "tableSetting": {
+          "enum": [
+            "none",
+            "plates",
+            "plates_glasses"
+          ],
+          "description": "Tables only: what is laid at each seat."
+        },
+        "roof": {
+          "enum": [
+            "slatted",
+            "louvered",
+            "glass",
+            "fabric",
+            "solid"
+          ],
+          "description": "Pergolas only: roof type. slatted = open rafters; louvered = adjustable aluminium blades (bioclimatic); glass; fabric = retractable awning; solid. Use color for the frame and accentColor for the roof."
+        }
+      }
+    },
+    "chairStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the seats around a table look.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "chair",
+            "armchair",
+            "stool",
+            "bench",
+            "booth"
+          ]
+        },
+        "color": {
+          "$ref": "#/$defs/color"
+        },
+        "material": {
+          "enum": [
+            "wood",
+            "metal",
+            "fabric",
+            "leather",
+            "plastic"
+          ]
+        }
+      }
+    }
+  },
+  "description": "Platform-independent floor plan for restaurants, cafes, bars and similar venues. Structure is validated by this schema; references and geometry are validated by the reference validator (python/eateryplan). Live table state and sensor readings live outside the plan."
+}

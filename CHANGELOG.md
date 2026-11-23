@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.0 — 2026-11-23
+
+- Components: optional `active` default on every plan object; new object-state document (`object-state.schema.json`)
+  with live `active`, `open` (0–1) and `power` per object; `eateryplan check-objects`.
+- Renderers: passive objects faded and hatched; louvered pergolas open/close, fabric roofs retract, folding/sliding glass
+  panels stack when open; heaters and ACs show power state.
+- `groupByObject(scene)` for rendering each object as a component without changing draw order; React Native example
+  renders one pressable group per object.
+- Demo: click any object to toggle active, drag open/closed, switch power.
+
 ## 1.3.0 — 2026-11-23
 
 - Pergola roof types via `appearance.roof`: `slatted`, `louvered` (aluminium bioclimatic), `glass`, `fabric`, `solid`;

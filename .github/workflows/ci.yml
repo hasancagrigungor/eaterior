@@ -19,6 +19,7 @@ jobs:
       - run: python -m unittest discover -s python/tests -v
       - run: eateryplan validate examples/plan.json
       - run: eateryplan import examples/detection.json /tmp/imported.json
+      - run: eateryplan check-objects examples/restaurant.json examples/restaurant-objects.json
 
   js:
     runs-on: ubuntu-latest

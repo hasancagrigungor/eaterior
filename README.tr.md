@@ -18,6 +18,8 @@ masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya foto
 - **Sıkı doğrulama.** Yapı JSON Schema ile, referanslar ve geometri Python doğrulayıcı ile kontrol edilir.
 - **Görünüm veri, çizim kod.** İsteğe bağlı `appearance` alanları (zemin, malzeme, renk, sandalye tipi) sayesinde
   aynı plan sade bir plan ya da renkli bir illüstrasyon olarak çizilir; hiçbir resim dosyası kullanılmaz.
+- **Her nesne bir bileşen.** Masa, bölge, pergola, cam panel ve cihazlar canlı bir nesne durumu dosyasıyla aktif/pasif,
+  açık/kapalı ve açık/kapalı (güç) yapılabilir; plan değişmez.
 - **Genişletilebilir.** Her nesnede uygulamaya özel veriler için `extensions` alanı vardır.
 
 ## Kullanım

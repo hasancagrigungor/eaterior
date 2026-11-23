@@ -33,7 +33,9 @@ def main(argv=None) -> int:
     p.add_argument("plan"); p.add_argument("state"); p.add_argument("--json", action="store_true")
     p = sub.add_parser("check-telemetry", help="validate a sensor reading against a plan")
     p.add_argument("plan"); p.add_argument("telemetry"); p.add_argument("--json", action="store_true")
-    p = sub.add_parser("migrate", help="upgrade a legacy CafePlan 1.x file")
+    p = sub.add_parser("check-objects", help="validate live component state (active, open, power) against a plan")
+    p.add_argument("plan"); p.add_argument("objects"); p.add_argument("--json", action="store_true")
+    p = sub.add_parser("migrate", help="upgrade an older or legacy CafePlan 1.x file")
     p.add_argument("src"); p.add_argument("dst")
     p = sub.add_parser("import", help="convert an image detection (pixels) into a plan")
     p.add_argument("detection"); p.add_argument("dst")
@@ -82,6 +84,8 @@ def main(argv=None) -> int:
         return 1
     if a.cmd == "check-state":
         return _emit(v.check_table_state(plan, _load(a.state)), a.json)
+    if a.cmd == "check-objects":
+        return _emit(v.check_object_state(plan, _load(a.objects)), a.json)
     return _emit(v.check_telemetry(plan, _load(a.telemetry)), a.json)
 
 

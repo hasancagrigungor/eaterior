@@ -1,0 +1,39 @@
+{
+  "format": "eateryplan-object-state",
+  "schemaVersion": "1.4.0",
+  "planId": "restaurant_001",
+  "planRevision": 1,
+  "generatedAt": "2026-11-23T20:00:00Z",
+  "objects": [
+    {
+      "objectId": "pergola_1",
+      "open": 0.7,
+      "updatedAt": "2026-11-23T19:58:00Z"
+    },
+    {
+      "objectId": "w_glass_n",
+      "open": 1,
+      "updatedAt": "2026-11-23T19:58:00Z"
+    },
+    {
+      "objectId": "w_glass_s",
+      "open": 0.5,
+      "updatedAt": "2026-11-23T19:58:00Z"
+    },
+    {
+      "objectId": "heater_1",
+      "power": "off",
+      "updatedAt": "2026-11-23T19:50:00Z"
+    },
+    {
+      "objectId": "ac_3",
+      "power": "off",
+      "updatedAt": "2026-11-23T19:50:00Z"
+    },
+    {
+      "objectId": "table_20",
+      "active": false,
+      "updatedAt": "2026-11-23T18:00:00Z"
+    }
+  ]
+}

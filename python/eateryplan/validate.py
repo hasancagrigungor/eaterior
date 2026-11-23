@@ -12,8 +12,8 @@ from jsonschema import Draft202012Validator
 
 from . import geometry as g
 
-SCHEMA_VERSION = "1.3.0"
-SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0")
+SCHEMA_VERSION = "1.4.0"
+SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0")
 BOUNDS_TOLERANCE = 0.01  # objects may exceed the floor by 1 % of its size
 LOW_CONFIDENCE = 0.5
 METRIC_TO_READING = {
@@ -397,4 +397,45 @@ def check_telemetry(plan: dict, tel: dict) -> Report:
 def check_detection(det: dict) -> Report:
     r = Report()
     schema_check(det, load_schema("detection.schema.json"), r)
+    return r
+
+
+OPENABLE_WALLS = {"glass_folding", "glass_sliding"}
+
+
+def check_object_state(plan: dict, doc: dict) -> Report:
+    """Live component state: active/passive, open fraction, device power."""
+    r = Report()
+    schema_check(doc, load_schema("object-state.schema.json"), r)
+    if not r.ok:
+        return r
+    if doc["planId"] != plan["planId"]:
+        r.error("plan_mismatch", "$.planId", f"'{doc['planId']}' != plan '{plan['planId']}'")
+    if doc.get("planRevision") not in (None, plan["revision"]):
+        r.warn("revision_mismatch", "$.planRevision",
+               f"state was produced for revision {doc['planRevision']}, plan is at {plan['revision']}")
+    objects = {}
+    for fl in plan["floors"]:
+        for k in OBJECT_LISTS:
+            for o in fl.get(k, []):
+                objects[o["id"]] = (k, o)
+    seen = set()
+    for i, s in enumerate(doc["objects"]):
+        p = f"$.objects[{i}]"
+        oid = s["objectId"]
+        if oid in seen:
+            r.error("duplicate_id", p, f"'{oid}' listed twice")
+        seen.add(oid)
+        if oid not in objects:
+            r.error("missing_ref", f"{p}.objectId", f"'{oid}' is not in the plan")
+            continue
+        kind_list, o = objects[oid]
+        if "open" in s:
+            openable = ((kind_list == "fixtures" and o["kind"] == "pergola")
+                        or (kind_list == "walls" and o["kind"] in OPENABLE_WALLS)
+                        or kind_list == "openings")
+            if not openable:
+                r.error("not_openable", f"{p}.open", f"'{oid}' ({o.get('kind', kind_list)}) cannot open or close")
+        if "power" in s and kind_list != "climateDevices":
+            r.error("no_power", f"{p}.power", f"'{oid}' is not a climate device")
     return r

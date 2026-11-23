@@ -8,7 +8,7 @@
  */
 import React, { useMemo } from "react";
 import Svg, { Defs, G, Image as SvgImage, LinearGradient, Path, Pattern, RadialGradient, Rect, Stop, Text as SvgText } from "react-native-svg";
-import { buildScene } from "./eateryplan-render.mjs";
+import { buildScene, groupByObject } from "./eateryplan-render.mjs";
 import { buildIllustratedScene } from "./eateryplan-illustrated.mjs";
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
   floorId?: string;
   theme?: "plain" | "illustrated";
   tableStates?: any;
+  objectStates?: any;          // live component state: active / open / power
   readings?: Record<string, any>;
   width?: number | string;
   height?: number | string;
@@ -23,11 +24,11 @@ type Props = {
   onPressObject?: (ref: { type: string; id: string }) => void;
 };
 
-export function EateryPlanView({ plan, floorId, theme = "illustrated", tableStates, readings, width = "100%", height = "100%",
+export function EateryPlanView({ plan, floorId, theme = "illustrated", tableStates, objectStates, readings, width = "100%", height = "100%",
   resolveAsset, onPressObject }: Props) {
   const scene = useMemo(
-    () => (theme === "illustrated" ? buildIllustratedScene : buildScene)(plan, { floorId, tableStates, readings, resolveAsset }),
-    [plan, floorId, theme, tableStates, readings, resolveAsset],
+    () => (theme === "illustrated" ? buildIllustratedScene : buildScene)(plan, { floorId, tableStates, objectStates, readings, resolveAsset }),
+    [plan, floorId, theme, tableStates, objectStates, readings, resolveAsset],
   );
 
   return (
@@ -59,30 +60,35 @@ export function EateryPlanView({ plan, floorId, theme = "illustrated", tableStat
         </Defs>
       ) : null}
       <Rect x={0} y={0} width={scene.width} height={scene.height} fill={scene.background} />
-      {scene.items.map((it: any, i: number) => {
-        const onPress = it.ref && onPressObject ? () => onPressObject(it.ref) : undefined;
-        if (it.type === "path") {
-          return (
-            <Path key={i} d={it.d} fill={it.fill} stroke={it.stroke ?? "none"} strokeWidth={it.strokeWidth ?? 0}
-              strokeDasharray={it.dash ?? undefined} strokeLinecap={it.linecap} strokeLinejoin="round" opacity={it.opacity ?? 1} onPress={onPress} />
-          );
-        }
-        if (it.type === "text") {
-          return (
-            <G key={i} rotation={it.rotation || 0} origin={`${it.x}, ${it.y}`}>
-              <SvgText x={it.x} y={it.y} fontSize={it.fontSize} fontWeight={String(it.weight ?? 400)} fill={it.fill}
-                textAnchor="middle" alignmentBaseline="central" onPress={onPress}>{it.text}</SvgText>
-            </G>
-          );
-        }
-        if (it.type === "image") {
-          return (
-            <SvgImage key={i} href={{ uri: it.href }} x={it.x} y={it.y} width={it.width} height={it.height}
-              opacity={it.opacity} preserveAspectRatio="none" />
-          );
-        }
-        return null;
-      })}
+      {/* each run of one plan object's items is its own pressable component; drawing order is preserved */}
+      {groupByObject(scene).map((group: any, gi: number) => (
+        <G key={`${group.ref ? `${group.ref.type}:${group.ref.id}` : "deco"}-${gi}`}
+          onPress={group.ref && onPressObject ? () => onPressObject(group.ref) : undefined}>
+          {group.items.map((it: any, i: number) => {
+            if (it.type === "path") {
+              return (
+                <Path key={i} d={it.d} fill={it.fill} stroke={it.stroke ?? "none"} strokeWidth={it.strokeWidth ?? 0}
+                  strokeDasharray={it.dash ?? undefined} strokeLinecap={it.linecap} strokeLinejoin="round" opacity={it.opacity ?? 1} />
+              );
+            }
+            if (it.type === "text") {
+              return (
+                <G key={i} rotation={it.rotation || 0} origin={`${it.x}, ${it.y}`}>
+                  <SvgText x={it.x} y={it.y} fontSize={it.fontSize} fontWeight={String(it.weight ?? 400)} fill={it.fill}
+                    opacity={it.opacity ?? 1} textAnchor="middle" alignmentBaseline="central">{it.text}</SvgText>
+                </G>
+              );
+            }
+            if (it.type === "image") {
+              return (
+                <SvgImage key={i} href={{ uri: it.href }} x={it.x} y={it.y} width={it.width} height={it.height}
+                  opacity={it.opacity} preserveAspectRatio="none" />
+              );
+            }
+            return null;
+          })}
+        </G>
+      ))}
     </Svg>
   );
 }

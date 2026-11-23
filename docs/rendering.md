@@ -100,3 +100,16 @@ towards the camera is drawn as a shaded quad between the floor line and the shif
 jambs; windows are drawn on the visible face. The shift is capped relative to the wall thickness so faces never hide
 furniture in the room. Hit-testing and validation always use the 2D floor geometry. Options: `walls3d: false` for flat
 walls, `wallDepth` to scale the effect.
+
+## Component state
+
+Both themes accept `objectStates` (an object-state document, an array of entries, a `Map` or `{id: state}`).
+
+- **Passive** objects (`active: false`) are faded to 30 % and covered by a hatched, dashed outline.
+- **Open** (`open` 0…1): louvered pergola blades turn edge-on and get thinner; fabric roofs retract into a bundle; folding
+  and sliding glass panels collapse into a stack at the end of the run.
+- **Power off**: heaters lose their glow, air conditioners their airflow arrows, and status LEDs turn red.
+
+`groupByObject(scene)` splits the display list into runs of items that belong to the same object without changing the
+drawing order, so a UI can render each run as a component with its own tap handler or enabled/disabled styling. The
+React Native example renders one `<G>` per run.

@@ -26,6 +26,10 @@
   .legend { display: grid; grid-template-columns: 14px 1fr; gap: 6px 8px; align-items: center; }
   .sw { width: 14px; height: 14px; border-radius: 4px; border: 1px solid #0002; }
   .err { color: #b91c1c; }
+  .controls { display: grid; gap: 10px; margin: 0 0 16px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+  .controls label { color: var(--text); justify-content: space-between; }
+  .controls input[type=range] { flex: 1; accent-color: var(--accent); }
+  .controls .muted { color: var(--muted); font-size: 12px; }
   @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -55,18 +59,24 @@
   <div class="stage" id="stage" aria-live="polite"></div>
   <aside>
     <h2>Selection</h2>
-    <dl id="info"><dt>Tip</dt><dd>Click a table.</dd></dl>
+    <dl id="info"><dt>Tip</dt><dd>Click any object: a table, the pergola, a glass wall, a heater…</dd></dl>
+    <div id="controls"></div>
     <h2>Table status</h2>
     <div class="legend" id="legend"></div>
   </aside>
 </main>
 <script type="module">
-  import { buildScene, toSvg, DEFAULT_THEME } from "../js/src/eateryplan-render.mjs";
+  import { buildScene, toSvg, DEFAULT_THEME, objectStateMap, resolveState } from "../js/src/eateryplan-render.mjs";
   import { buildIllustratedScene, ILLUSTRATED_THEME } from "../js/src/eateryplan-illustrated.mjs";
 
   const $ = (id) => document.getElementById(id);
   let plan = null, telemetry = null;
   const states = [];
+  const objectStates = new Map();          // planId -> Map(objectId -> live state); edited by the controls
+  const objStatesFor = (p) => { if (!objectStates.has(p.planId)) objectStates.set(p.planId, new Map()); return objectStates.get(p.planId); };
+  const LISTS = { table: "tables", zone: "zones", climateDevice: "climateDevices", sensor: "environmentalSensors", fixture: "fixtures",
+    wall: "walls", opening: "openings", label: "labels" };
+  let selected = null;
 
   function drawLegend() {
     const colors = $("theme").value === "illustrated" ? ILLUSTRATED_THEME.status : DEFAULT_THEME.status;
@@ -88,32 +98,58 @@
       walls3d: $("walls3d").checked,
       highlightReview: $("review").checked,
       showBackground: false,
+      objectStates: objStatesFor(plan),
     });
     $("stage").innerHTML = toSvg(scene, { title: plan.name });
   }
 
-  function show(type, id) {
+  function findObject(id) {
     const floor = plan.floors[0];
-    const list = { table: floor.tables, zone: floor.zones, climateDevice: floor.climateDevices, sensor: floor.environmentalSensors }[type] || [];
-    const o = list.find((x) => x.id === id);
-    if (!o) return;
+    for (const [type, key] of Object.entries(LISTS)) {
+      const o = (floor[key] || []).find((x) => x.id === id);
+      if (o) return { type, o };
+    }
+    return null;
+  }
+
+  function canOpen(type, o) {
+    return (type === "fixture" && o.kind === "pergola") || (type === "wall" && ["glass_folding", "glass_sliding"].includes(o.kind)) || type === "opening";
+  }
+
+  function show(id) {
+    const found = findObject(id);
+    if (!found) return;
+    selected = id;
+    const { type, o } = found, floor = plan.floors[0];
     const st = stateFor(plan)?.tables.find((t) => t.tableId === id);
     const zone = floor.zones.find((z) => z.id === o.zoneId);
-    const rows = { id: o.id, number: o.number, name: o.name, kind: o.kind, seats: o.seats, zone: zone ? zone.name : o.zoneId,
-      floor: o.appearance?.floor, material: o.appearance?.material, seating: o.chairStyle?.kind,
+    const rows = { id: o.id, number: o.number, name: o.name, type, kind: o.kind, seats: o.seats, zone: zone ? zone.name : o.zoneId,
+      floor: o.appearance?.floor, material: o.appearance?.material, roof: o.appearance?.roof, seating: o.chairStyle?.kind,
       status: st?.status, guests: st?.guestCount, order: st?.orderId, confidence: o.confidence,
       "needs review": o.needsReview ? "yes" : undefined };
     $("info").innerHTML = Object.entries(rows).filter(([, v]) => v != null)
       .map(([k, v]) => `<dt>${k}</dt><dd>${String(v).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]))}</dd>`).join("");
+
+    // component controls: active / open / power, written to the live object state
+    const live = objStatesFor(plan), eff = resolveState(o, live);
+    const set = (patch) => { live.set(id, { ...(live.get(id) || {}), objectId: id, ...patch }); render(); show(id); };
+    let html = `<div class="controls"><label>Active <input type="checkbox" id="c-active" ${eff.active ? "checked" : ""}></label>`;
+    if (canOpen(type, o)) html += `<label>Open <input type="range" id="c-open" min="0" max="100" value="${Math.round(eff.open * 100)}"> <span>${Math.round(eff.open * 100)}%</span></label>`;
+    if (type === "climateDevice") html += `<label>Power <input type="checkbox" id="c-power" ${eff.power !== "off" ? "checked" : ""}></label>`;
+    html += `<span class="muted">Changes go to the live object state; the plan itself is not modified.</span></div>`;
+    $("controls").innerHTML = html;
+    $("c-active").addEventListener("change", (e) => set({ active: e.target.checked }));
+    $("c-open")?.addEventListener("input", (e) => set({ open: e.target.value / 100 }));
+    $("c-power")?.addEventListener("change", (e) => set({ power: e.target.checked ? "on" : "off" }));
   }
 
   $("stage").addEventListener("click", (e) => {
     const el = e.target.closest("[data-ref-id]");
-    if (el) show(el.dataset.refType, el.dataset.refId);
+    if (el) show(el.dataset.refId);
   });
 
   async function loadPlan(url) {
-    try { plan = await getJson(url); render(); }
+    try { plan = await getJson(url); selected = null; $("controls").innerHTML = ""; render(); }
     catch (err) { $("stage").innerHTML = `<p class="err">Could not load ${url}. Serve the repository over HTTP (e.g. <code>python -m http.server</code>) and open /demo/.</p>`; }
   }
 
@@ -127,8 +163,10 @@
   });
 
   try {
-    const [a, b, t] = await Promise.all(["table-state.json", "restaurant-state.json", "telemetry.json"].map((n) => getJson(`../examples/${n}`)));
+    const [a, b, t, o] = await Promise.all(["table-state.json", "restaurant-state.json", "telemetry.json", "restaurant-objects.json"]
+      .map((n) => getJson(`../examples/${n}`)));
     states.push(a, b); telemetry = t;
+    objectStates.set(o.planId, objectStateMap(o));
   } catch {}
   loadPlan($("plan").value);
 </script>
