@@ -1,4 +1,4 @@
-"""Upgrade legacy CafePlan 1.x documents to Eatery Plan 1.0.0. Geometry is never changed."""
+"""Upgrade older documents (Eatery Plan 1.0.0, legacy CafePlan 1.x) to the current version. Geometry is never changed."""
 from __future__ import annotations
 
 import copy
@@ -6,14 +6,14 @@ from datetime import datetime, timezone
 
 from .validate import SCHEMA_VERSION
 
-LEGACY = {("cafeplan", "1.0.0"), ("cafeplan", "1.1.0"), ("cafeplan", "1.1.1")}
+LEGACY = {("cafeplan", "1.0.0"), ("cafeplan", "1.1.0"), ("cafeplan", "1.1.1"), ("eateryplan", "1.0.0")}
 
 
 def migrate(doc: dict) -> tuple[dict, list[str]]:
     p, notes = copy.deepcopy(doc), []
     key = (p.get("format"), p.get("schemaVersion"))
     if key == ("eateryplan", SCHEMA_VERSION):
-        return p, ["already Eatery Plan 1.0.0"]
+        return p, [f"already Eatery Plan {SCHEMA_VERSION}"]
     if key not in LEGACY:
         raise ValueError(f"unsupported document: format={key[0]!r} schemaVersion={key[1]!r}")
     for fl in p.get("floors", []):

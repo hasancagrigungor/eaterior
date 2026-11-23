@@ -16,7 +16,7 @@
   label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
   select, button { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); }
   main { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; padding: 16px; max-width: 1400px; margin: 0 auto; }
-  .stage { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
+  .stage { background: #fff; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
   .stage svg { width: 100%; height: auto; display: block; }
   .stage [data-ref-type="table"] { cursor: pointer; }
   aside { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; align-self: start; }
@@ -34,8 +34,15 @@
   <h1>Eatery Plan viewer</h1>
   <label>Plan
     <select id="plan">
+      <option value="../examples/restaurant.json">Garden Bistro (restaurant)</option>
       <option value="../examples/plan.json">Sample bistro</option>
       <option value="../examples/imported-plan.json">Imported sketch</option>
+    </select>
+  </label>
+  <label>Theme
+    <select id="theme">
+      <option value="illustrated">Illustrated</option>
+      <option value="plain">Plain</option>
     </select>
   </label>
   <label><input type="checkbox" id="live" checked> Live table state</label>
@@ -54,23 +61,28 @@
 </main>
 <script type="module">
   import { buildScene, toSvg, DEFAULT_THEME } from "../js/src/eateryplan-render.mjs";
+  import { buildIllustratedScene, ILLUSTRATED_THEME } from "../js/src/eateryplan-illustrated.mjs";
 
   const $ = (id) => document.getElementById(id);
-  let plan = null, state = null, telemetry = null;
+  let plan = null, telemetry = null;
+  const states = [];
 
-  const legend = $("legend");
-  for (const [k, c] of Object.entries(DEFAULT_THEME.status)) {
-    legend.insertAdjacentHTML("beforeend", `<span class="sw" style="background:${c}"></span><span>${k}</span>`);
+  function drawLegend() {
+    const colors = $("theme").value === "illustrated" ? ILLUSTRATED_THEME.status : DEFAULT_THEME.status;
+    $("legend").innerHTML = Object.entries(colors).map(([k, c]) => `<span class="sw" style="background:${c}"></span><span>${k}</span>`).join("");
   }
+  const stateFor = (p) => states.find((s) => s.planId === p?.planId) || null;
 
   async function getJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); }
 
   function render() {
     if (!plan) return;
-    const live = $("live").checked && state && state.planId === plan.planId;
-    const scene = buildScene(plan, {
+    const state = stateFor(plan), live = $("live").checked && !!state;
+    const build = $("theme").value === "illustrated" ? buildIllustratedScene : buildScene;
+    drawLegend();
+    const scene = build(plan, {
       tableStates: live ? state : null,
-      readings: live && telemetry ? { [telemetry.sensorId]: telemetry } : null,
+      readings: live && telemetry && telemetry.planId === plan.planId ? { [telemetry.sensorId]: telemetry } : null,
       showChairs: $("chairs").checked,
       highlightReview: $("review").checked,
       showBackground: false,
@@ -83,9 +95,10 @@
     const list = { table: floor.tables, zone: floor.zones, climateDevice: floor.climateDevices, sensor: floor.environmentalSensors }[type] || [];
     const o = list.find((x) => x.id === id);
     if (!o) return;
-    const st = state?.planId === plan.planId ? state.tables.find((t) => t.tableId === id) : null;
+    const st = stateFor(plan)?.tables.find((t) => t.tableId === id);
     const zone = floor.zones.find((z) => z.id === o.zoneId);
     const rows = { id: o.id, number: o.number, name: o.name, kind: o.kind, seats: o.seats, zone: zone ? zone.name : o.zoneId,
+      floor: o.appearance?.floor, material: o.appearance?.material, seating: o.chairStyle?.kind,
       status: st?.status, guests: st?.guestCount, order: st?.orderId, confidence: o.confidence,
       "needs review": o.needsReview ? "yes" : undefined };
     $("info").innerHTML = Object.entries(rows).filter(([, v]) => v != null)
@@ -103,7 +116,7 @@
   }
 
   $("plan").addEventListener("change", (e) => loadPlan(e.target.value));
-  for (const id of ["live", "chairs", "review"]) $(id).addEventListener("change", render);
+  for (const id of ["theme", "live", "chairs", "review"]) $(id).addEventListener("change", render);
   $("open").addEventListener("click", () => $("file").click());
   $("file").addEventListener("change", async (e) => {
     const f = e.target.files[0]; if (!f) return;
@@ -111,7 +124,10 @@
     catch (err) { $("stage").innerHTML = `<p class="err">Not a valid JSON file.</p>`; }
   });
 
-  try { [state, telemetry] = await Promise.all([getJson("../examples/table-state.json"), getJson("../examples/telemetry.json")]); } catch {}
+  try {
+    const [a, b, t] = await Promise.all(["table-state.json", "restaurant-state.json", "telemetry.json"].map((n) => getJson(`../examples/${n}`)));
+    states.push(a, b); telemetry = t;
+  } catch {}
   loadPlan($("plan").value);
 </script>
 </body>

@@ -13,5 +13,5 @@ Install without cloning:
 pip install "git+https://github.com/hasancagrigungor/eatery-plan#subdirectory=python"
 ```
 
-The schemas ship inside the package (`eateryplan/schemas/`, kept identical to `schemas/v1.0.0/` by a test).
+The schemas ship inside the package (`eateryplan/schemas/`, kept identical to `schemas/v1.1.0/` by a test).
 Set `EATERYPLAN_SCHEMA_DIR` to use another copy.

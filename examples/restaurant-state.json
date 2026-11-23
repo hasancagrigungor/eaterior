@@ -1,0 +1,121 @@
+{
+  "format": "eateryplan-table-state",
+  "schemaVersion": "1.1.0",
+  "planId": "restaurant_001",
+  "planRevision": 1,
+  "generatedAt": "2026-11-23T19:30:00Z",
+  "tables": [
+    {
+      "tableId": "table_1",
+      "status": "occupied",
+      "updatedAt": "2026-11-23T19:25:00Z",
+      "guestCount": 2,
+      "orderId": "ord-0"
+    },
+    {
+      "tableId": "table_2",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_3",
+      "status": "reserved",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_4",
+      "status": "occupied",
+      "updatedAt": "2026-11-23T19:25:00Z",
+      "guestCount": 2,
+      "orderId": "ord-3"
+    },
+    {
+      "tableId": "table_5",
+      "status": "occupied",
+      "updatedAt": "2026-11-23T19:25:00Z",
+      "guestCount": 2,
+      "orderId": "ord-4"
+    },
+    {
+      "tableId": "table_6",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_7",
+      "status": "cleaning",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_8",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_9",
+      "status": "occupied",
+      "updatedAt": "2026-11-23T19:25:00Z",
+      "guestCount": 2,
+      "orderId": "ord-8"
+    },
+    {
+      "tableId": "table_10",
+      "status": "reserved",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_11",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_12",
+      "status": "occupied",
+      "updatedAt": "2026-11-23T19:25:00Z",
+      "guestCount": 2,
+      "orderId": "ord-11"
+    },
+    {
+      "tableId": "table_13",
+      "status": "blocked",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_14",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_15",
+      "status": "occupied",
+      "updatedAt": "2026-11-23T19:25:00Z",
+      "guestCount": 2,
+      "orderId": "ord-14"
+    },
+    {
+      "tableId": "table_16",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_17",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_18",
+      "status": "reserved",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_19",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    },
+    {
+      "tableId": "table_20",
+      "status": "available",
+      "updatedAt": "2026-11-23T19:25:00Z"
+    }
+  ]
+}

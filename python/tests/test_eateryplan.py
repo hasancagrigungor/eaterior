@@ -35,6 +35,21 @@ class Examples(unittest.TestCase):
         self.assertEqual(check_telemetry(PLAN, TEL).issues, [])
         self.assertEqual(check_detection(DET).issues, [])
 
+    def test_restaurant_example_is_clean(self):
+        plan = load("restaurant.json")
+        self.assertEqual(validate_plan(plan).issues, [])
+        self.assertEqual(check_table_state(plan, load("restaurant-state.json")).issues, [])
+
+    def test_bad_appearance_is_rejected(self):
+        plan = load("restaurant.json")
+        plan["floors"][0]["zones"][0]["appearance"]["floor"] = "lava"
+        self.assertIn("schema", codes(validate_plan(plan)))
+
+    def test_eateryplan_1_0_0_upgrades(self):
+        new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
+        self.assertEqual(new["schemaVersion"], "1.1.0")
+        self.assertTrue(validate_plan(new).ok)
+
     def test_imported_example_is_valid(self):
         self.assertTrue(validate_plan(load("imported-plan.json")).ok)
 
@@ -154,7 +169,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.0.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.1.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -261,7 +276,7 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.0.0"
+        canon = ROOT / "schemas" / "v1.1.0"
         packaged = ROOT / "python" / "eateryplan" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))

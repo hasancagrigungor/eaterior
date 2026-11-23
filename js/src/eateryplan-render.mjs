@@ -48,10 +48,10 @@ const CLIMATE_CODE = {
 };
 
 // ------------------------------------------------------------------ math
-const f = (n) => (Math.round(n * 100) / 100).toString();
+export const f = (n) => (Math.round(n * 100) / 100).toString();
 const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 
-function rot(p, deg, c) {
+export function rot(p, deg, c) {
   if (!deg) return p;
   const r = (deg * Math.PI) / 180, cs = Math.cos(r), sn = Math.sin(r);
   return [c[0] + (p[0] - c[0]) * cs - (p[1] - c[1]) * sn, c[1] + (p[0] - c[0]) * sn + (p[1] - c[1]) * cs];
@@ -176,11 +176,11 @@ export class WallGeom {
   }
 }
 
-function circlePath(cx, cy, r) {
+export function circlePath(cx, cy, r) {
   return `M${f(cx + r)} ${f(cy)} A${f(r)} ${f(r)} 0 1 1 ${f(cx - r)} ${f(cy)} A${f(r)} ${f(r)} 0 1 1 ${f(cx + r)} ${f(cy)} Z`;
 }
 
-function autoChairs(t, unit) {
+export function autoChairs(t, unit) {
   const s = t.shape, n = t.seats, deg = s.rotationDeg || 0;
   if (s.kind === "ellipse") {
     const cr = Math.max(unit * 0.8, Math.min(s.rx, s.ry) * 0.28);
@@ -213,7 +213,7 @@ function autoChairs(t, unit) {
   return [];
 }
 
-function formatReadings(r) {
+export function formatReadings(r) {
   if (!r) return null;
   const parts = [];
   if (r.temperatureC != null) parts.push(`${r.temperatureC.toFixed(1)}°C`);
@@ -223,7 +223,7 @@ function formatReadings(r) {
   return parts.length ? parts.join(" · ") : null;
 }
 
-function asMap(x, key) {
+export function asMap(x, key) {
   if (!x) return new Map();
   if (x instanceof Map) return x;
   if (Array.isArray(x)) return new Map(x.map((e) => [e[key], e]));
@@ -434,18 +434,36 @@ export function buildScene(plan, options = {}) {
 // ------------------------------------------------------------------ SVG adapter
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+function pathToSvg(it, data = "") {
+  return `<path d="${it.d}" fill="${esc(it.fill)}" stroke="${esc(it.stroke ?? "none")}" stroke-width="${f(it.strokeWidth ?? 0)}"` +
+    `${it.dash ? ` stroke-dasharray="${it.dash.map(f).join(" ")}"` : ""}${it.opacity != null && it.opacity !== 1 ? ` opacity="${f(it.opacity)}"` : ""}` +
+    `${it.linecap ? ` stroke-linecap="${it.linecap}"` : ""} stroke-linejoin="round"${data}/>`;
+}
+
+function defToSvg(d) {
+  if (d.type === "pattern") {
+    return `<pattern id="${esc(d.id)}" patternUnits="userSpaceOnUse" width="${f(d.width)}" height="${f(d.height)}"` +
+      `${d.rotation ? ` patternTransform="rotate(${f(d.rotation)})"` : ""}>${d.items.map((i) => pathToSvg(i)).join("")}</pattern>`;
+  }
+  if (d.type === "linearGradient") {
+    return `<linearGradient id="${esc(d.id)}" x1="${d.x1}" y1="${d.y1}" x2="${d.x2}" y2="${d.y2}">` +
+      d.stops.map((st) => `<stop offset="${st.offset}" stop-color="${esc(st.color)}" stop-opacity="${st.opacity ?? 1}"/>`).join("") +
+      `</linearGradient>`;
+  }
+  return "";
+}
+
 /** Scene -> standalone SVG string. Elements carry data-ref-type / data-ref-id for hit testing. */
 export function toSvg(scene, { title, className } = {}) {
   const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${scene.viewBox}" preserveAspectRatio="xMidYMid meet"` +
     `${className ? ` class="${esc(className)}"` : ""} role="img">`];
   if (title) out.push(`<title>${esc(title)}</title>`);
+  if (scene.defs?.length) out.push(`<defs>${scene.defs.map(defToSvg).join("")}</defs>`);
   out.push(`<rect x="0" y="0" width="${f(scene.width)}" height="${f(scene.height)}" fill="${esc(scene.background)}"/>`);
   for (const it of scene.items) {
     const data = it.ref ? ` data-ref-type="${esc(it.ref.type)}" data-ref-id="${esc(it.ref.id)}"` : "";
     if (it.type === "path") {
-      out.push(`<path d="${it.d}" fill="${esc(it.fill)}" stroke="${esc(it.stroke)}" stroke-width="${f(it.strokeWidth)}"` +
-        `${it.dash ? ` stroke-dasharray="${it.dash.map(f).join(" ")}"` : ""}${it.opacity != null && it.opacity !== 1 ? ` opacity="${f(it.opacity)}"` : ""}` +
-        ` stroke-linejoin="round"${data}/>`);
+      out.push(pathToSvg(it, data));
     } else if (it.type === "text") {
       out.push(`<text x="${f(it.x)}" y="${f(it.y)}" font-size="${f(it.fontSize)}" font-weight="${it.weight || 400}" fill="${esc(it.fill)}"` +
         ` text-anchor="middle" dominant-baseline="central" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"` +

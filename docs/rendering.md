@@ -1,5 +1,14 @@
 # Rendering contract
 
+Two themes ship with the reference renderer; both read the same plan:
+
+| Theme | Function | Look |
+|---|---|---|
+| plain | `buildScene()` | clean architectural plan, light zone colours, status-coloured tables |
+| illustrated | `buildIllustratedScene()` | colourful top-down illustration: floor textures, furniture symbols, shadows |
+
+Everything in both themes is generated in code from the plan; no image files are used.
+
 Any client may draw a plan its own way, but plans should look the same everywhere. These rules are what
 [`js/src/eateryplan-render.mjs`](../js/src/eateryplan-render.mjs) implements; follow them when you write another
 renderer (Swift, Kotlin, Flutter, Canvas …).
@@ -60,3 +69,15 @@ Provide a dark-mode theme in the client; the plan does not change.
 Every drawn element should keep a reference `{type, id}` back to the plan object so taps/clicks can open the
 table, zone or device. The reference renderer emits `ref` on every display-list item and `data-ref-type` /
 `data-ref-id` attributes in SVG.
+
+## Illustrated theme
+
+- **Floors** are SVG patterns generated from `appearance.floor`, `color` and `accentColor`, sized in real metres when
+  `realWorldScale` is known (planks ≈ 0.2 × 1.4 m, tiles 0.3 m). A soft diagonal sheen is laid over each zone.
+- **Walls** are white with a light outline; windows are cyan strips in the wall gap; doors show a leaf and a dashed swing.
+- **Furniture** is drawn per `kind` in the object's local frame (+y is the front), so rotation works for every symbol.
+  Every piece casts a small offset shadow.
+- **Tables** draw seats from `chairStyle` (chairs face the table), place settings from `tableSetting`, and a numbered
+  badge. With live state, the badge and an outline take the status colour.
+- **Defs**: the scene has `defs` (patterns, gradients) referenced as `fill: "url(#id)"`. SVG and react-native-svg
+  support them directly; a Canvas renderer can build them with `createPattern` / `createLinearGradient`.

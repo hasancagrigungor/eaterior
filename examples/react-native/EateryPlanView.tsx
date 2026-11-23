@@ -2,17 +2,19 @@
  * React Native view for Eatery Plan, using react-native-svg.
  *
  *   npm install react-native-svg
- *   copy js/src/eateryplan-render.mjs into your app (or install it from the repository)
+ *   copy js/src/eateryplan-render.mjs and js/src/eateryplan-illustrated.mjs into your app
  *
  * The same display list drives web and mobile, so both draw identical plans.
  */
 import React, { useMemo } from "react";
-import Svg, { G, Image as SvgImage, Path, Rect, Text as SvgText } from "react-native-svg";
+import Svg, { Defs, G, Image as SvgImage, LinearGradient, Path, Pattern, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { buildScene } from "./eateryplan-render.mjs";
+import { buildIllustratedScene } from "./eateryplan-illustrated.mjs";
 
 type Props = {
   plan: any;
   floorId?: string;
+  theme?: "plain" | "illustrated";
   tableStates?: any;
   readings?: Record<string, any>;
   width?: number | string;
@@ -21,22 +23,42 @@ type Props = {
   onPressObject?: (ref: { type: string; id: string }) => void;
 };
 
-export function EateryPlanView({ plan, floorId, tableStates, readings, width = "100%", height = "100%",
+export function EateryPlanView({ plan, floorId, theme = "illustrated", tableStates, readings, width = "100%", height = "100%",
   resolveAsset, onPressObject }: Props) {
   const scene = useMemo(
-    () => buildScene(plan, { floorId, tableStates, readings, resolveAsset }),
-    [plan, floorId, tableStates, readings, resolveAsset],
+    () => (theme === "illustrated" ? buildIllustratedScene : buildScene)(plan, { floorId, tableStates, readings, resolveAsset }),
+    [plan, floorId, theme, tableStates, readings, resolveAsset],
   );
 
   return (
     <Svg width={width} height={height} viewBox={scene.viewBox} preserveAspectRatio="xMidYMid meet">
+      {scene.defs?.length ? (
+        <Defs>
+          {scene.defs.map((d: any) =>
+            d.type === "pattern" ? (
+              <Pattern key={d.id} id={d.id} patternUnits="userSpaceOnUse" width={d.width} height={d.height}
+                patternTransform={d.rotation ? `rotate(${d.rotation})` : undefined}>
+                {d.items.map((p: any, j: number) => (
+                  <Path key={j} d={p.d} fill={p.fill} stroke={p.stroke ?? "none"} strokeWidth={p.strokeWidth ?? 0} opacity={p.opacity ?? 1} />
+                ))}
+              </Pattern>
+            ) : (
+              <LinearGradient key={d.id} id={d.id} x1={String(d.x1)} y1={String(d.y1)} x2={String(d.x2)} y2={String(d.y2)}>
+                {d.stops.map((st: any, j: number) => (
+                  <Stop key={j} offset={String(st.offset)} stopColor={st.color} stopOpacity={st.opacity ?? 1} />
+                ))}
+              </LinearGradient>
+            ),
+          )}
+        </Defs>
+      ) : null}
       <Rect x={0} y={0} width={scene.width} height={scene.height} fill={scene.background} />
       {scene.items.map((it: any, i: number) => {
         const onPress = it.ref && onPressObject ? () => onPressObject(it.ref) : undefined;
         if (it.type === "path") {
           return (
-            <Path key={i} d={it.d} fill={it.fill} stroke={it.stroke} strokeWidth={it.strokeWidth}
-              strokeDasharray={it.dash ?? undefined} strokeLinejoin="round" opacity={it.opacity ?? 1} onPress={onPress} />
+            <Path key={i} d={it.d} fill={it.fill} stroke={it.stroke ?? "none"} strokeWidth={it.strokeWidth ?? 0}
+              strokeDasharray={it.dash ?? undefined} strokeLinecap={it.linecap} strokeLinejoin="round" opacity={it.opacity ?? 1} onPress={onPress} />
           );
         }
         if (it.type === "text") {

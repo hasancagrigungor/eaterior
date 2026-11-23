@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.0.0/eateryplan.schema.json",
-  "title": "Eatery Plan v1.0.0",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.0/eateryplan.schema.json",
+  "title": "Eatery Plan v1.1.0",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,8 +17,11 @@
       "const": "eateryplan"
     },
     "schemaVersion": {
-      "const": "1.0.0",
-      "description": "Legacy CafePlan 1.x files can be converted with `eateryplan migrate`."
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ],
+      "description": "1.0.0 documents remain valid. Legacy CafePlan 1.x files are converted with `eateryplan migrate`."
     },
     "planId": {
       "$ref": "#/$defs/id",
@@ -485,6 +488,9 @@
         "needsReview": {
           "type": "boolean",
           "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
         }
       },
       "required": [
@@ -568,6 +574,9 @@
         "needsReview": {
           "type": "boolean",
           "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
         }
       },
       "required": [
@@ -670,6 +679,9 @@
         "needsReview": {
           "type": "boolean",
           "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
         }
       },
       "required": [
@@ -801,6 +813,12 @@
               }
             }
           }
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
+        },
+        "chairStyle": {
+          "$ref": "#/$defs/chairStyle"
         }
       },
       "required": [
@@ -862,20 +880,40 @@
           "enum": [
             "counter",
             "bar_counter",
+            "prep_counter",
             "sofa",
             "chair",
+            "armchair",
+            "bar_stool",
             "plant",
+            "planter",
+            "tree",
+            "parasol",
+            "rug",
             "sink",
+            "hand_sink",
             "stove",
+            "oven",
             "fridge",
+            "freezer",
+            "dishwasher",
+            "coffee_machine",
+            "display_case",
+            "wine_rack",
+            "shelf",
+            "host_stand",
+            "pos_terminal",
+            "tv",
+            "piano",
             "toilet",
+            "urinal",
             "stairs",
             "elevator",
             "column",
-            "pos_terminal",
             "equipment",
             "other"
-          ]
+          ],
+          "description": "Fixture type; renderers draw a symbol per kind."
         },
         "shape": {
           "$ref": "#/$defs/shape"
@@ -890,6 +928,9 @@
         "needsReview": {
           "type": "boolean",
           "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
         }
       },
       "required": [
@@ -1272,6 +1313,9 @@
         "needsReview": {
           "type": "boolean",
           "description": "True when a human should confirm this object (e.g. low-confidence import)."
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
         }
       }
     },
@@ -1518,6 +1562,9 @@
         },
         "extensions": {
           "$ref": "#/$defs/extensions"
+        },
+        "appearance": {
+          "$ref": "#/$defs/appearance"
         }
       },
       "allOf": [
@@ -1540,6 +1587,98 @@
           }
         }
       ]
+    },
+    "color": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "description": "sRGB colour as #RRGGBB."
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Semantic look of an object: what it is made of and its colours. Renderers decide how to draw it (textures, shading, symbols). All fields are optional; omitted fields use the renderer's defaults. Use `style` only for low-level fill/stroke overrides.",
+      "properties": {
+        "color": {
+          "$ref": "#/$defs/color",
+          "description": "Main colour (floor base, table top, upholstery, wall paint …)."
+        },
+        "accentColor": {
+          "$ref": "#/$defs/color",
+          "description": "Secondary colour (second tile colour, cushions, trim …)."
+        },
+        "floor": {
+          "enum": [
+            "wood_planks",
+            "wood_herringbone",
+            "tile_checker",
+            "tile_square",
+            "marble",
+            "terrazzo",
+            "concrete",
+            "carpet",
+            "terrace_deck",
+            "grass",
+            "stone"
+          ],
+          "description": "Zones only: floor finish."
+        },
+        "material": {
+          "enum": [
+            "wood",
+            "wood_light",
+            "wood_dark",
+            "marble",
+            "metal",
+            "glass",
+            "fabric",
+            "leather",
+            "plastic",
+            "stone",
+            "concrete"
+          ],
+          "description": "Tables, fixtures, devices: main material."
+        },
+        "tablecloth": {
+          "$ref": "#/$defs/color",
+          "description": "Tables only: tablecloth colour."
+        },
+        "tableSetting": {
+          "enum": [
+            "none",
+            "plates",
+            "plates_glasses"
+          ],
+          "description": "Tables only: what is laid at each seat."
+        }
+      }
+    },
+    "chairStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the seats around a table look.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "chair",
+            "armchair",
+            "stool",
+            "bench",
+            "booth"
+          ]
+        },
+        "color": {
+          "$ref": "#/$defs/color"
+        },
+        "material": {
+          "enum": [
+            "wood",
+            "metal",
+            "fabric",
+            "leather",
+            "plastic"
+          ]
+        }
+      }
     }
   },
   "description": "Platform-independent floor plan for restaurants, cafes, bars and similar venues. Structure is validated by this schema; references and geometry are validated by the reference validator (python/eateryplan). Live table state and sensor readings live outside the plan."

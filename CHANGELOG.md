@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.0 — 2026-11-23
+
+Format 1.1.0 (backwards compatible: every 1.0.0 document is valid).
+
+- `appearance` on zones, walls, openings, tables, fixtures, climate devices and labels: floor finish, material,
+  main and accent colour, tablecloth, table setting.
+- `chairStyle` on tables: chair, armchair, stool, bench or booth, with colour and material.
+- New fixture kinds for restaurants: prep counter, armchair, bar stool, planter, tree, parasol, rug, hand sink, oven,
+  freezer, dishwasher, coffee machine, display case, wine rack, shelf, host stand, TV, piano, urinal.
+- Illustrated theme (`js/src/eateryplan-illustrated.mjs`): floor textures, furniture symbols, shadows and live-status
+  badges, all generated in code; `render.mjs --style illustrated`.
+- SVG output supports `defs` (patterns, gradients).
+- New example: `examples/restaurant.json` with live state.
+
 ## 1.0.1 — 2026-11-20
 
 Tooling only; the document format stays at 1.0.0.

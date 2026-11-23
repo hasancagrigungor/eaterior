@@ -1,8 +1,8 @@
-# Eatery Plan 1.0.0 — Specification
+# Eatery Plan 1.1.0 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
-[`schemas/v1.0.0/eateryplan.schema.json`](../schemas/v1.0.0/eateryplan.schema.json) (JSON Schema Draft 2020-12)
+[`schemas/v1.1.0/eateryplan.schema.json`](../schemas/v1.1.0/eateryplan.schema.json) (JSON Schema Draft 2020-12)
 plus the semantic rules in this document.
 
 The key words MUST, SHOULD and MAY are used as in RFC 2119.
@@ -12,8 +12,8 @@ The key words MUST, SHOULD and MAY are used as in RFC 2119.
 | In the plan | Outside the plan (separate documents / APIs) |
 |---|---|
 | Floors, zones, walls, doors, windows | Orders, bills, reservations |
-| Tables, chairs, furniture, equipment | Live table status → [`table-state`](../schemas/v1.0.0/table-state.schema.json) |
-| HVAC equipment and sensor *positions* | Sensor readings → [`environment-telemetry`](../schemas/v1.0.0/environment-telemetry.schema.json) |
+| Tables, chairs, furniture, equipment | Live table status → [`table-state`](../schemas/v1.1.0/table-state.schema.json) |
+| HVAC equipment and sensor *positions* | Sensor readings → [`environment-telemetry`](../schemas/v1.1.0/environment-telemetry.schema.json) |
 | Labels and dimension lines | Device control (setpoints, on/off) |
 
 Live data changes every second; the plan changes when the room changes. Keeping them apart means a plan is never
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.0.0", planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.1.0" (1.0.0 still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -85,6 +85,32 @@ Common optional fields on every object: `name`, `visible`, `locked`, `zIndex`, `
 | Climate device | `id, floorId, kind, shape` | `mount`, `coveredZoneIds[]`, `capabilities[]`, `airflowDirectionDeg`, `externalDeviceId` |
 | Sensor | `id, floorId, position, metrics[]` | `mount`, `heightMeters`, `associatedDeviceId`, `externalSensorId` |
 | Label | `id, floorId, kind, position, text` | `dimension` labels also need `a`, `b`, optional `valueMeters` |
+
+### Appearance (1.1.0)
+
+Objects MAY carry an `appearance` object that describes **what they look like, not how to draw them**. Renderers
+map it to textures, symbols and shading; the same plan can be shown in a plain or an illustrated theme.
+
+| Field | Used on | Values |
+|---|---|---|
+| `floor` | zones | `wood_planks`, `wood_herringbone`, `tile_checker`, `tile_square`, `marble`, `terrazzo`, `concrete`, `carpet`, `terrace_deck`, `grass`, `stone` |
+| `material` | tables, fixtures, devices | `wood`, `wood_light`, `wood_dark`, `marble`, `metal`, `glass`, `fabric`, `leather`, `plastic`, `stone`, `concrete` |
+| `color`, `accentColor` | all | `#RRGGBB` — main and secondary colour (e.g. the two colours of a checker floor) |
+| `tablecloth` | tables | `#RRGGBB` |
+| `tableSetting` | tables | `none`, `plates`, `plates_glasses` |
+
+Tables MAY also have `chairStyle`: `kind` (`chair`, `armchair`, `stool`, `bench`, `booth`), `color`, `material`.
+`booth` and `bench` replace individual chairs with seating along the long sides.
+
+Everything is optional. Without `appearance`, renderers choose defaults from `kind` (e.g. kitchens get a tiled floor).
+`style` (raw fill/stroke) remains available as a low-level override.
+
+Fixture kinds cover a restaurant: counters (`counter`, `bar_counter`, `prep_counter`), seating (`sofa`, `chair`,
+`armchair`, `bar_stool`), kitchen equipment (`stove`, `oven`, `fridge`, `freezer`, `dishwasher`, `sink`,
+`hand_sink`, `coffee_machine`), front of house (`display_case`, `wine_rack`, `shelf`, `host_stand`, `pos_terminal`,
+`tv`, `piano`), restrooms (`toilet`, `urinal`), outdoor and decor (`plant`, `planter`, `tree`, `parasol`, `rug`), and
+building elements (`stairs`, `elevator`, `column`). A fixture with a polygon or path shape (e.g. a curved bar) is drawn
+with its real outline.
 
 ### Walls and openings
 

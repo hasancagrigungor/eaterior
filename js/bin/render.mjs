@@ -1,21 +1,23 @@
 #!/usr/bin/env node
 // Render an Eatery Plan file to SVG or HTML.
-// usage: node js/bin/render.mjs plan.json out.svg|out.html [--state table-state.json] [--telemetry t.json] [--floor id]
+// usage: node js/bin/render.mjs plan.json out.svg|out.html [--state table-state.json] [--telemetry t.json] [--floor id] [--style plain|illustrated]
 import { readFileSync, writeFileSync } from "node:fs";
 import { buildScene, toSvg } from "../src/eateryplan-render.mjs";
+import { buildIllustratedScene } from "../src/eateryplan-illustrated.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : null; };
-const statePath = opt("--state"), telPath = opt("--telemetry"), floorId = opt("--floor");
+const statePath = opt("--state"), telPath = opt("--telemetry"), floorId = opt("--floor"), style = opt("--style") || "plain";
 const [planPath, outPath] = args;
 if (!planPath || !outPath) {
-  console.error("usage: node render.mjs plan.json out.svg|out.html [--state s.json] [--telemetry t.json] [--floor id]");
+  console.error("usage: node render.mjs plan.json out.svg|out.html [--state s.json] [--telemetry t.json] [--floor id] [--style plain|illustrated]");
   process.exit(2);
 }
 const load = (p) => JSON.parse(readFileSync(p, "utf8"));
 const plan = load(planPath);
 const tel = telPath ? load(telPath) : null;
-const scene = buildScene(plan, {
+const build = style === "illustrated" ? buildIllustratedScene : buildScene;
+const scene = build(plan, {
   floorId,
   tableStates: statePath ? load(statePath) : null,
   readings: tel ? { [tel.sensorId]: tel } : null,

@@ -6,34 +6,40 @@ produced from a photo or sketch of a floor plan.
 
 [Türkçe](README.tr.md)
 
-| Sample plan with live table status | Plan imported from a drawing |
+![Garden Bistro, illustrated theme](docs/images/restaurant-illustrated.png)
+
+*[`examples/restaurant.json`](examples/restaurant.json) with live table status, drawn entirely in code by the
+illustrated theme. The JSON only says what things are (zone kinds, floor finish, materials, colours, chair style);
+the renderer decides how they look.*
+
+| Plain theme with live status | Plan imported from a drawing |
 |---|---|
 | ![Sample bistro](docs/images/sample-bistro.png) | ![Imported sketch](docs/images/imported-sketch.png) |
 
-Both images are drawn by the reference renderer from [`examples/plan.json`](examples/plan.json) and
-[`examples/imported-plan.json`](examples/imported-plan.json). Dashed amber outlines mark objects that need a
-person to confirm them.
+Dashed amber outlines mark objects that need a person to confirm them.
 
 ## Why
 
 - **One plan, every screen.** Geometry is stored in floor units with a fixed origin and axis convention; clients
   scale it to fit. The aspect ratio of the real room is kept.
 - **Physical layout only.** Orders, reservations, live table status and sensor readings stay in your existing
-  systems and are joined by id ([table state](schemas/v1.0.0/table-state.schema.json),
-  [telemetry](schemas/v1.0.0/environment-telemetry.schema.json)).
-- **Made to be generated.** A pixel-based [detection format](schemas/v1.0.0/detection.schema.json) and a
+  systems and are joined by id ([table state](schemas/v1.1.0/table-state.schema.json),
+  [telemetry](schemas/v1.1.0/environment-telemetry.schema.json)).
+- **Made to be generated.** A pixel-based [detection format](schemas/v1.1.0/detection.schema.json) and a
   deterministic importer turn any drawing into a validated plan, with confidence and review flags.
 - **Strictly validated.** JSON Schema for structure, plus a reference validator for references and geometry.
+- **Looks are data, drawing is code.** Optional `appearance` fields (floor finish, material, colours, chair style)
+  let themes render the same plan as a plain plan or a colourful illustration.
 - **Extensible.** Every object has a namespaced `extensions` map.
 
 ## What is in the repository
 
 ```
-schemas/v1.0.0/     eateryplan · table-state · environment-telemetry · detection (JSON Schema 2020-12)
+schemas/v1.1.0/     eateryplan · table-state · environment-telemetry · detection (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
 docs/               specification · rendering contract · image import
 python/eateryplan/  validator, legacy migrator, detection importer (CLI + library)
-js/                 dependency-free renderer → display list → SVG / react-native-svg / Canvas
+js/                 dependency-free renderer (plain + illustrated themes) → SVG / react-native-svg / Canvas
 demo/               browser viewer
 ```
 
@@ -62,8 +68,11 @@ How to obtain `detection.json` from an image is described in [docs/image-import.
 ```js
 import { buildScene, toSvg } from "./js/src/eateryplan-render.mjs";
 
-const scene = buildScene(plan, { tableStates, readings: { sensor_1: telemetry } });
-element.innerHTML = toSvg(scene);          // web
+import { buildIllustratedScene } from "./js/src/eateryplan-illustrated.mjs";
+
+const scene = buildScene(plan, { tableStates, readings: { sensor_1: telemetry } });   // plain theme
+const art = buildIllustratedScene(plan, { tableStates });                               // illustrated theme
+element.innerHTML = toSvg(art);            // web
 // React Native: examples/react-native/EateryPlanView.tsx (react-native-svg)
 // Canvas:       scene.items.forEach(i => i.type === "path" && ctx.fill(new Path2D(i.d)))
 ```
@@ -71,7 +80,7 @@ element.innerHTML = toSvg(scene);          // web
 From the command line:
 
 ```bash
-node js/bin/render.mjs examples/plan.json plan.html --state examples/table-state.json
+node js/bin/render.mjs examples/restaurant.json plan.html --style illustrated --state examples/restaurant-state.json
 ```
 
 Open the viewer locally:
@@ -109,7 +118,7 @@ cd js && npm test
 
 ## Status
 
-Version **1.0.0**. The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
+Format version **1.1.0** (1.0.0 documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
 rules in the [specification](docs/specification.md#8-extensibility-and-versioning). Issues and pull requests are
 welcome.
 
