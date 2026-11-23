@@ -1,6 +1,6 @@
 {
   "format": "eateryplan",
-  "schemaVersion": "1.3.0",
+  "schemaVersion": "1.5.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
@@ -740,13 +740,13 @@
           },
           "seats": 4,
           "appearance": {
-            "material": "wood",
+            "style": "bistro",
             "tableSetting": "plates_glasses",
             "tablecloth": "#FFFFFF"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#7A8B3D"
+            "kind": "bistro",
+            "color": "#B98B4E"
           },
           "externalTableId": "pos-a1"
         },
@@ -765,12 +765,12 @@
           },
           "seats": 4,
           "appearance": {
-            "material": "wood",
+            "style": "bistro",
             "tableSetting": "plates_glasses"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#7A8B3D"
+            "kind": "bistro",
+            "color": "#B98B4E"
           },
           "externalTableId": "pos-a2"
         },
@@ -789,12 +789,12 @@
           },
           "seats": 4,
           "appearance": {
-            "material": "wood",
+            "style": "bistro",
             "tableSetting": "plates_glasses"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#7A8B3D"
+            "kind": "bistro",
+            "color": "#B98B4E"
           },
           "externalTableId": "pos-a3"
         },
@@ -813,13 +813,13 @@
           },
           "seats": 4,
           "appearance": {
-            "material": "wood",
+            "style": "bistro",
             "tableSetting": "plates_glasses",
             "tablecloth": "#FFFFFF"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#7A8B3D"
+            "kind": "bistro",
+            "color": "#B98B4E"
           },
           "externalTableId": "pos-a4"
         },
@@ -838,12 +838,12 @@
           },
           "seats": 2,
           "appearance": {
-            "material": "marble",
+            "style": "modern",
             "tableSetting": "plates"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#B5562E"
+            "kind": "cafe",
+            "color": "#3B2A20"
           }
         },
         {
@@ -861,12 +861,12 @@
           },
           "seats": 2,
           "appearance": {
-            "material": "marble",
+            "style": "modern",
             "tableSetting": "plates"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#B5562E"
+            "kind": "cafe",
+            "color": "#3B2A20"
           }
         },
         {
@@ -884,12 +884,12 @@
           },
           "seats": 2,
           "appearance": {
-            "material": "marble",
+            "style": "modern",
             "tableSetting": "plates"
           },
           "chairStyle": {
-            "kind": "chair",
-            "color": "#B5562E"
+            "kind": "cafe",
+            "color": "#3B2A20"
           }
         },
         {
@@ -907,7 +907,7 @@
           },
           "seats": 6,
           "appearance": {
-            "material": "wood_light",
+            "style": "rustic",
             "tableSetting": "plates_glasses"
           },
           "chairStyle": {
@@ -930,12 +930,12 @@
           },
           "seats": 4,
           "appearance": {
-            "material": "wood",
+            "style": "scandinavian",
             "tableSetting": "plates"
           },
           "chairStyle": {
-            "kind": "armchair",
-            "color": "#A04050"
+            "kind": "tub",
+            "color": "#9DB4A3"
           }
         },
         {
@@ -1708,6 +1708,11 @@
             "cy": 130,
             "rx": 38,
             "ry": 38
+          },
+          "appearance": {
+            "style": "scalloped",
+            "color": "#F4E3C1",
+            "accentColor": "#C0392B"
           }
         },
         {
@@ -1716,11 +1721,16 @@
           "zoneId": "zone_patio",
           "kind": "parasol",
           "shape": {
-            "kind": "ellipse",
-            "cx": 80,
-            "cy": 420,
-            "rx": 38,
-            "ry": 38
+            "kind": "rect",
+            "x": 36,
+            "y": 376,
+            "width": 88,
+            "height": 88
+          },
+          "appearance": {
+            "style": "striped",
+            "color": "#FFFFFF",
+            "accentColor": "#2D5D9F"
           }
         },
         {

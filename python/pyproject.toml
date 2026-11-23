@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eateryplan"
-version = "1.4.0"
+version = "1.5.0"
 description = "Reference validator, migrator and image-detection importer for the Eatery Plan floor-plan format"
 readme = "README.md"
 license = "MIT"

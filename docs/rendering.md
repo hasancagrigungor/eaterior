@@ -113,3 +113,16 @@ Both themes accept `objectStates` (an object-state document, an array of entries
 `groupByObject(scene)` splits the display list into runs of items that belong to the same object without changing the
 drawing order, so a UI can render each run as a component with its own tap handler or enabled/disabled styling. The
 React Native example renders one `<G>` per run.
+
+## Variety (1.5.0)
+
+- Parquet: straight planks, wide planks, herringbone, chevron, basket weave (plus deck, tiles, marble, terrazzo, stone,
+  concrete, carpet, grass).
+- Table styles change the top: modern (gloss, white), rustic (boards, knots, thick edge), industrial (steel frame and
+  bolts), bistro (marble with brass rim), scandinavian (light wood, soft corners), classic (inlay border).
+- Seats: chair, armchair, stool, stool with back, rattan bistro chair, bentwood cafe chair, tub chair, lounge chair, pouf,
+  bench, booth — drawn at real size (seat radius 0.18–0.30 m) when the floor has a scale.
+- Sofas and armchairs: classic, modern, chesterfield (tufted), scandinavian (wood frame); corner sofa.
+- Parasols: round or square/rectangular from the shape; classic, striped, scalloped, solid, cantilever (side pole).
+
+`examples/showcase.json` is a gallery of every variant.

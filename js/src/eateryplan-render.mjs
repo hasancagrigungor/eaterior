@@ -180,10 +180,11 @@ export function circlePath(cx, cy, r) {
   return `M${f(cx + r)} ${f(cy)} A${f(r)} ${f(r)} 0 1 1 ${f(cx - r)} ${f(cy)} A${f(r)} ${f(r)} 0 1 1 ${f(cx + r)} ${f(cy)} Z`;
 }
 
-export function autoChairs(t, unit) {
+/** Chairs around a table. `seatR` (floor units) fixes the real seat radius when the scale is known. */
+export function autoChairs(t, unit, seatR) {
   const s = t.shape, n = t.seats, deg = s.rotationDeg || 0;
   if (s.kind === "ellipse") {
-    const cr = Math.max(unit * 0.8, Math.min(s.rx, s.ry) * 0.28);
+    const cr = seatR || Math.max(unit * 0.8, Math.min(s.rx, s.ry) * 0.28);
     return Array.from({ length: n }, (_, i) => {
       const a = (2 * Math.PI * i) / n - Math.PI / 2;
       const p = [s.cx + (s.rx + cr * 1.3) * Math.cos(a), s.cy + (s.ry + cr * 1.3) * Math.sin(a)];
@@ -199,7 +200,7 @@ export function autoChairs(t, unit) {
     const counts = sides.map(([len]) => Math.floor((n * len) / perim));
     const rest = sides.map(([len], i) => [(n * len) / perim - counts[i], i]).sort((p, q) => q[0] - p[0]);
     for (let k = 0; counts.reduce((a, b) => a + b, 0) < n; k++) counts[rest[k % 4][1]]++;
-    const cr = Math.max(unit * 0.8, Math.min(Math.min(w, h) * 0.14, (perim / Math.max(1, n)) * 0.25));
+    const cr = seatR || Math.max(unit * 0.8, Math.min(Math.min(w, h) * 0.14, (perim / Math.max(1, n)) * 0.25));
     const out = [];
     sides.forEach(([len, p0, dir, nrm], i) => {
       for (let j = 0; j < counts[i]; j++) {
@@ -428,7 +429,7 @@ export function buildScene(plan, options = {}) {
     const st = states.get(t.id);
     const d = shapeToPath(t.shape);
     const chairs = t.chairs?.length ? t.chairs.map((c) => ({ p: [c.x, c.y], r: unit * 1.1 }))
-      : options.showChairs === false ? [] : autoChairs(t, unit);
+      : options.showChairs === false ? [] : autoChairs(t, unit, floor.coordinateSpace.realWorldScale ? 0.22 / floor.coordinateSpace.realWorldScale.metersPerUnit : undefined);
     for (const c of chairs) {
       items.push({ type: "path", d: circlePath(c.p[0], c.p[1], c.r), fill: theme.chair.fill, stroke: theme.chair.stroke,
         strokeWidth: unit * 0.12, layer: "chairs", ref: ref("table", t) });

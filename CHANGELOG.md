@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.5.0 — 2026-11-23
+
+- Parquet: `wood_wide_planks`, `wood_chevron`, `wood_basketweave`.
+- `appearance.style` for tables (classic, modern, rustic, industrial, bistro, scandinavian), sofas/armchairs (classic,
+  modern, chesterfield, scandinavian) and parasols (classic, striped, scalloped, solid, cantilever).
+- Seat kinds: `stool_backrest`, `bistro`, `cafe`, `tub`, `lounge`, `pouf`. Fixture kinds: `corner_sofa`, `lounge_chair`,
+  `pouf`, `bench`. Square and rectangular parasols from a rect shape.
+- Auto-placed seats use real sizes when the floor has a scale.
+- Zone name chips fit inside their zone.
+- New example: `examples/showcase.json` component gallery; restaurant uses the new styles.
 
 - Example: back-of-house extract duct through storage, staff, office and kitchen, rising into the kitchen hood.
 - Illustrated theme: ventilation ducts are more visible (less transparent, darker outline and seams, soft shadow).

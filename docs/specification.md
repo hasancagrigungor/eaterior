@@ -1,4 +1,4 @@
-# Eatery Plan 1.4.0 — Specification
+# Eatery Plan 1.5.0 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.4.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.5.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -93,14 +93,16 @@ map it to textures, symbols and shading; the same plan can be shown in a plain o
 
 | Field | Used on | Values |
 |---|---|---|
-| `floor` | zones | `wood_planks`, `wood_herringbone`, `tile_checker`, `tile_square`, `marble`, `terrazzo`, `concrete`, `carpet`, `terrace_deck`, `grass`, `stone` |
+| `floor` | zones | `wood_planks`, `wood_wide_planks`, `wood_herringbone`, `wood_chevron`, `wood_basketweave`, `tile_checker`, `tile_square`, `marble`, `terrazzo`, `concrete`, `carpet`, `terrace_deck`, `grass`, `stone` |
 | `material` | tables, fixtures, devices | `wood`, `wood_light`, `wood_dark`, `marble`, `metal`, `aluminium`, `glass`, `fabric`, `leather`, `plastic`, `stone`, `concrete` |
 | `color`, `accentColor` | all | `#RRGGBB` — main and secondary colour (e.g. the two colours of a checker floor) |
 | `tablecloth` | tables | `#RRGGBB` |
 | `tableSetting` | tables | `none`, `plates`, `plates_glasses` |
+| `style` | tables, sofas, armchairs, parasols | tables: `classic`, `modern`, `rustic`, `industrial`, `bistro`, `scandinavian`; sofas/armchairs: `classic`, `modern`, `chesterfield`, `scandinavian`; parasols: `classic`, `striped`, `scalloped`, `solid`, `cantilever` |
 | `roof` | pergolas | `slatted`, `louvered` (aluminium bioclimatic), `glass`, `fabric`, `solid` — `color` is the frame, `accentColor` the roof |
 
-Tables MAY also have `chairStyle`: `kind` (`chair`, `armchair`, `stool`, `bench`, `booth`), `color`, `material`.
+Tables MAY also have `chairStyle`: `kind` (`chair`, `armchair`, `stool`, `stool_backrest`, `bistro`, `cafe`, `tub`,
+`lounge`, `pouf`, `bench`, `booth`), `color`, `material`.
 `booth` and `bench` replace individual chairs with seating along the long sides.
 
 Everything is optional. Without `appearance`, renderers choose defaults from `kind` (e.g. kitchens get a tiled floor).
@@ -108,10 +110,14 @@ Everything is optional. Without `appearance`, renderers choose defaults from `ki
 
 Fixture kinds cover a restaurant: counters (`counter`, `bar_counter`, `prep_counter`), seating (`sofa`, `chair`,
 `armchair`, `bar_stool`), kitchen equipment (`stove`, `oven`, `fridge`, `freezer`, `dishwasher`, `sink`,
-`hand_sink`, `coffee_machine`), front of house (`display_case`, `wine_rack`, `shelf`, `host_stand`, `pos_terminal`,
+`hand_sink`, `coffee_machine`), seating (`corner_sofa`, `lounge_chair`, `pouf`, `bench`), front of house (`display_case`, `wine_rack`, `shelf`, `host_stand`, `pos_terminal`,
 `tv`, `piano`), restrooms (`toilet`, `urinal`), outdoor and decor (`plant`, `planter`, `tree`, `palm_tree`, `parasol`, `pergola`, `rug`), and
 building elements (`stairs`, `elevator`, `column`). A fixture with a polygon or path shape (e.g. a curved bar) is drawn
-with its real outline.
+with its real outline. A `parasol` with a `rect` shape is square or rectangular; its size is the shape's size.
+
+**Sizes are real.** Every object's size is its shape in floor units. With `realWorldScale` set, renderers convert
+those to metres: furniture is drawn at its true size, auto-placed seats use real seat sizes, and floor textures use real
+plank and tile sizes. Without a scale everything stays proportional to the plan.
 
 Climate devices (1.2.0) add `ceiling_cassette` (ceiling-recessed AC), `ventilation_duct` (a duct run: long rect,
 polygon or path), `patio_heater` and `wall_heater`. An `air_conditioner` with `mount: "ceiling"` is also drawn as a
@@ -169,7 +175,7 @@ Every plan object is a component that can be switched on and off.
 
 - **Default** in the plan: optional `active` (default `true`) on zones, walls, openings, tables, fixtures, climate
   devices, sensors and labels — e.g. a terrace closed for the winter or a table taken out of service.
-- **Live** in an object-state document ([`object-state`](../schemas/v1.4.0/object-state.schema.json),
+- **Live** in an object-state document ([`object-state`](../schemas/v1.5.0/object-state.schema.json),
   `format: "eateryplan-object-state"`): one entry per `objectId` with any of
   - `active`: `true` / `false`
   - `open`: `0` (closed) … `1` (fully open) — pergola louvers or retractable roofs, `glass_folding` / `glass_sliding`

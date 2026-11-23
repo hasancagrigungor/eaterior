@@ -171,6 +171,48 @@ function floorPattern(id, spec, M) {
       }
       break;
     }
+    case "wood_wide_planks": {
+      const pw = M(0.3), pl = M(2.2);
+      w = pl; h = pw * 4;
+      const shades = [c, lighten(c, 0.05), darken(c, 0.06), lighten(c, 0.02)];
+      [0, 0.4, 0.75, 0.2].forEach((o, row) => {
+        for (const x0 of [o * pl - pl, o * pl]) {
+          const y0 = row * pw, sh = shades[row];
+          rect(x0, y0, pl, pw, sh, { stroke: darken(c, 0.32), strokeWidth: pw * 0.035 });
+          for (let k = 1; k <= 3; k++) {
+            const yy = y0 + (pw * k) / 4 + (r() - 0.5) * pw * 0.08;
+            curve(x0 + pl * 0.03, yy, x0 + pl * (0.3 + r() * 0.4), yy + (r() - 0.5) * pw * 0.3, x0 + pl * 0.97, yy, darken(sh, 0.18), pw * 0.02, 0.5);
+          }
+          if (r() < 0.5) ell(x0 + pl * (0.15 + r() * 0.7), y0 + pw * (0.3 + r() * 0.4), pw * 0.12, pw * 0.06, darken(sh, 0.3), 0.55);
+        }
+      });
+      break;
+    }
+    case "wood_chevron": {
+      const s2 = M(0.3), t = s2 * 0.42, rise = s2 * 0.95;
+      w = 2 * s2; h = 2 * t;
+      for (let k = -6; k <= 6; k++) {
+        const y = k * t, fill = k % 2 ? darken(c, 0.09) : lighten(c, 0.06), st = { stroke: darken(c, 0.32), strokeWidth: t * 0.06 };
+        items.push({ type: "path", d: `M0 ${f(y)} L${f(s2)} ${f(y - rise)} L${f(s2)} ${f(y - rise + t)} L0 ${f(y + t)} Z`, fill, ...st });
+        items.push({ type: "path", d: `M${f(s2)} ${f(y - rise)} L${f(2 * s2)} ${f(y)} L${f(2 * s2)} ${f(y + t)} L${f(s2)} ${f(y - rise + t)} Z`, fill, ...st });
+        line(s2 * 0.15, y + t * 0.5 - rise * 0.15, s2 * 0.85, y + t * 0.5 - rise * 0.85, darken(fill, 0.15), t * 0.05, 0.45);
+      }
+      rotation = 90;
+      break;
+    }
+    case "wood_basketweave": {
+      const q = M(0.24), n = 3, st = q / n;
+      w = h = 2 * q;
+      [[0, 0, "v"], [q, q, "v"], [q, 0, "h"], [0, q, "h"]].forEach(([x0, y0, dir], i) => {
+        for (let k = 0; k < n; k++) {
+          const sh = [c, darken(c, 0.07), lighten(c, 0.05)][(k + i) % 3];
+          if (dir === "v") rect(x0 + k * st, y0, st, q, sh, { stroke: darken(c, 0.3), strokeWidth: st * 0.06 });
+          else rect(x0, y0 + k * st, q, st, sh, { stroke: darken(c, 0.3), strokeWidth: st * 0.06 });
+        }
+      });
+      rotation = 45;
+      break;
+    }
     case "tile_checker": {
       const ts = M(0.3), b = a || "#F7F3EE", grout = darken(b, 0.18);
       w = h = 2 * ts;
@@ -423,14 +465,42 @@ function drawFixture(fx, ctx) {
       break;
     }
     case "parasol": {
-      const c = ap.color || "#E9E4D8", c2 = ap.accentColor || "#D35D47", r = Math.min(w, h) / 2, n = 8;
-      shadow(p.circle(0, 0, r), 1.2);
-      for (let i = 0; i < n; i++) {
-        const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
-        const d = p.raw((P) => `M${P(0, 0)} L${P(Math.cos(a0) * r, Math.sin(a0) * r)} Q${P(Math.cos(am) * r * 0.9, Math.sin(am) * r * 0.9)} ${P(Math.cos(a1) * r, Math.sin(a1) * r)} Z`);
-        out(d, grad(i % 2 ? c : c2), { stroke: darken(c2, 0.25), strokeWidth: u * 0.1, opacity: 0.94 });
+      const style = ap.style || "classic";
+      const c = ap.color || "#E9E4D8", c2 = ap.accentColor || "#D35D47";
+      const square = fx.shape.kind === "rect";
+      const rx = w / 2, ry = h / 2;
+      // outline vertices: a polygon for square/rectangular canopies, a many-sided circle/oval otherwise
+      const n = square ? 8 : style === "scalloped" ? 10 : 8;
+      const vtx = [];
+      if (square) {
+        for (const [x, y] of [[-rx, -ry], [0, -ry], [rx, -ry], [rx, 0], [rx, ry], [0, ry], [-rx, ry], [-rx, 0]]) vtx.push([x, y]);
+      } else for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 - Math.PI / 2; vtx.push([Math.cos(a) * rx, Math.sin(a) * ry]); }
+      const outline = p.poly(vtx);
+      shadow(outline, 1.2);
+      if (style === "cantilever") {
+        const px = -rx - Math.min(w, h) * 0.18;
+        out(p.line(px, 0, -rx * 0.1, 0), "none", { stroke: "#4A4F55", strokeWidth: u * 0.4, linecap: "round" });
+        out(p.rect(px - u * 1.2, -u * 1.2, u * 2.4, u * 2.4, u * 0.4), grad("#5B6168"), edge("#5B6168"));
       }
-      out(p.circle(0, 0, r * 0.09), grad("#6B5444", "rad"));
+      for (let i = 0; i < vtx.length; i++) {
+        const a0 = vtx[i], a1 = vtx[(i + 1) % vtx.length];
+        const mid = [(a0[0] + a1[0]) / 2 * 0.93, (a0[1] + a1[1]) / 2 * 0.93];
+        const d = p.raw((P) => `M${P(0, 0)} L${P(a0[0], a0[1])} Q${P(mid[0], mid[1])} ${P(a1[0], a1[1])} Z`);
+        const fill = style === "solid" ? c : i % 2 ? c : c2;
+        out(d, grad(fill), { stroke: darken(style === "solid" ? c : c2, 0.25), strokeWidth: u * 0.1, opacity: 0.95 });
+      }
+      if (style === "striped") {
+        for (const k of [0.72, 0.42]) out(p.poly(vtx.map(([x, y]) => [x * k, y * k])), "none", { stroke: c2, strokeWidth: Math.min(w, h) * 0.05, opacity: 0.85 });
+      }
+      if (style === "scalloped") {
+        for (let i = 0; i < vtx.length; i++) {
+          const a0 = vtx[i], a1 = vtx[(i + 1) % vtx.length], m = [(a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2];
+          const rr2 = Math.hypot(a1[0] - a0[0], a1[1] - a0[1]) * 0.28;
+          out(p.circle(m[0] * 1.02, m[1] * 1.02, rr2), grad(c2), { stroke: darken(c2, 0.3), strokeWidth: u * 0.08 });
+        }
+      }
+      for (const [x, y] of vtx) out(p.line(0, 0, x * 0.97, y * 0.97), "none", { stroke: darken(c, 0.35), strokeWidth: u * 0.08, opacity: 0.55 });
+      out(p.circle(0, 0, Math.min(w, h) * 0.06), grad("#6B5444", "rad"));
       break;
     }
     case "counter": case "prep_counter": case "bar_counter": {
@@ -444,16 +514,61 @@ function drawFixture(fx, ctx) {
       break;
     }
     case "sofa": case "armchair": {
-      const c = ap.color || (fx.kind === "sofa" ? "#C0504D" : "#D9776E"), cush = ap.accentColor || lighten(c, 0.15);
-      body(darken(c, 0.05), rr * 1.5);
-      const arm = Math.min(w * 0.12, h * 0.25), back = h * 0.3;
-      out(p.rect(-w / 2, -h / 2, w, back, rr), grad(darken(c, 0.15)));
-      out(p.rect(-w / 2, -h / 2, arm, h, rr), grad(darken(c, 0.1))); out(p.rect(w / 2 - arm, -h / 2, arm, h, rr), grad(darken(c, 0.1)));
+      const style = ap.style || "classic";
+      const base = { chesterfield: "#6B2E1F", modern: "#5B6770", scandinavian: "#B9C4B0", classic: fx.kind === "sofa" ? "#C0504D" : "#D9776E" }[style] || "#C0504D";
+      const c = ap.color || base, cush = ap.accentColor || lighten(c, 0.15);
+      const P = { chesterfield: [0.16, 0.3, 0.5], modern: [0.07, 0.22, 0.12], scandinavian: [0.08, 0.24, 0.2], classic: [0.12, 0.3, 0.35] }[style] || [0.12, 0.3, 0.35];
+      const arm = Math.min(w * P[0], h * 0.3), back = h * P[1], ar = arm * P[2] * 2;
+      if (style === "scandinavian") {
+        const wood = theme.materials.wood_light;
+        const d = p.rect(-w / 2, -h / 2, w, h, rr);
+        shadow(d); out(d, grad(wood), edge(wood));
+        for (const [x, y] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) out(p.circle(x * (w / 2 - u * 0.4), y * (h / 2 - u * 0.4), u * 0.3), darken(wood, 0.35));
+        out(p.rect(-w / 2 + arm, -h / 2 + u * 0.4, w - 2 * arm, back - u * 0.4, rr), grad(darken(c, 0.12)));
+      } else {
+        body(darken(c, 0.05), rr * 1.5);
+        out(p.rect(-w / 2, -h / 2, w, back, Math.max(rr, ar * 0.5)), grad(darken(c, 0.15)));
+        out(p.rect(-w / 2, -h / 2, arm, h, ar), grad(darken(c, 0.1))); out(p.rect(w / 2 - arm, -h / 2, arm, h, ar), grad(darken(c, 0.1)));
+        if (style === "chesterfield" || style === "classic") for (const x of [-w / 2 + arm / 2, w / 2 - arm / 2]) out(p.line(x, -h / 2 + back * 0.5, x, h / 2 - arm * 0.4), "none", { stroke: lighten(c, 0.2), strokeWidth: u * 0.1, opacity: 0.6 });
+      }
       const n = fx.kind === "armchair" ? 1 : Math.max(1, Math.round((w - 2 * arm) / (h * 0.7))), cw = (w - 2 * arm) / n;
       for (let i = 0; i < n; i++) {
         const x = -w / 2 + arm + i * cw + u * 0.2, y = -h / 2 + back + u * 0.1, cw2 = cw - u * 0.4, ch = h - back - u * 0.4;
-        out(p.rect(x, y, cw2, ch, rr), grad(cush), edge(cush, 0.25));
-        out(p.rect(x + cw2 * 0.12, y + ch * 0.12, cw2 * 0.76, ch * 0.76, rr), "none", { stroke: darken(cush, 0.15), strokeWidth: u * 0.06, dash: [u * 0.3, u * 0.3], opacity: 0.7 });
+        out(p.rect(x, y, cw2, ch, style === "modern" ? rr * 0.4 : rr), grad(cush), edge(cush, 0.25));
+        if (style === "classic" || style === "scandinavian") out(p.rect(x + cw2 * 0.12, y + ch * 0.12, cw2 * 0.76, ch * 0.76, rr), "none", { stroke: darken(cush, 0.15), strokeWidth: u * 0.06, dash: [u * 0.3, u * 0.3], opacity: 0.7 });
+      }
+      if (style === "chesterfield") {
+        const cols = Math.max(3, Math.round(w / (u * 2.2)));
+        for (let i = 1; i < cols; i++) for (const yy of [-h / 2 + back * 0.35, -h / 2 + back * 0.75]) out(p.circle(-w / 2 + (w * i) / cols, yy, u * 0.18), darken(c, 0.4));
+        for (let i = 0; i < n; i++) { const x = -w / 2 + arm + (i + 0.5) * cw; out(p.circle(x, -h / 2 + back + (h - back) * 0.45, u * 0.18), darken(cush, 0.4)); }
+      }
+      break;
+    }
+    case "corner_sofa": {
+      const c = ap.color || "#4F6D7A", cush = ap.accentColor || lighten(c, 0.15);
+      const b = Math.min(w, h) * 0.2, d = Math.min(w, h) * 0.42, arm = b * 0.8;
+      const L = p.poly([[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, -h / 2 + b + d], [-w / 2 + b + d, -h / 2 + b + d], [-w / 2 + b + d, h / 2], [-w / 2, h / 2]]);
+      shadow(L); out(L, grad(darken(c, 0.05)), edge(c));
+      out(p.rect(-w / 2, -h / 2, w, b, rr), grad(darken(c, 0.18))); out(p.rect(-w / 2, -h / 2, b, h, rr), grad(darken(c, 0.18)));
+      out(p.rect(w / 2 - arm, -h / 2, arm, b + d, rr), grad(darken(c, 0.1))); out(p.rect(-w / 2, h / 2 - arm, b + d, arm, rr), grad(darken(c, 0.1)));
+      const nTop = Math.max(1, Math.round((w - b - arm) / d)), cwT = (w - b - arm) / nTop;
+      for (let i = 0; i < nTop; i++) out(p.rect(-w / 2 + b + i * cwT + u * 0.2, -h / 2 + b + u * 0.2, cwT - u * 0.4, d - u * 0.4, rr), grad(cush), edge(cush, 0.25));
+      const nLeft = Math.max(1, Math.round((h - b - d - arm) / d)), chL = (h - b - d - arm) / nLeft;
+      for (let i = 0; i < nLeft; i++) out(p.rect(-w / 2 + b + u * 0.2, -h / 2 + b + d + i * chL + u * 0.2, d - u * 0.4, chL - u * 0.4, rr), grad(cush), edge(cush, 0.25));
+      break;
+    }
+    case "lounge_chair": case "pouf": {
+      drawSeat(kit({ cx: box.cx, cy: box.cy, rot: box.rot }, ref, layer, ctx), Math.min(w, h) / (fx.kind === "pouf" ? 2.1 : 2.6), fx.kind === "pouf" ? "pouf" : "lounge",
+        ap.color || (fx.kind === "pouf" ? "#D8A15B" : "#8E9F8A"));
+      break;
+    }
+    case "bench": {
+      const c = materialColor(theme, ap, theme.materials.wood);
+      body(darken(c, 0.15), rr * 0.4);
+      const long = w >= h, n = Math.max(3, Math.round((long ? h : w) / (u * 0.9)));
+      for (let i = 0; i < n; i++) {
+        const t2 = -0.5 + (i + 0.5) / n, sl = (long ? h : w) / n * 0.8;
+        out(long ? p.rect(-w / 2 + u * 0.2, h * t2 - sl / 2, w - u * 0.4, sl, sl * 0.3) : p.rect(w * t2 - sl / 2, -h / 2 + u * 0.2, sl, h - u * 0.4, sl * 0.3), grad(lighten(c, i % 2 ? 0.04 : 0.1)));
       }
       break;
     }
@@ -631,12 +746,62 @@ function drawLeaves(p, x, y, r, leaf, out, seed, count = 8) {
 /** A seat in its local frame (+y faces the table). `k` is a kit() for that frame. */
 function drawSeat(k, r, kind, color) {
   const { p, out, shadow, edge, grad, u } = k;
-  if (kind === "stool") {
-    const d = p.circle(0, 0, r);
-    shadow(d);
-    out(d, grad(color, "rad"), edge(color));
-    out(p.circle(0, 0, r * 0.62), "none", { stroke: lighten(color, 0.3), strokeWidth: u * 0.1, opacity: 0.8 });
-    return;
+  const arc = (rad, a0, a1, sw, c, op = 1) => {
+    const A = (a) => [Math.cos((a * Math.PI) / 180) * rad, Math.sin((a * Math.PI) / 180) * rad];
+    const [x0, y0] = A(a0), [x1, y1] = A(a1);
+    out(p.raw((P) => `M${P(x0, y0)} A${f(rad)} ${f(rad)} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${P(x1, y1)}`), "none", { stroke: c, strokeWidth: sw, opacity: op, linecap: "round" });
+  };
+  switch (kind) {
+    case "stool": case "stool_backrest": {
+      const d = p.circle(0, 0, r);
+      shadow(d);
+      out(d, grad(color, "rad"), edge(color));
+      out(p.circle(0, 0, r * 0.62), "none", { stroke: lighten(color, 0.3), strokeWidth: u * 0.1, opacity: 0.8 });
+      if (kind === "stool_backrest") arc(r * 1.05, 215, 325, r * 0.28, darken(color, 0.25));
+      return;
+    }
+    case "pouf": {
+      const d = p.circle(0, 0, r * 1.05);
+      shadow(d);
+      out(d, grad(color, "rad"), edge(color, 0.25));
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; out(p.line(0, 0, Math.cos(a) * r * 0.95, Math.sin(a) * r * 0.95), "none", { stroke: darken(color, 0.18), strokeWidth: u * 0.07, opacity: 0.7 }); }
+      out(p.circle(0, 0, r * 0.12), darken(color, 0.3));
+      return;
+    }
+    case "bistro": case "cafe": {
+      const d = p.circle(0, r * 0.08, r * 0.9);
+      shadow(d);
+      out(d, grad(kind === "bistro" ? lighten(color, 0.1) : color, "rad"), edge(color));
+      if (kind === "bistro") {
+        for (let i = -2; i <= 2; i++) {
+          out(p.line(-r * 0.6, r * 0.08 + i * r * 0.22, r * 0.6, r * 0.08 + i * r * 0.22), "none", { stroke: darken(color, 0.2), strokeWidth: u * 0.05, opacity: 0.6 });
+          out(p.line(i * r * 0.22, -r * 0.5, i * r * 0.22, r * 0.66), "none", { stroke: darken(color, 0.2), strokeWidth: u * 0.05, opacity: 0.6 });
+        }
+        arc(r * 0.98, 200, 340, r * 0.3, darken(color, 0.3));
+      } else {
+        out(p.circle(0, r * 0.08, r * 0.62), "none", { stroke: lighten(color, 0.25), strokeWidth: u * 0.08, opacity: 0.7 });
+        arc(r * 1.02, 195, 345, r * 0.14, darken(color, 0.35));
+        arc(r * 0.8, 215, 325, r * 0.08, darken(color, 0.35), 0.8);
+      }
+      return;
+    }
+    case "tub": {
+      const d = p.circle(0, 0, r * 1.15);
+      shadow(d);
+      out(d, grad(darken(color, 0.12), "rad"), edge(color));
+      out(p.circle(0, r * 0.25, r * 0.78), grad(lighten(color, 0.1), "rad"), edge(color, 0.2));
+      return;
+    }
+    case "lounge": {
+      const s = r * 2.6, seat = p.rect(-s / 2, -s / 2, s, s, s * 0.18);
+      shadow(seat);
+      out(seat, grad(color), edge(color));
+      out(p.rect(-s / 2, -s / 2, s, s * 0.22, s * 0.1), grad(darken(color, 0.18)));
+      out(p.rect(-s / 2, -s / 2, s * 0.13, s, s * 0.06), grad(darken(color, 0.1)));
+      out(p.rect(s / 2 - s * 0.13, -s / 2, s * 0.13, s, s * 0.06), grad(darken(color, 0.1)));
+      out(p.rect(-s * 0.33, -s * 0.24, s * 0.66, s * 0.66, s * 0.14), grad(lighten(color, 0.15)), edge(color, 0.15));
+      return;
+    }
   }
   const s = kind === "armchair" ? r * 2.3 : r * 2;
   const seat = p.rect(-s / 2, -s / 2, s, s, s * 0.2);
@@ -656,12 +821,18 @@ function drawTable(t, ctx, state) {
   const box = boxOf(t.shape), ap = t.appearance || {}, cs = t.chairStyle || {};
   const { w, h } = box;
   const ref = { type: "table", id: t.id };
-  const top = materialColor(theme, ap, theme.materials.wood);
+  const style = ap.style;
+  const styleTop = { modern: "#F2F1EE", rustic: "#8A5A34", industrial: "#A0703F", bistro: "#ECE8E1", scandinavian: "#E3C79C", classic: "#6E3F22" }[style];
+  const top = ap.color || theme.materials[ap.material] || styleTop || theme.materials.wood;
+  const corner = { modern: 0.14, rustic: 0.03, industrial: 0.02, scandinavian: 0.22, classic: 0.06 }[style] ?? 0.08;
   const [cx, cy] = [box.cx, box.cy];
   const T = kit(box, ref, "tables", ctx), C = kit(box, ref, "chairs", ctx);
 
   // seats
-  const seats = t.chairs?.length ? t.chairs.map((c) => ({ p: [c.x, c.y], r: M(0.22) })) : autoChairs(t, u);
+  // real seat sizes (radius in metres) when the floor has a scale; otherwise proportional to the table
+  const SEAT_M = { chair: 0.22, armchair: 0.25, stool: 0.18, stool_backrest: 0.19, bistro: 0.22, cafe: 0.21, tub: 0.27, lounge: 0.3, pouf: 0.22 };
+  const seatR = ctx.scaled ? M(SEAT_M[cs.kind] ?? 0.22) : undefined;
+  const seats = t.chairs?.length ? t.chairs.map((c) => ({ p: [c.x, c.y], r: M(SEAT_M[cs.kind] ?? 0.22) })) : autoChairs(t, u, seatR);
   const seatColor = cs.color || theme.chair;
   if ((cs.kind === "bench" || cs.kind === "booth") && !box.round && !box.free) {
     const depth = M(cs.kind === "booth" ? 0.55 : 0.4);
@@ -684,19 +855,43 @@ function drawTable(t, ctx, state) {
 
   // table top
   const shape = (inset = 0) => box.round ? T.p.ellipse(0, 0, w / 2 - inset, h / 2 - inset)
-    : box.free ? null : T.p.rect(-w / 2 + inset, -h / 2 + inset, w - 2 * inset, h - 2 * inset, Math.max(0, Math.min(w, h) * 0.08 - inset));
+    : box.free ? null : T.p.rect(-w / 2 + inset, -h / 2 + inset, w - 2 * inset, h - 2 * inset, Math.max(0, Math.min(w, h) * corner - inset));
   const outline = shape() || shapeToPath(t.shape);
   T.shadow(outline, 1.2);
   if (ap.tablecloth) {
     T.out(box.round ? T.p.ellipse(0, 0, w / 2 + u * 0.4, h / 2 + u * 0.4) : outline, grad(ap.tablecloth), { stroke: darken(ap.tablecloth, 0.25), strokeWidth: u * 0.12 });
     T.out(shape(Math.min(w, h) * 0.06) || outline, lighten(ap.tablecloth, 0.12), { opacity: 0.8 });
   } else {
-    T.out(outline, grad(top, box.round ? "rad" : "lin"), { stroke: darken(top, 0.38), strokeWidth: u * 0.15, opacity: ap.material === "glass" ? 0.8 : 1 });
+    const rim = { industrial: ["#2F3337", u * 0.7], bistro: ["#B08D57", u * 0.5], rustic: [darken(top, 0.45), u * 0.35] }[style];
+    T.out(outline, grad(top, box.round ? "rad" : "lin"), { stroke: rim ? rim[0] : darken(top, 0.38), strokeWidth: rim ? rim[1] : u * 0.15, opacity: ap.material === "glass" ? 0.8 : 1 });
     if (!box.free) {
-      const inset = Math.min(w, h) * 0.07;
-      T.out(shape(inset), "none", { stroke: lighten(top, 0.25), strokeWidth: u * 0.1, opacity: 0.6 });
-      if (WOODS.has(ap.material) || !ap.material) T.grain(top, -w / 2 + inset, -h / 2 + inset, w - 2 * inset, h - 2 * inset);
-      if (ap.material === "marble") T.out(T.p.raw((P) => `M${P(-w * 0.35, -h * 0.2)} Q${P(0, h * 0.1)} ${P(w * 0.3, -h * 0.05)}`), "none", { stroke: darken(top, 0.2), strokeWidth: u * 0.06, opacity: 0.6 });
+      const inset = Math.min(w, h) * 0.07, iw = w - 2 * inset, ih = h - 2 * inset;
+      const woody = WOODS.has(ap.material) || (!ap.material && !["modern", "bistro"].includes(style));
+      if (style === "modern") {
+        T.out(T.p.raw((P) => `M${P(-w * 0.32, -h * 0.4)} L${P(-w * 0.12, -h * 0.4)} L${P(-w * 0.38, h * 0.3)} L${P(-w * 0.44, h * 0.1)} Z`), "#FFFFFF", { opacity: 0.35 });
+      } else if (style === "rustic") {
+        const long = w >= h, n = Math.max(2, Math.round((long ? h : w) / M(0.18)));
+        for (let i = 1; i < n; i++) {
+          const t2 = -0.5 + i / n;
+          T.out(long ? T.p.line(-w / 2 + u * 0.3, h * t2, w / 2 - u * 0.3, h * t2) : T.p.line(w * t2, -h / 2 + u * 0.3, w * t2, h / 2 - u * 0.3), "none",
+            { stroke: darken(top, 0.4), strokeWidth: u * 0.14, opacity: 0.8 });
+        }
+        T.grain(top, -w / 2 + inset, -h / 2 + inset, iw, ih);
+        T.out(T.p.ellipse(w * 0.2, -h * 0.15, Math.min(w, h) * 0.05, Math.min(w, h) * 0.025), darken(top, 0.35), { opacity: 0.7 });
+      } else if (style === "industrial") {
+        T.grain(top, -w / 2 + inset, -h / 2 + inset, iw, ih);
+        if (!box.round) for (const [x, y] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) T.out(T.p.circle(x * (w / 2 - u * 0.45), y * (h / 2 - u * 0.45), u * 0.18), "#8A9097");
+      } else if (style === "bistro") {
+        for (let k2 = 0; k2 < 3; k2++) T.out(T.p.raw((P) => `M${P(-w * 0.35, -h * (0.25 - k2 * 0.2))} Q${P(0, h * (0.05 + k2 * 0.1))} ${P(w * 0.3, -h * (0.1 - k2 * 0.15))}`), "none",
+          { stroke: darken(top, 0.18), strokeWidth: u * 0.06, opacity: 0.55 });
+      } else if (style === "classic") {
+        T.out(shape(Math.min(w, h) * 0.12), "none", { stroke: lighten(top, 0.35), strokeWidth: u * 0.18, opacity: 0.8 });
+        T.grain(top, -w / 2 + inset, -h / 2 + inset, iw, ih);
+      } else {
+        T.out(shape(inset), "none", { stroke: lighten(top, 0.25), strokeWidth: u * 0.1, opacity: 0.6 });
+        if (woody) T.grain(top, -w / 2 + inset, -h / 2 + inset, iw, ih);
+        if (ap.material === "marble") T.out(T.p.raw((P) => `M${P(-w * 0.35, -h * 0.2)} Q${P(0, h * 0.1)} ${P(w * 0.3, -h * 0.05)}`), "none", { stroke: darken(top, 0.2), strokeWidth: u * 0.06, opacity: 0.6 });
+      }
     }
   }
 
@@ -881,7 +1076,7 @@ export function buildIllustratedScene(plan, options = {}) {
     { offset: 0, color: "#FFB36B", opacity: 0.55 }, { offset: 0.6, color: "#FF8A3D", opacity: 0.18 }, { offset: 1, color: "#FF8A3D", opacity: 0 }] });
   const objStates = objectStateMap(options.objectStates);
   const stateOf = (o) => resolveState(o, objStates);
-  const ctx = { theme, push, u, M, grad, softShadow, stateOf };
+  const ctx = { theme, push, u, M, grad, softShadow, stateOf, scaled: !!mpu };
   const review = (d, o, type) => {
     if (options.highlightReview !== false && o.needsReview) {
       push({ type: "path", d, fill: "none", stroke: theme.review, strokeWidth: u * 0.5, dash: [u * 1.2, u * 0.8], layer: "review", ref: { type, id: o.id } });
@@ -1008,7 +1203,8 @@ export function buildIllustratedScene(plan, options = {}) {
     for (const z of zones) {
       if (!z.name) continue;
       const b = boxOf(z.shape);
-      chip(push, b.cx, b.cy - b.h / 2 + u * 3, z.name, u * 1.7, theme, { type: "zone", id: z.id }, "labels");
+      const fs = Math.max(u * 0.9, Math.min(u * 1.7, (b.w * 0.9) / (z.name.length * 0.56 + 1.2)));   // fit the chip inside the zone
+      chip(push, b.cx, b.cy - b.h / 2 + fs * 1.6, z.name, fs, theme, { type: "zone", id: z.id }, "labels");
     }
   }
   for (const lb of ordered(floor.labels)) {
