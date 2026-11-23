@@ -1,4 +1,4 @@
-# Eatery Plan 1.2.0 — Specification
+# Eatery Plan 1.3.0 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.2.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.3.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -94,10 +94,11 @@ map it to textures, symbols and shading; the same plan can be shown in a plain o
 | Field | Used on | Values |
 |---|---|---|
 | `floor` | zones | `wood_planks`, `wood_herringbone`, `tile_checker`, `tile_square`, `marble`, `terrazzo`, `concrete`, `carpet`, `terrace_deck`, `grass`, `stone` |
-| `material` | tables, fixtures, devices | `wood`, `wood_light`, `wood_dark`, `marble`, `metal`, `glass`, `fabric`, `leather`, `plastic`, `stone`, `concrete` |
+| `material` | tables, fixtures, devices | `wood`, `wood_light`, `wood_dark`, `marble`, `metal`, `aluminium`, `glass`, `fabric`, `leather`, `plastic`, `stone`, `concrete` |
 | `color`, `accentColor` | all | `#RRGGBB` — main and secondary colour (e.g. the two colours of a checker floor) |
 | `tablecloth` | tables | `#RRGGBB` |
 | `tableSetting` | tables | `none`, `plates`, `plates_glasses` |
+| `roof` | pergolas | `slatted`, `louvered` (aluminium bioclimatic), `glass`, `fabric`, `solid` — `color` is the frame, `accentColor` the roof |
 
 Tables MAY also have `chairStyle`: `kind` (`chair`, `armchair`, `stool`, `bench`, `booth`), `color`, `material`.
 `booth` and `bench` replace individual chairs with seating along the long sides.
@@ -120,6 +121,9 @@ cassette.
 
 - A wall runs from `a` to `b` with `thickness` centred on that line. Optional `heightMeters` (1.1.1) is its physical
   height; renderers may use it for depth effects.
+- Glass walls (1.3.0): `glass` (fixed), `glass_folding` and `glass_sliding` (glass balcony / winter-garden enclosures).
+  `panelWidthMeters` sets the panel size. They are ordinary walls, so openings (e.g. a sliding door) attach to them,
+  and they work with or without a pergola above.
 - `bulge` makes the wall a circular arc: `bulge = tan(sweep / 4)` (same as DXF). `0` is straight, `1` a semicircle;
   positive values bulge to the **right** of `a → b` as seen on screen.
 - `opening.position` is the centre of the opening along the wall, `0` at `a`, `1` at `b` (arc length on curved walls).

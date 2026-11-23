@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0 — 2026-11-23
+
+- Pergola roof types via `appearance.roof`: `slatted`, `louvered` (aluminium bioclimatic), `glass`, `fabric`, `solid`;
+  material `aluminium`.
+- Glass balcony walls: wall kinds `glass_folding` and `glass_sliding`, optional `panelWidthMeters`; usable with or
+  without a pergola.
+- Illustrated theme: framed pergolas with bays, posts and louvers; glass panels with profiles (flat and 3D); table badges
+  on their own layer above canopies.
+
 ## 1.2.0 — 2026-11-23
 
 - New fixture kinds: `pergola`, `palm_tree`. New climate device kinds: `ceiling_cassette`, `ventilation_duct`,

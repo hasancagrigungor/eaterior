@@ -47,7 +47,7 @@ class Examples(unittest.TestCase):
 
     def test_eateryplan_1_0_0_upgrades(self):
         new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
-        self.assertEqual(new["schemaVersion"], "1.2.0")
+        self.assertEqual(new["schemaVersion"], "1.3.0")
         self.assertTrue(validate_plan(new).ok)
 
     def test_imported_example_is_valid(self):
@@ -169,7 +169,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.2.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.3.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -276,7 +276,7 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.2.0"
+        canon = ROOT / "schemas" / "v1.3.0"
         packaged = ROOT / "python" / "eateryplan" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))

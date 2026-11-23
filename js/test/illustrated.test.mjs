@@ -51,7 +51,7 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.2.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.3.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -76,7 +76,7 @@ test("wall height changes the depth", () => {
 });
 
 test("every climate device kind draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.2.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.3.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.climateDevice.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
@@ -90,4 +90,25 @@ test("radial gradients and glow are defined", () => {
   const sc = buildIllustratedScene(restaurant);
   assert.ok(sc.defs.some((d) => d.type === "radialGradient" && d.id === "ep-glow"));
   assert.match(toSvg(sc), /<radialGradient /);
+});
+
+test("pergola roof types and glass walls draw in 3D and flat modes", () => {
+  for (const roof of ["slatted", "louvered", "glass", "fabric", "solid"]) {
+    const plan = structuredClone(restaurant);
+    plan.floors[0].fixtures.find((x) => x.kind === "pergola").appearance = { material: "aluminium", roof };
+    for (const walls3d of [true, false]) {
+      const sc = buildIllustratedScene(plan, { walls3d });
+      const svg = toSvg(sc);
+      assert.ok(!/NaN|undefined/.test(svg), roof);
+      assert.ok(sc.items.some((i) => i.layer === "canopy"), roof);
+      assert.ok(sc.items.some((i) => i.ref?.id === "w_glass_w"), `glass wall ${walls3d}`);
+    }
+  }
+});
+
+test("table badges stay above the pergola", () => {
+  const { items } = buildIllustratedScene(restaurant);
+  const badge = items.findIndex((i) => i.layer === "badges");
+  const canopy = items.findLastIndex((i) => i.layer === "canopy");
+  assert.ok(badge > canopy);
 });

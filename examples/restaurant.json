@@ -1,6 +1,6 @@
 {
   "format": "eateryplan",
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
@@ -410,8 +410,51 @@
             "x": 250,
             "y": 30
           },
-          "thickness": 4,
-          "kind": "half_height"
+          "thickness": 6,
+          "kind": "glass_sliding",
+          "heightMeters": 2.2
+        },
+        {
+          "id": "w_glass_n",
+          "floorId": "floor_0",
+          "a": {
+            "x": 35,
+            "y": 205
+          },
+          "b": {
+            "x": 254,
+            "y": 205
+          },
+          "thickness": 6,
+          "kind": "glass_folding"
+        },
+        {
+          "id": "w_glass_w",
+          "floorId": "floor_0",
+          "a": {
+            "x": 35,
+            "y": 335
+          },
+          "b": {
+            "x": 35,
+            "y": 205
+          },
+          "thickness": 6,
+          "kind": "glass_folding"
+        },
+        {
+          "id": "w_glass_s",
+          "floorId": "floor_0",
+          "a": {
+            "x": 254,
+            "y": 335
+          },
+          "b": {
+            "x": 35,
+            "y": 335
+          },
+          "thickness": 6,
+          "kind": "glass_folding"
         },
         {
           "id": "w_patio_w",
@@ -578,6 +621,15 @@
           "kind": "window",
           "position": 0.85,
           "width": 70
+        },
+        {
+          "id": "door_9",
+          "floorId": "floor_0",
+          "wallId": "w_glass_s",
+          "kind": "door",
+          "position": 0.5,
+          "width": 50,
+          "swing": "sliding"
         }
       ],
       "tables": [
@@ -1620,19 +1672,6 @@
           }
         },
         {
-          "id": "tree_2",
-          "floorId": "floor_0",
-          "zoneId": "zone_patio",
-          "kind": "tree",
-          "shape": {
-            "kind": "ellipse",
-            "cx": 215,
-            "cy": 345,
-            "rx": 36,
-            "ry": 36
-          }
-        },
-        {
           "id": "palm_tree_1",
           "floorId": "floor_0",
           "zoneId": "zone_patio",
@@ -1693,13 +1732,13 @@
             "kind": "rect",
             "x": 35,
             "y": 205,
-            "width": 205,
+            "width": 219,
             "height": 130
           },
-          "name": "Pergola",
+          "name": "Bioclimatic pergola",
           "appearance": {
-            "material": "wood",
-            "accentColor": "#5E9E4B"
+            "material": "aluminium",
+            "roof": "louvered"
           }
         },
         {

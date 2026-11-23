@@ -24,7 +24,7 @@ export const DEFAULT_THEME = {
   },
   zoneStroke: "#C9CED6",
   zoneText: "#6B7280",
-  wall: { solid: "#2F343B", external: "#1F2328", partition: "#6B7280", glass: "#7FB3D5", half_height: "#9CA3AF" },
+  wall: { solid: "#2F343B", external: "#1F2328", partition: "#6B7280", glass: "#7FB3D5", glass_folding: "#7FB3D5", glass_sliding: "#7FB3D5", half_height: "#9CA3AF" },
   window: "#7FB3D5",
   door: "#6B7280",
   fixture: { fill: "#E5E1DA", stroke: "#8C857B" },

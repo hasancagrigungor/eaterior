@@ -81,7 +81,12 @@ table, zone or device. The reference renderer emits `ref` on every display-list 
   badge. With live state, the badge and an outline take the status colour.
 - **Light and material**: fills use soft linear/radial gradients from a fixed top-left light, wood surfaces get grain,
   every object casts a two-layer soft shadow, and wall bases get a faint ambient-occlusion band.
-- **Canopy layer**: pergolas and palm fronds are drawn above tables and chairs; ceiling devices (cassette AC,
+- **Pergolas**: `slatted` draws rafters and beams (optional vines from `accentColor`); `louvered`, `glass`, `fabric` and
+  `solid` draw a framed structure split into bays with posts, the roof semi-transparent so tables stay visible.
+- **Glass walls**: panels with frame profiles (zig-zag for folding, offset tracks for sliding); in 3D a translucent
+  glass face with mullions.
+- **Canopy layer**: pergolas and palm fronds are drawn above tables and chairs; table badges and status rings are on
+  a `badges` layer above the canopy; ceiling devices (cassette AC,
   ducts) above that, ducts semi-transparent.
 - **Defs**: the scene has `defs` (patterns, linear and radial gradients) referenced as `fill: "url(#id)"`. SVG and react-native-svg
   support them directly; a Canvas renderer can build them with `createPattern` / `createLinearGradient`.

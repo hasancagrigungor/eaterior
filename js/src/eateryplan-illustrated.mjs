@@ -11,7 +11,7 @@ import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asM
   from "./eateryplan-render.mjs";
 
 export const ILLUSTRATED_LAYERS = ["background", "shadow", "zones", "fixtures", "walls", "openings", "chairs",
-  "tables", "canopy", "climate", "sensors", "labels", "review"];
+  "tables", "canopy", "climate", "badges", "sensors", "labels", "review"];
 
 export const ILLUSTRATED_THEME = {
   background: "#8FD3E6",
@@ -342,36 +342,80 @@ function drawFixture(fx, ctx) {
       break;
     }
     case "pergola": {
-      const c = materialColor(theme, ap, theme.materials.wood), long = w >= h;
-      const post = Math.max(M(0.16), u * 0.8), beam = Math.max(M(0.14), u * 0.6), slat = Math.max(M(0.07), u * 0.35), gap = Math.max(M(0.4), u * 2);
-      const L = long ? w : h, S = long ? h : w;
-      const R = (a, b, la, lb) => (long ? p.rect(a, b, la, lb, 0) : p.rect(b, a, lb, la, 0));   // a along the long axis
-      const slats = [];
-      for (let x = -L / 2 + gap / 2; x < L / 2; x += gap) slats.push(R(x - slat / 2, -S / 2 - beam * 0.6, slat, S + beam * 1.2));
-      for (const d of slats) out(translatePath(d, u * 1.6, u * 2.1), theme.shadow, { opacity: 0.13 });
-      for (const side of [-1, 1]) {
-        const d = R(-L / 2, side < 0 ? -S / 2 : S / 2 - beam, L, beam);
-        out(translatePath(d, u * 1.6, u * 2.1), theme.shadow, { opacity: 0.15 });
-        out(d, grad(darken(c, 0.08)), edge(c));
-      }
-      for (const d of slats) out(d, grad(c), { stroke: darken(c, 0.35), strokeWidth: u * 0.08, opacity: 0.95 });
-      const posts = Math.max(2, Math.ceil(L / M(3)) + 1);
-      for (let i = 0; i < posts; i++) {
-        const x = -L / 2 + post / 2 + ((L - post) * i) / (posts - 1);
+      const metalRoof = ["metal", "aluminium"].includes(ap.material);
+      const roof = ap.roof || (metalRoof ? "louvered" : "slatted");
+      const long = w >= h, L = long ? w : h, S = long ? h : w;
+      const R = (a, b, la, lb) => (long ? p.rect(a, b, la, lb, 0) : p.rect(b, a, lb, la, 0));   // a runs along the long axis
+      const LN = (a1, b1, a2, b2) => (long ? p.line(a1, b1, a2, b2) : p.line(b1, a1, b2, a2));
+      if (roof === "slatted") {
+        const c = materialColor(theme, ap, theme.materials.wood);
+        const post = Math.max(M(0.16), u * 0.8), beam = Math.max(M(0.14), u * 0.6), slat = Math.max(M(0.07), u * 0.35), gap = Math.max(M(0.4), u * 2);
+        const slats = [];
+        for (let x = -L / 2 + gap / 2; x < L / 2; x += gap) slats.push(R(x - slat / 2, -S / 2 - beam * 0.6, slat, S + beam * 1.2));
+        for (const d of slats) out(translatePath(d, u * 1.6, u * 2.1), theme.shadow, { opacity: 0.13 });
         for (const side of [-1, 1]) {
-          const d = R(x - post / 2, side < 0 ? -S / 2 - post * 0.1 : S / 2 - post * 0.9, post, post);
-          out(d, grad(darken(c, 0.25)), edge(c, 0.5));
+          const d = R(-L / 2, side < 0 ? -S / 2 : S / 2 - beam, L, beam);
+          out(translatePath(d, u * 1.6, u * 2.1), theme.shadow, { opacity: 0.15 });
+          out(d, grad(darken(c, 0.08)), edge(c));
         }
-      }
-      if (ap.accentColor) {
-        const vr = rng(fx.id);
-        for (let x = -L / 2 + gap; x < L / 2 - gap / 2; x += gap * 1.7) {
-          for (const side of [-1, 1]) {
-            const pt = long ? [x + (vr() - 0.5) * gap, side * (S / 2 - beam / 2)] : [side * (S / 2 - beam / 2), x + (vr() - 0.5) * gap];
-            drawLeaves(p, pt[0], pt[1], Math.max(M(0.35), u * 1.8), ap.accentColor, out, fx.id + x + side, 6);
+        for (const d of slats) out(d, grad(c), { stroke: darken(c, 0.35), strokeWidth: u * 0.08, opacity: 0.95 });
+        const posts = Math.max(2, Math.ceil(L / M(3)) + 1);
+        for (let i = 0; i < posts; i++) {
+          const x = -L / 2 + post / 2 + ((L - post) * i) / (posts - 1);
+          for (const side of [-1, 1]) out(R(x - post / 2, side < 0 ? -S / 2 - post * 0.1 : S / 2 - post * 0.9, post, post), grad(darken(c, 0.25)), edge(c, 0.5));
+        }
+        if (ap.accentColor) {
+          const vr = rng(fx.id);
+          for (let x = -L / 2 + gap; x < L / 2 - gap / 2; x += gap * 1.7) {
+            for (const side of [-1, 1]) {
+              const pt = long ? [x + (vr() - 0.5) * gap, side * (S / 2 - beam / 2)] : [side * (S / 2 - beam / 2), x + (vr() - 0.5) * gap];
+              drawLeaves(p, pt[0], pt[1], Math.max(M(0.35), u * 1.8), ap.accentColor, out, fx.id + x + side, 6);
+            }
           }
         }
+        break;
       }
+      // framed pergola (aluminium bioclimatic, glass, fabric or solid roof)
+      const frame = ap.color || (metalRoof || roof === "louvered" ? "#BCA986" : theme.materials.wood);
+      const roofC = ap.accentColor || { louvered: "#4A4F55", glass: "#BFE8F2", fabric: "#E9E1D0", solid: "#5A5F66" }[roof] || "#4A4F55";
+      const op = theme.canopyOpacity ?? 0.62;
+      const beam = Math.max(M(0.2), u * 0.9), post = Math.max(M(0.16), u * 0.85);
+      const bays = Math.max(1, Math.round(L / M(4.2))), bayL = L / bays;
+      out(translatePath(R(-L / 2, -S / 2, L, S), u * 1.8, u * 2.4), theme.shadow, { opacity: 0.12 });
+      for (let b = 0; b < bays; b++) {
+        const x0 = -L / 2 + b * bayL + beam / 2 + (b === 0 ? beam / 2 : 0), x1 = -L / 2 + (b + 1) * bayL - beam / 2 - (b === bays - 1 ? beam / 2 : 0);
+        const y0 = -S / 2 + beam, y1 = S / 2 - beam;
+        if (roof === "louvered") {
+          const pitch = Math.max(M(0.2), u * 0.9), n = Math.max(2, Math.round((x1 - x0) / pitch)), step = (x1 - x0) / n;
+          for (let i = 0; i < n; i++) {
+            const x = x0 + i * step;
+            out(R(x, y0, step * 0.94, y1 - y0), grad(roofC), { opacity: op });
+            out(LN(x + step * 0.12, y0, x + step * 0.12, y1), "none", { stroke: lighten(roofC, 0.45), strokeWidth: u * 0.08, opacity: op * 0.8 });
+            out(LN(x + step * 0.9, y0, x + step * 0.9, y1), "none", { stroke: darken(roofC, 0.4), strokeWidth: u * 0.06, opacity: op * 0.8 });
+          }
+        } else if (roof === "glass") {
+          out(R(x0, y0, x1 - x0, y1 - y0), roofC, { opacity: 0.3 });
+          for (let x = x0 + M(1); x < x1 - M(0.2); x += M(1)) out(LN(x, y0, x, y1), "none", { stroke: frame, strokeWidth: u * 0.25 });
+          out(LN(x0 + (x1 - x0) * 0.1, y0 + (y1 - y0) * 0.15, x0 + (x1 - x0) * 0.35, y0 + (y1 - y0) * 0.15), "none", { stroke: "#FFFFFF", strokeWidth: u * 0.3, opacity: 0.6 });
+        } else if (roof === "fabric") {
+          const sw = Math.max(M(0.35), u * 1.5);
+          let k = 0;
+          for (let x = x0; x < x1; x += sw, k++) out(R(x, y0, Math.min(sw, x1 - x), y1 - y0), k % 2 ? grad(roofC) : grad(lighten(roofC, 0.3)), { opacity: op + 0.1 });
+        } else {
+          out(R(x0, y0, x1 - x0, y1 - y0), grad(roofC), { opacity: op + 0.15 });
+        }
+      }
+      const fe = { stroke: darken(frame, 0.35), strokeWidth: u * 0.12 };
+      for (const side of [-1, 1]) {
+        out(R(-L / 2, side < 0 ? -S / 2 : S / 2 - beam, L, beam), grad(frame), fe);
+        out(R(side < 0 ? -L / 2 : L / 2 - beam, -S / 2, beam, S), grad(frame), fe);
+      }
+      for (let b = 1; b < bays; b++) out(R(-L / 2 + b * bayL - beam / 2, -S / 2, beam, S), grad(darken(frame, 0.05)), fe);
+      for (let b = 0; b <= bays; b++) {
+        const x = Math.min(L / 2 - post, Math.max(-L / 2, -L / 2 + b * bayL - post / 2));
+        for (const side of [-1, 1]) out(R(x, side < 0 ? -S / 2 : S / 2 - post, post, post), grad(darken(frame, 0.2)), { stroke: darken(frame, 0.5), strokeWidth: u * 0.1 });
+      }
+      out(LN(-L / 2 + beam * 0.3, -S / 2 + beam * 0.3, L / 2 - beam * 0.3, -S / 2 + beam * 0.3), "none", { stroke: lighten(frame, 0.35), strokeWidth: u * 0.12, opacity: 0.8 });
       break;
     }
     case "parasol": {
@@ -674,12 +718,12 @@ function drawTable(t, ctx, state) {
 
   // status ring and number badge
   const st = state?.status;
-  if (st) push({ type: "path", d: outline, fill: "none", stroke: theme.status[st] || theme.status.unknown, strokeWidth: u * 0.6, opacity: 0.95, layer: "tables", ref });
+  if (st) push({ type: "path", d: outline, fill: "none", stroke: theme.status[st] || theme.status.unknown, strokeWidth: u * 0.6, opacity: 0.95, layer: "badges", ref });
   const br = u * 1.5;
   push({ type: "path", d: circlePath(cx, cy, br), fill: st ? theme.status[st] || theme.badge.fill : theme.badge.fill,
-    stroke: theme.badge.stroke, strokeWidth: u * 0.15, layer: "tables", ref });
+    stroke: theme.badge.stroke, strokeWidth: u * 0.15, layer: "badges", ref });
   push({ type: "text", x: cx, y: cy, text: t.number, fontSize: br * (t.number.length > 2 ? 0.85 : 1.15), weight: 700,
-    fill: theme.badge.text, rotation: 0, layer: "tables", ref });
+    fill: theme.badge.text, rotation: 0, layer: "badges", ref });
 }
 
 function drawClimate(dv, ctx) {
@@ -884,11 +928,13 @@ export function buildIllustratedScene(plan, options = {}) {
   }
 
   if (use3d) {
-    drawWalls3D(wallData, { theme, push, u, cam: options.camera ? [options.camera.x, options.camera.y] : [W / 2, H / 2],
+    drawWalls3D(wallData, { theme, push, u, M, cam: options.camera ? [options.camera.x, options.camera.y] : [W / 2, H / 2],
       depth: options.wallDepth ?? 1 });
   } else {
+    for (const wd of wallData) if (GLASS.has(wd.w.kind)) drawGlassFlat(wd, { theme, push, u, M });
     for (const pass of ["edge", "fill"]) {
       for (const { w, g, solid, color } of wallData) {
+        if (GLASS.has(w.kind)) continue;
         for (const [t0, t1] of solid) {
           const ext = pass === "edge" ? w.thickness / 2 + u * 0.25 : w.thickness / 2;
           const d = g.segmentPath(t0, t1, t0 === 0 ? ext : pass === "edge" ? u * 0.25 : 0, t1 === 1 ? ext : pass === "edge" ? u * 0.25 : 0);
@@ -983,7 +1029,40 @@ export function buildIllustratedScene(plan, options = {}) {
  * Walls with depth: a camera above `cam` sees each wall's top shifted away from it and the wall face that points
  * towards it. Faces, window decals and tops are plain 2D polygons, so any SVG/Canvas renderer can draw them.
  */
-function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
+const GLASS = new Set(["glass", "glass_folding", "glass_sliding"]);
+const glassFrame = (w) => w.appearance?.color || "#5C6166";
+const panelUnits = (w, M) => M(w.panelWidthMeters ?? (w.kind === "glass" ? 1.5 : 0.8));
+
+/** Panel boundaries (as t values) of a solid glass segment. */
+function glassPanels(w, g, t0, t1, M) {
+  const n = Math.max(1, Math.round(((t1 - t0) * g.length) / panelUnits(w, M)));
+  return Array.from({ length: n + 1 }, (_, k) => t0 + ((t1 - t0) * k) / n);
+}
+
+function drawGlassFlat({ w, g, solid }, { theme, push, u, M }) {
+  const frame = glassFrame(w), T = w.thickness, ref = { type: "wall", id: w.id };
+  const off = (t, k) => { const p = g.pointAt(t), [tx, ty] = g.tangentAt(t); return [p[0] - ty * k, p[1] + tx * k]; };
+  const seg = (t0, t1, k) => { const a = off(t0, k), b = off(t1, k); return `M${f(a[0])} ${f(a[1])} L${f(b[0])} ${f(b[1])}`; };
+  for (const [t0, t1] of solid) {
+    push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: theme.window, strokeWidth: T * 0.6, opacity: 0.55, layer: "walls", ref });
+    const ts = glassPanels(w, g, t0, t1, M);
+    if (w.kind === "glass_sliding") {
+      for (let i = 0; i < ts.length - 1; i++) {
+        const k = (i % 2 ? 1 : -1) * T * 0.2;
+        push({ type: "path", d: seg(ts[i] - (i ? 0.004 : 0), ts[i + 1] + (i < ts.length - 2 ? 0.004 : 0), k), fill: "none", stroke: frame, strokeWidth: u * 0.22, layer: "walls", ref });
+      }
+    } else {
+      for (const k of [-T * 0.3, T * 0.3]) push({ type: "path", d: seg(t0, t1, k), fill: "none", stroke: frame, strokeWidth: u * 0.14, layer: "walls", ref });
+    }
+    for (let i = 0; i < ts.length; i++) {
+      const k = w.kind === "glass_folding" ? (i % 2 ? 0.35 : -0.35) * T : 0;
+      const a = off(ts[i], -T * 0.4 + k * 0.3), b = off(ts[i], T * 0.4 + k * 0.3);
+      push({ type: "path", d: `M${f(a[0])} ${f(a[1])} L${f(b[0])} ${f(b[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.3, linecap: "round", layer: "walls", ref });
+    }
+  }
+}
+
+function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
   const K = 0.03 * depth;                      // top offset per metre of wall height, relative to distance from cam
   const faces = [], decals = [], tops = [], aos = [];
   const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
@@ -991,7 +1070,8 @@ function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
   const faceColor = theme.wallFace || "#E4ECF1";
 
   for (const { w, g, gaps, solid, color } of wallData) {
-    const hgt = w.heightMeters ?? (w.kind === "half_height" ? 1.1 : 2.8);
+    const isGlass = GLASS.has(w.kind);
+    const hgt = w.heightMeters ?? (w.kind === "half_height" ? 1.1 : isGlass ? 2.4 : 2.8);
     const cap = Math.max(w.thickness * 2.6, u * 2.5) * depth, T = w.thickness;
     const lift = (q, frac = 1) => {
       let ox = (q[0] - cam[0]) * K * hgt, oy = (q[1] - cam[1]) * K * hgt;
@@ -1000,6 +1080,29 @@ function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
       return [q[0] + ox * frac, q[1] + oy * frac];
     };
     const ref = { type: "wall", id: w.id };
+    if (isGlass) {
+      const frame = glassFrame(w), T = w.thickness;
+      const at = (t, k = 0) => { const p = g.pointAt(t), [tx, ty] = g.tangentAt(t); return [p[0] - ty * k, p[1] + tx * k]; };
+      for (const [t0, t1] of solid) {
+        const ts = glassPanels(w, g, t0, t1, M);
+        const zig = (i) => (w.kind === "glass_folding" ? (i % 2 ? 0.45 : -0.45) * T : w.kind === "glass_sliding" ? (i % 2 ? 0.2 : -0.2) * T : 0);
+        for (let i = 0; i < ts.length - 1; i++) {
+          const a = at(ts[i], zig(i)), b = at(ts[i + 1], w.kind === "glass_folding" ? zig(i + 1) : zig(i));
+          faces.push({ type: "path", d: poly([a, b, lift(b), lift(a)]), fill: theme.window, stroke: frame, strokeWidth: u * 0.1, opacity: 0.32, layer: "walls", ref });
+          const hl = (q, fr) => { const tp = lift(q); return [q[0] + (tp[0] - q[0]) * fr, q[1] + (tp[1] - q[1]) * fr]; };
+          decals.push({ type: "path", d: `M${f(hl(a, 0.25)[0])} ${f(hl(a, 0.25)[1])} L${f(hl(b, 0.6)[0])} ${f(hl(b, 0.6)[1])}`, fill: "none",
+            stroke: "#FFFFFF", strokeWidth: u * 0.2, opacity: 0.55, layer: "walls", ref });
+        }
+        for (let i = 0; i < ts.length; i++) {
+          const q = at(ts[i], zig(Math.min(i, ts.length - 2) + (w.kind === "glass_folding" && i === ts.length - 1 ? 1 : 0))), tp = lift(q);
+          decals.push({ type: "path", d: `M${f(q[0])} ${f(q[1])} L${f(tp[0])} ${f(tp[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.28, linecap: "round", layer: "walls", ref });
+        }
+        const b0 = at(t0), b1 = at(t1), c0 = lift(b0), c1 = lift(b1);
+        decals.push({ type: "path", d: `M${f(b0[0])} ${f(b0[1])} L${f(b1[0])} ${f(b1[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.35, layer: "walls", ref });
+        tops.push({ type: "path", d: `M${f(c0[0])} ${f(c0[1])} L${f(c1[0])} ${f(c1[1])}`, fill: "none", stroke: frame, strokeWidth: u * 0.45, layer: "walls", ref, order: 0 });
+      }
+      continue;
+    }
     for (const [t0, t1] of solid) {
       const n = g.curved ? Math.max(2, Math.ceil(16 * (t1 - t0))) : 1;
       const samples = [];
