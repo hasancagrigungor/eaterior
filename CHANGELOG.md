@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0 — 2026-11-23
+
+- Integration: `externalRefs` (`[{system, id, type?}]`) on the plan, floors and every object; unique per plan.
+- Live documents may address objects by `externalRef`; optional `source`. Validator resolves them (`missing_ref`,
+  `ref_conflict`, `duplicate_external_ref`).
+- Object state: `power` also for appliance fixtures; new `level` (0–1).
+- Live effects: heaters glow, stoves show flames, ovens glow, coffee machines steam, screens light, ACs blow; doors and
+  windows follow `open`. `toSvg(…, { animate: true })` animates them with CSS; items carry `data-effect`.
+- New docs: integration guide. Demo: power/level controls, animation toggle, external links shown.
+
 ## 1.6.0 — 2026-11-23
 
 - Rugs: 12 styles via `appearance.style` (persian, kilim, moroccan, striped, geometric, shag, jute, floral, bordered,

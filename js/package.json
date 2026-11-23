@@ -1,6 +1,6 @@
 {
   "name": "eateryplan-render",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Dependency-free reference renderer for Eatery Plan floor plans (web, React Native, Canvas)",
   "type": "module",
   "main": "src/eateryplan-render.mjs",

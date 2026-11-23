@@ -20,6 +20,8 @@ masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya foto
   aynı plan sade bir plan ya da renkli bir illüstrasyon olarak çizilir; hiçbir resim dosyası kullanılmaz.
 - **Her nesne bir bileşen.** Masa, bölge, pergola, cam panel ve cihazlar canlı bir nesne durumu dosyasıyla aktif/pasif,
   açık/kapalı ve açık/kapalı (güç) yapılabilir; plan değişmez.
+- **Her sisteme bağlanır.** `externalRefs` ile her nesne adisyon, rezervasyon, mutfak, bina yönetimi ya da IoT
+  sistemlerindeki kayıtlara bağlanır; canlı durumlar o sistemlerin kendi id'leriyle gönderilebilir (dijital ikiz).
 - **Genişletilebilir.** Her nesnede uygulamaya özel veriler için `extensions` alanı vardır.
 
 ## Kullanım
@@ -45,6 +47,7 @@ React Native için örnek bileşen: `examples/react-native/EateryPlanView.tsx`.
 - [Spesifikasyon](docs/specification.md)
 - [Çizim kuralları](docs/rendering.md)
 - [Resimden plana dönüştürme](docs/image-import.md)
+- [Dış sistem entegrasyonu](docs/integration.md)
 
 Belgeler İngilizcedir; format alan adları dilden bağımsızdır.
 

@@ -27,23 +27,26 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **One plan, every screen.** Geometry is stored in floor units with a fixed origin and axis convention; clients
   scale it to fit. The aspect ratio of the real room is kept.
 - **Physical layout only.** Orders, reservations, live table status and sensor readings stay in your existing
-  systems and are joined by id ([table state](schemas/v1.6.0/table-state.schema.json),
-  [telemetry](schemas/v1.6.0/environment-telemetry.schema.json)).
-- **Made to be generated.** A pixel-based [detection format](schemas/v1.6.0/detection.schema.json) and a
+  systems and are joined by id ([table state](schemas/v1.7.0/table-state.schema.json),
+  [telemetry](schemas/v1.7.0/environment-telemetry.schema.json)).
+- **Made to be generated.** A pixel-based [detection format](schemas/v1.7.0/detection.schema.json) and a
   deterministic importer turn any drawing into a validated plan, with confidence and review flags.
 - **Strictly validated.** JSON Schema for structure, plus a reference validator for references and geometry.
 - **Looks are data, drawing is code.** Optional `appearance` fields (floor finish, material, colours, chair style)
   let themes render the same plan as a plain plan or a colourful illustration.
 - **Every object is a component.** Tables, zones, pergolas, glass walls and devices can be made active or passive,
   opened or closed and switched on or off through a live object-state document — the plan never changes.
+- **Connects to anything.** `externalRefs` link each object to records in POS, reservation, kitchen, building-management
+  or IoT systems, and live documents can use those systems' own ids — a digital twin of the venue
+  ([integration guide](docs/integration.md)).
 - **Extensible.** Every object has a namespaced `extensions` map.
 
 ## What is in the repository
 
 ```
-schemas/v1.6.0/     eateryplan · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
+schemas/v1.7.0/     eateryplan · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
-docs/               specification · rendering contract · image import
+docs/               specification · rendering contract · image import · integration
 python/eateryplan/  validator, legacy migrator, detection importer (CLI + library)
 js/                 dependency-free renderer (plain + illustrated themes) → SVG / react-native-svg / Canvas
 demo/               browser viewer
@@ -125,7 +128,7 @@ cd js && npm test
 
 ## Status
 
-Format version **1.6.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
+Format version **1.7.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
 rules in the [specification](docs/specification.md#8-extensibility-and-versioning). Issues and pull requests are
 welcome.
 

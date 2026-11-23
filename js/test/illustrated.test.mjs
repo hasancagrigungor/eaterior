@@ -39,7 +39,7 @@ test("layers are ordered", () => {
 
 test("live status colours the table badge", () => {
   const sc = buildIllustratedScene(restaurant, { tableStates: state });
-  const occupied = state.tables.find((t) => t.status === "occupied").tableId;
+  const occupied = state.tables.find((t) => t.status === "occupied" && t.tableId).tableId;
   assert.ok(sc.items.some((i) => i.ref?.id === occupied && i.fill === "#F87171"));
 });
 
@@ -51,7 +51,7 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -76,7 +76,7 @@ test("wall height changes the depth", () => {
 });
 
 test("every climate device kind draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.climateDevice.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
@@ -144,7 +144,7 @@ test("plain theme fades inactive objects too", async () => {
 
 test("gallery: every floor, table style, seat kind and parasol variant renders", () => {
   const gallery = load("showcase.json");
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const sc = buildIllustratedScene(gallery);
   assert.ok(!/NaN|undefined/.test(toSvg(sc)));
   const floors = new Set(gallery.floors[0].zones.map((z) => z.appearance?.floor));
@@ -172,7 +172,7 @@ test("seats use real sizes when the floor has a scale", () => {
 });
 
 test("every rug style renders, round and rectangular, with patterns kept inside the rug", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.7.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const RUGS = ["persian", "kilim", "moroccan", "striped", "geometric", "shag", "jute", "floral", "bordered", "abstract", "chevron", "braided"];
   for (const r of RUGS) assert.ok(schema.$defs.appearance.properties.style.enum.includes(r), r);
   const plan = structuredClone(load("showcase.json"));
@@ -184,4 +184,29 @@ test("every rug style renders, round and rectangular, with patterns kept inside 
   for (const f of plan.floors[0].fixtures) assert.ok(sc.items.filter((i) => i.ref?.id === f.id).length >= 2, f.id);
   const rugPatterns = sc.defs.filter((d) => d.id.startsWith("ep-rug-rr_0"));
   assert.ok(rugPatterns.every((d) => d.rotation === 15), "rug patterns rotate with the rug");
+});
+
+test("live effects: appliances default off, power on lights them; external ids resolve; animation is opt-in", async () => {
+  const { stateMap } = await import("../src/eateryplan-render.mjs");
+  const objs = load("restaurant-objects.json");
+  const flames = (sc) => sc.items.filter((i) => i.ref?.id === "stove_1" && i.effect === "flicker").length;
+  assert.equal(flames(buildIllustratedScene(restaurant)), 0, "stoves are off by default");
+  const live = buildIllustratedScene(restaurant, { objectStates: objs });
+  assert.ok(flames(live) > 0, "stove lit via its kitchen:stove-1 external id");
+  // heater_1 is switched off through bms:heater-1
+  assert.ok(!live.items.some((i) => i.ref?.id === "heater_1" && i.fill === "url(#ep-glow)"));
+  const m = stateMap(objs, "objectId", restaurant);
+  assert.equal(m.get("stove_1").power, "on");
+  // table state addressed by POS id
+  const st = stateMap(state, "tableId", restaurant);
+  assert.equal(st.size, state.tables.length);
+  assert.ok(!/class="ep-fx/.test(toSvg(live)));
+  assert.match(toSvg(live, { animate: true }), /class="ep-fx-flicker"/);
+});
+
+test("door leaf follows the open state", () => {
+  const leaf = (sc) => sc.items.filter((i) => i.ref?.id === "door_1").map((i) => i.d).join("");
+  const a = buildIllustratedScene(restaurant, { objectStates: { objects: [{ objectId: "door_1", open: 0.2 }] } });
+  const b = buildIllustratedScene(restaurant, { objectStates: { objects: [{ objectId: "door_1", open: 0.9 }] } });
+  assert.notEqual(leaf(a), leaf(b));
 });

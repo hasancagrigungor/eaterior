@@ -233,14 +233,39 @@ export function asMap(x, key) {
 }
 
 // ------------------------------------------------------------------ component state
-/** Object-state document / array / Map / {id: state} -> Map(objectId -> state). */
-export function objectStateMap(x) {
+/** (system:id) -> plan object id, from every object's externalRefs. */
+export function externalIndex(plan) {
+  const out = new Map();
+  for (const fl of plan?.floors || []) {
+    for (const k of ["zones", "walls", "openings", "tables", "fixtures", "climateDevices", "environmentalSensors", "labels"]) {
+      for (const o of fl[k] || []) for (const r of o.externalRefs || []) out.set(`${r.system}:${r.id}`, o.id);
+    }
+  }
+  return out;
+}
+
+/** State document / array / Map / {id: state} -> Map(plan id -> state). Entries may use externalRef instead of the id. */
+export function stateMap(x, idKey, plan) {
   if (!x) return new Map();
   if (x instanceof Map) return x;
-  const list = Array.isArray(x) ? x : Array.isArray(x.objects) ? x.objects : null;
-  if (list) return new Map(list.map((e) => [e.objectId, e]));
-  return new Map(Object.entries(x));
+  const list = Array.isArray(x) ? x : Array.isArray(x.objects) ? x.objects : Array.isArray(x.tables) ? x.tables : null;
+  if (!list) return new Map(Object.entries(x));
+  const ext = list.some((e) => !e[idKey] && e.externalRef) ? externalIndex(plan) : null;
+  const out = new Map();
+  for (const e of list) {
+    const id = e[idKey] || (e.externalRef && ext.get(`${e.externalRef.system}:${e.externalRef.id}`));
+    if (id) out.set(id, e);
+  }
+  return out;
 }
+
+/** Object-state document / array / Map / {id: state} -> Map(objectId -> state). */
+export function objectStateMap(x, plan) {
+  return stateMap(x, "objectId", plan);
+}
+
+const APPLIANCES = new Set(["stove", "oven", "coffee_machine", "dishwasher", "fridge", "freezer", "display_case", "tv", "pos_terminal"]);
+const DEFAULT_OFF = new Set(["stove", "oven", "coffee_machine", "dishwasher", "tv"]);
 
 /** Effective state of a plan object: live state overrides the plan's defaults. */
 export function resolveState(obj, states) {
@@ -248,7 +273,9 @@ export function resolveState(obj, states) {
   return {
     active: live.active ?? obj.active ?? true,
     open: Math.max(0, Math.min(1, live.open ?? 0)),
-    power: live.power ?? "on",
+    power: live.power ?? (DEFAULT_OFF.has(obj.kind) ? "off" : "on"),
+    level: Math.max(0, Math.min(1, live.level ?? 1)),
+    hasOpen: live.open != null,
     mode: live.mode ?? null,
   };
 }
@@ -311,7 +338,7 @@ export function groupByObject(scene) {
 export function buildScene(plan, options = {}) {
   const floor = plan.floors.find((x) => x.id === options.floorId) || plan.floors[0];
   const theme = { ...DEFAULT_THEME, ...(options.theme || {}) };
-  const states = asMap(options.tableStates, "tableId");
+  const states = stateMap(options.tableStates, "tableId", plan);
   const readings = asMap(options.readings, "sensorId");
   const { width: W, height: H } = floor.coordinateSpace;
   const unit = Math.min(W, H) / 100;
@@ -495,7 +522,7 @@ export function buildScene(plan, options = {}) {
   }
 
   const scene = { floorId: floor.id, width: W, height: H, viewBox: `0 0 ${f(W)} ${f(H)}`, background: theme.background, items, defs: [] };
-  applyInactive(scene, plan, floor.id, objectStateMap(options.objectStates), "review");
+  applyInactive(scene, plan, floor.id, objectStateMap(options.objectStates, plan), "review");
   const order = new Map(LAYERS.map((l, i) => [l, i]));
   scene.items = scene.items.map((it, i) => [it, i]).sort((p, q) => order.get(p[0].layer) - order.get(q[0].layer) || p[1] - q[1])
     .map((p) => p[0]);
@@ -505,8 +532,9 @@ export function buildScene(plan, options = {}) {
 // ------------------------------------------------------------------ SVG adapter
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-function pathToSvg(it, data = "") {
-  return `<path d="${it.d}" fill="${esc(it.fill)}" stroke="${esc(it.stroke ?? "none")}" stroke-width="${f(it.strokeWidth ?? 0)}"` +
+function pathToSvg(it, data = "", animate = false) {
+  const fx = it.effect ? ` data-effect="${it.effect}"${animate ? ` class="ep-fx-${it.effect}"` : ""}` : "";
+  return `<path${fx} d="${it.d}" fill="${esc(it.fill)}" stroke="${esc(it.stroke ?? "none")}" stroke-width="${f(it.strokeWidth ?? 0)}"` +
     `${it.dash ? ` stroke-dasharray="${it.dash.map(f).join(" ")}"` : ""}${it.opacity != null && it.opacity !== 1 ? ` opacity="${f(it.opacity)}"` : ""}` +
     `${it.linecap ? ` stroke-linecap="${it.linecap}"` : ""} stroke-linejoin="round"${data}/>`;
 }
@@ -530,16 +558,31 @@ function defToSvg(d) {
 }
 
 /** Scene -> standalone SVG string. Elements carry data-ref-type / data-ref-id for hit testing. */
-export function toSvg(scene, { title, className } = {}) {
+const FX_CSS = `<style>
+.ep-fx-pulse{animation:ep-pulse 2.4s ease-in-out infinite}
+.ep-fx-flicker{animation:ep-flicker .45s ease-in-out infinite alternate}
+.ep-fx-flow{stroke-dasharray:3 2;animation:ep-flow 1.4s linear infinite}
+@keyframes ep-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes ep-flicker{from{opacity:.7}to{opacity:1}}
+@keyframes ep-flow{to{stroke-dashoffset:-10}}
+@media (prefers-reduced-motion:reduce){.ep-fx-pulse,.ep-fx-flicker,.ep-fx-flow{animation:none}}
+</style>`;
+
+/**
+ * Scene -> standalone SVG string. Elements carry data-ref-type / data-ref-id for hit testing and data-effect for
+ * live effects (pulse, flicker, flow); with { animate: true } those effects are animated with CSS.
+ */
+export function toSvg(scene, { title, className, animate = false } = {}) {
   const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${scene.viewBox}" preserveAspectRatio="xMidYMid meet"` +
     `${className ? ` class="${esc(className)}"` : ""} role="img">`];
   if (title) out.push(`<title>${esc(title)}</title>`);
+  if (animate) out.push(FX_CSS);
   if (scene.defs?.length) out.push(`<defs>${scene.defs.map(defToSvg).join("")}</defs>`);
   out.push(`<rect x="0" y="0" width="${f(scene.width)}" height="${f(scene.height)}" fill="${esc(scene.background)}"/>`);
   for (const it of scene.items) {
     const data = it.ref ? ` data-ref-type="${esc(it.ref.type)}" data-ref-id="${esc(it.ref.id)}"` : "";
     if (it.type === "path") {
-      out.push(pathToSvg(it, data));
+      out.push(pathToSvg(it, data, animate));
     } else if (it.type === "text") {
       out.push(`<text x="${f(it.x)}" y="${f(it.y)}" font-size="${f(it.fontSize)}" font-weight="${it.weight || 400}" fill="${esc(it.fill)}"` +
         `${it.opacity != null && it.opacity !== 1 ? ` opacity="${f(it.opacity)}"` : ""}` +

@@ -1,6 +1,6 @@
 {
   "format": "eateryplan",
-  "schemaVersion": "1.6.0",
+  "schemaVersion": "1.7.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
@@ -44,7 +44,14 @@
             "floor": "stone",
             "color": "#C9BFAE"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-patio",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_dining",
@@ -92,7 +99,14 @@
             "floor": "wood_planks",
             "color": "#B97845"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-dining",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_bar",
@@ -110,7 +124,14 @@
             "floor": "wood_herringbone",
             "color": "#8A4B2C"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-bar",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_entrance",
@@ -128,7 +149,14 @@
             "floor": "marble",
             "color": "#EDE7DD"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-entrance",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_kitchen",
@@ -146,7 +174,14 @@
             "color": "#C94C4C",
             "accentColor": "#F5F1EA"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-kitchen",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_storage",
@@ -159,7 +194,14 @@
             "width": 140,
             "height": 170
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-storage",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_corridor",
@@ -176,7 +218,14 @@
             "floor": "tile_square",
             "color": "#D6D0C4"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-corridor",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_office",
@@ -193,7 +242,14 @@
             "floor": "carpet",
             "color": "#5D7896"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-office",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_wc_men",
@@ -210,7 +266,14 @@
             "floor": "tile_square",
             "color": "#7FA7C9"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-wc_men",
+              "type": "area"
+            }
+          ]
         },
         {
           "id": "zone_wc_women",
@@ -227,7 +290,14 @@
             "floor": "tile_square",
             "color": "#B48CC9"
           },
-          "floorId": "floor_0"
+          "floorId": "floor_0",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "area-wc_women",
+              "type": "area"
+            }
+          ]
         }
       ],
       "walls": [
@@ -654,7 +724,14 @@
           "chairStyle": {
             "kind": "booth",
             "color": "#2E8B8B"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-B1",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_2",
@@ -677,7 +754,14 @@
           "chairStyle": {
             "kind": "booth",
             "color": "#2E8B8B"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-B2",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_3",
@@ -700,7 +784,14 @@
           "chairStyle": {
             "kind": "booth",
             "color": "#2E8B8B"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-B3",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_4",
@@ -723,7 +814,14 @@
           "chairStyle": {
             "kind": "booth",
             "color": "#2E8B8B"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-B4",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_5",
@@ -748,7 +846,14 @@
             "kind": "bistro",
             "color": "#B98B4E"
           },
-          "externalTableId": "pos-a1"
+          "externalTableId": "pos-a1",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-A1",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_6",
@@ -772,7 +877,14 @@
             "kind": "bistro",
             "color": "#B98B4E"
           },
-          "externalTableId": "pos-a2"
+          "externalTableId": "pos-a2",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-A2",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_7",
@@ -796,7 +908,14 @@
             "kind": "bistro",
             "color": "#B98B4E"
           },
-          "externalTableId": "pos-a3"
+          "externalTableId": "pos-a3",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-A3",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_8",
@@ -821,7 +940,14 @@
             "kind": "bistro",
             "color": "#B98B4E"
           },
-          "externalTableId": "pos-a4"
+          "externalTableId": "pos-a4",
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-A4",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_9",
@@ -844,7 +970,14 @@
           "chairStyle": {
             "kind": "cafe",
             "color": "#3B2A20"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-D1",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_10",
@@ -867,7 +1000,14 @@
           "chairStyle": {
             "kind": "cafe",
             "color": "#3B2A20"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-D2",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_11",
@@ -890,7 +1030,14 @@
           "chairStyle": {
             "kind": "cafe",
             "color": "#3B2A20"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-D3",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_12",
@@ -913,7 +1060,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#3F6E8C"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-C1",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_13",
@@ -936,7 +1090,14 @@
           "chairStyle": {
             "kind": "tub",
             "color": "#9DB4A3"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-C2",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_14",
@@ -958,7 +1119,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P1",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_15",
@@ -980,7 +1148,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P2",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_16",
@@ -1002,7 +1177,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P3",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_17",
@@ -1024,7 +1206,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P4",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_18",
@@ -1046,7 +1235,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P5",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_19",
@@ -1068,7 +1264,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P6",
+              "type": "table"
+            }
+          ]
         },
         {
           "id": "table_20",
@@ -1090,7 +1293,14 @@
           "chairStyle": {
             "kind": "chair",
             "color": "#E0A458"
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "pos",
+              "id": "T-P7",
+              "type": "table"
+            }
+          ]
         }
       ],
       "fixtures": [
@@ -1243,7 +1453,14 @@
             "y": 334,
             "width": 30,
             "height": 22
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "coffee-machine-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "pos_terminal_1",
@@ -1256,7 +1473,14 @@
             "y": 336,
             "width": 22,
             "height": 16
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "pos-terminal-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "bar_stool_1",
@@ -1348,7 +1572,14 @@
             "width": 110,
             "height": 40
           },
-          "name": "Range"
+          "name": "Range",
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "stove-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "oven_1",
@@ -1362,7 +1593,14 @@
             "width": 55,
             "height": 40
           },
-          "name": "Oven"
+          "name": "Oven",
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "oven-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "prep_counter_1",
@@ -1389,7 +1627,14 @@
             "y": 40,
             "width": 44,
             "height": 40
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "fridge-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "freezer_1",
@@ -1402,7 +1647,14 @@
             "y": 85,
             "width": 44,
             "height": 40
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "freezer-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "sink_1",
@@ -1429,7 +1681,14 @@
             "y": 235,
             "width": 38,
             "height": 40
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "dishwasher-1",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "shelf_1",
@@ -1496,7 +1755,14 @@
             "y": 90,
             "width": 44,
             "height": 50
-          }
+          },
+          "externalRefs": [
+            {
+              "system": "kitchen",
+              "id": "freezer-2",
+              "type": "appliance"
+            }
+          ]
         },
         {
           "id": "counter_1",
@@ -1868,6 +2134,13 @@
             "cooling",
             "heating",
             "setpoint"
+          ],
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "ac-1",
+              "type": "device"
+            }
           ]
         },
         {
@@ -1886,6 +2159,13 @@
           "mount": "ceiling",
           "coveredZoneIds": [
             "zone_bar"
+          ],
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "ac-3",
+              "type": "device"
+            }
           ]
         },
         {
@@ -1901,7 +2181,14 @@
             "width": 228,
             "height": 14
           },
-          "mount": "ceiling"
+          "mount": "ceiling",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "duct-1",
+              "type": "device"
+            }
+          ]
         },
         {
           "id": "duct_2",
@@ -1921,6 +2208,13 @@
             "zone_corridor",
             "zone_office",
             "zone_kitchen"
+          ],
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "duct-2",
+              "type": "device"
+            }
           ]
         },
         {
@@ -1936,7 +2230,14 @@
             "width": 18,
             "height": 36
           },
-          "mount": "ceiling"
+          "mount": "ceiling",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "duct-3",
+              "type": "device"
+            }
+          ]
         },
         {
           "id": "heater_2",
@@ -1951,7 +2252,14 @@
             "rx": 13,
             "ry": 13
           },
-          "mount": "floor"
+          "mount": "floor",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "heater-2",
+              "type": "device"
+            }
+          ]
         },
         {
           "id": "heater_3",
@@ -1967,7 +2275,14 @@
             "height": 12,
             "rotationDeg": 90
           },
-          "mount": "wall"
+          "mount": "wall",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "heater-3",
+              "type": "device"
+            }
+          ]
         },
         {
           "id": "ac_2",
@@ -1986,6 +2301,13 @@
           "airflowDirectionDeg": 0,
           "coveredZoneIds": [
             "zone_dining"
+          ],
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "ac-2",
+              "type": "device"
+            }
           ]
         },
         {
@@ -2001,7 +2323,14 @@
             "width": 172,
             "height": 46
           },
-          "mount": "ceiling"
+          "mount": "ceiling",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "hood-1",
+              "type": "device"
+            }
+          ]
         },
         {
           "id": "vent_1",
@@ -2015,7 +2344,14 @@
             "width": 26,
             "height": 26
           },
-          "mount": "ceiling"
+          "mount": "ceiling",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "vent-1",
+              "type": "device"
+            }
+          ]
         },
         {
           "id": "heater_1",
@@ -2030,7 +2366,14 @@
             "rx": 13,
             "ry": 13
           },
-          "mount": "floor"
+          "mount": "floor",
+          "externalRefs": [
+            {
+              "system": "bms",
+              "id": "heater-1",
+              "type": "device"
+            }
+          ]
         }
       ],
       "environmentalSensors": [

@@ -1,4 +1,4 @@
-# Eatery Plan 1.6.0 — Specification
+# Eatery Plan 1.7.0 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.6.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.7.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -167,7 +167,11 @@ low confidence without `needsReview`, dimension labels disagreeing with the scal
   (`temperatureC`, `relativeHumidityPct`, `co2Ppm`, `pm25UgM3`, `pm10UgM3`, `vocPpb`, `pressureHpa`, `noiseDbA`,
   `occupancyCount`, `illuminanceLux`). Readings MUST only contain metrics the sensor declares.
 
-`externalTableId`, `externalDeviceId` and `externalSensorId` are lookup keys, never credentials.
+Every object, floor and the plan itself MAY carry `externalRefs` (1.7.0): `[{system, id, type?}]` links to records in
+any number of external systems; each `(system, id)` pair MUST be unique in the plan. Live documents MAY address an object
+by `externalRef` instead of its plan id. See [integration.md](integration.md).
+
+`externalRefs`, `externalTableId`, `externalDeviceId` and `externalSensorId` are lookup keys, never credentials.
 
 ## 7a. Components: active / passive, open / closed, power (1.4.0)
 
@@ -175,12 +179,13 @@ Every plan object is a component that can be switched on and off.
 
 - **Default** in the plan: optional `active` (default `true`) on zones, walls, openings, tables, fixtures, climate
   devices, sensors and labels — e.g. a terrace closed for the winter or a table taken out of service.
-- **Live** in an object-state document ([`object-state`](../schemas/v1.6.0/object-state.schema.json),
+- **Live** in an object-state document ([`object-state`](../schemas/v1.7.0/object-state.schema.json),
   `format: "eateryplan-object-state"`): one entry per `objectId` with any of
   - `active`: `true` / `false`
   - `open`: `0` (closed) … `1` (fully open) — pergola louvers or retractable roofs, `glass_folding` / `glass_sliding`
     walls, doors and windows
-  - `power`: `on` / `off` — climate devices; `mode` free-form (cooling, heating, fan …)
+  - `power`: `on` / `off` — climate devices and appliance fixtures (stove, oven, coffee machine, dishwasher, fridge,
+    freezer, display case, TV, POS terminal); `level` 0–1 (heat, fan speed, flame); `mode` free-form
 
 Live values override the plan's defaults. Like table state, the object state never changes the plan or its revision.
 `eateryplan check-objects plan.json objects.json` checks references and that `open` / `power` are used only where they

@@ -12,8 +12,8 @@ from jsonschema import Draft202012Validator
 
 from . import geometry as g
 
-SCHEMA_VERSION = "1.6.0"
-SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0")
+SCHEMA_VERSION = "1.7.0"
+SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0")
 BOUNDS_TOLERANCE = 0.01  # objects may exceed the floor by 1 % of its size
 LOW_CONFIDENCE = 0.5
 METRIC_TO_READING = {
@@ -139,10 +139,22 @@ def semantic_check(plan: dict, r: Report):
 
     all_tables = {t["id"] for fl in plan["floors"] for t in fl.get("tables", [])}
     table_numbers, ext_tables, ext_devices = {}, {}, {}
+    ext_refs: dict[tuple, str] = {}
+
+    def check_refs(o, p):
+        for ri, ref in enumerate(o.get("externalRefs", [])):
+            key = (ref["system"], ref["id"])
+            if key in ext_refs:
+                r.error("duplicate_external_ref", f"{p}.externalRefs[{ri}]",
+                        f"{ref['system']}:{ref['id']} is already used by {ext_refs[key]}")
+            else:
+                ext_refs[key] = p
+    check_refs(plan, "$")
 
     for fi, fl in enumerate(plan["floors"]):
         fp = f"$.floors[{fi}]"
         reg(fl["id"], fp)
+        check_refs(fl, fp)
         cs = fl["coordinateSpace"]
         W, H = cs["width"], cs["height"]
         tx, ty = W * BOUNDS_TOLERANCE, H * BOUNDS_TOLERANCE
@@ -179,6 +191,7 @@ def semantic_check(plan: dict, r: Report):
             for oi, o in enumerate(fl.get(k, [])):
                 p = f"{fp}.{k}[{oi}]"
                 reg(o["id"], p)
+                check_refs(o, p)
                 if o["floorId"] != fl["id"]:
                     r.error("floor_mismatch", f"{p}.floorId", f"'{o['floorId']}' but the object is inside floor "
                                                                f"'{fl['id']}'")
@@ -348,6 +361,36 @@ def _index(plan, key):
     return {o["id"]: o for fl in plan["floors"] for o in fl.get(key, [])}
 
 
+APPLIANCES = {"stove", "oven", "coffee_machine", "dishwasher", "fridge", "freezer", "display_case", "tv", "pos_terminal"}
+
+
+def external_index(plan: dict) -> dict:
+    """(system, id) -> plan object id, from every object's externalRefs."""
+    out = {}
+    for fl in plan["floors"]:
+        for k in OBJECT_LISTS:
+            for o in fl.get(k, []):
+                for ref in o.get("externalRefs", []):
+                    out[(ref["system"], ref["id"])] = o["id"]
+    return out
+
+
+def _resolve(entry: dict, id_field: str, ext: dict, p: str, r: Report):
+    """Plan id of a state entry given by id and/or externalRef; reports unknown or conflicting references."""
+    oid = entry.get(id_field)
+    ref = entry.get("externalRef")
+    if ref:
+        mapped = ext.get((ref["system"], ref["id"]))
+        if mapped is None:
+            r.error("missing_ref", f"{p}.externalRef", f"{ref['system']}:{ref['id']} is not linked to any plan object")
+            return None
+        if oid and oid != mapped:
+            r.error("ref_conflict", p, f"{id_field} '{oid}' but {ref['system']}:{ref['id']} points to '{mapped}'")
+            return None
+        return mapped
+    return oid
+
+
 def check_table_state(plan: dict, state: dict) -> Report:
     r = Report()
     schema_check(state, load_schema("table-state.schema.json"), r)
@@ -358,17 +401,20 @@ def check_table_state(plan: dict, state: dict) -> Report:
     if state.get("planRevision") not in (None, plan["revision"]):
         r.warn("revision_mismatch", "$.planRevision",
                f"state was produced for revision {state['planRevision']}, plan is at {plan['revision']}")
-    tables, seen = _index(plan, "tables"), set()
+    tables, seen, ext = _index(plan, "tables"), set(), external_index(plan)
     for i, t in enumerate(state["tables"]):
         p = f"$.tables[{i}]"
-        if t["tableId"] in seen:
-            r.error("duplicate_id", p, f"'{t['tableId']}' listed twice")
-        seen.add(t["tableId"])
-        if t["tableId"] not in tables:
-            r.error("missing_ref", f"{p}.tableId", f"'{t['tableId']}' is not in the plan")
+        tid = _resolve(t, "tableId", ext, p, r)
+        if tid is None:
             continue
-        if t.get("guestCount", 0) > tables[t["tableId"]]["seats"]:
-            r.warn("over_seats", f"{p}.guestCount", f"{t['guestCount']} guests > {tables[t['tableId']]['seats']} seats")
+        if tid in seen:
+            r.error("duplicate_id", p, f"'{tid}' listed twice")
+        seen.add(tid)
+        if tid not in tables:
+            r.error("missing_ref", f"{p}.tableId", f"'{tid}' is not a table in the plan")
+            continue
+        if t.get("guestCount", 0) > tables[tid]["seats"]:
+            r.warn("over_seats", f"{p}.guestCount", f"{t['guestCount']} guests > {tables[tid]['seats']} seats")
         for m in t.get("mergedWithTableIds", []):
             if m not in tables:
                 r.error("missing_ref", f"{p}.mergedWithTableIds", f"'{m}' is not in the plan")
@@ -419,10 +465,12 @@ def check_object_state(plan: dict, doc: dict) -> Report:
         for k in OBJECT_LISTS:
             for o in fl.get(k, []):
                 objects[o["id"]] = (k, o)
-    seen = set()
+    seen, ext = set(), external_index(plan)
     for i, s in enumerate(doc["objects"]):
         p = f"$.objects[{i}]"
-        oid = s["objectId"]
+        oid = _resolve(s, "objectId", ext, p, r)
+        if oid is None:
+            continue
         if oid in seen:
             r.error("duplicate_id", p, f"'{oid}' listed twice")
         seen.add(oid)
@@ -436,6 +484,8 @@ def check_object_state(plan: dict, doc: dict) -> Report:
                         or kind_list == "openings")
             if not openable:
                 r.error("not_openable", f"{p}.open", f"'{oid}' ({o.get('kind', kind_list)}) cannot open or close")
-        if "power" in s and kind_list != "climateDevices":
-            r.error("no_power", f"{p}.power", f"'{oid}' is not a climate device")
+        powered = kind_list == "climateDevices" or (kind_list == "fixtures" and o["kind"] in APPLIANCES)
+        for fld in ("power", "level"):
+            if fld in s and not powered:
+                r.error("no_power", f"{p}.{fld}", f"'{oid}' is not a climate device or appliance")
     return r

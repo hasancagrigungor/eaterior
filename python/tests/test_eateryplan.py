@@ -50,7 +50,7 @@ class Examples(unittest.TestCase):
 
     def test_eateryplan_1_0_0_upgrades(self):
         new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
-        self.assertEqual(new["schemaVersion"], "1.6.0")
+        self.assertEqual(new["schemaVersion"], "1.7.0")
         self.assertTrue(validate_plan(new).ok)
 
     def test_imported_example_is_valid(self):
@@ -173,6 +173,30 @@ class ObjectState(unittest.TestCase):
                 d = copy.deepcopy(self.doc); d["objects"].append(entry)
                 self.assertIn(code, codes(check_object_state(self.plan, d)))
 
+    def test_external_refs(self):
+        d = copy.deepcopy(self.doc)
+        d["objects"].append({"externalRef": {"system": "bms", "id": "nope"}, "power": "on"})
+        self.assertIn("missing_ref", codes(check_object_state(self.plan, d)))
+        d = copy.deepcopy(self.doc)
+        d["objects"].append({"objectId": "pergola_1", "externalRef": {"system": "bms", "id": "heater-2"}, "open": 0.5})
+        self.assertIn("ref_conflict", codes(check_object_state(self.plan, d)))
+        p = copy.deepcopy(self.plan)
+        p["floors"][0]["tables"][1]["externalRefs"] = copy.deepcopy(p["floors"][0]["tables"][0]["externalRefs"])
+        self.assertIn("duplicate_external_ref", codes(validate_plan(p)))
+
+    def test_appliance_power(self):
+        d = copy.deepcopy(self.doc)
+        d["objects"].append({"objectId": "plant_1", "power": "on"})
+        self.assertIn("no_power", codes(check_object_state(self.plan, d)))
+        d = copy.deepcopy(self.doc)
+        d["objects"].append({"objectId": "dishwasher_1", "power": "on", "level": 0.4})
+        self.assertTrue(check_object_state(self.plan, d).ok)
+
+    def test_table_state_by_external_id(self):
+        st = load("restaurant-state.json")
+        self.assertIn("externalRef", st["tables"][0])
+        self.assertTrue(check_table_state(self.plan, st).ok)
+
     def test_open_out_of_range(self):
         d = copy.deepcopy(self.doc); d["objects"][0]["open"] = 2
         self.assertFalse(check_object_state(self.plan, d).ok)
@@ -200,7 +224,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.6.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eateryplan", "1.7.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -307,7 +331,7 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.6.0"
+        canon = ROOT / "schemas" / "v1.7.0"
         packaged = ROOT / "python" / "eateryplan" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))

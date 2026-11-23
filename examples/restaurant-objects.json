@@ -1,6 +1,6 @@
 {
   "format": "eateryplan-object-state",
-  "schemaVersion": "1.4.0",
+  "schemaVersion": "1.7.0",
   "planId": "restaurant_001",
   "planRevision": 1,
   "generatedAt": "2026-11-23T20:00:00Z",
@@ -21,11 +21,6 @@
       "updatedAt": "2026-11-23T19:58:00Z"
     },
     {
-      "objectId": "heater_1",
-      "power": "off",
-      "updatedAt": "2026-11-23T19:50:00Z"
-    },
-    {
       "objectId": "ac_3",
       "power": "off",
       "updatedAt": "2026-11-23T19:50:00Z"
@@ -34,6 +29,61 @@
       "objectId": "table_20",
       "active": false,
       "updatedAt": "2026-11-23T18:00:00Z"
+    },
+    {
+      "externalRef": {
+        "system": "bms",
+        "id": "heater-1"
+      },
+      "power": "off",
+      "updatedAt": "2026-11-23T19:50:00Z"
+    },
+    {
+      "externalRef": {
+        "system": "bms",
+        "id": "heater-3"
+      },
+      "power": "on",
+      "level": 0.8,
+      "updatedAt": "2026-11-23T19:55:00Z"
+    },
+    {
+      "externalRef": {
+        "system": "kitchen",
+        "id": "stove-1"
+      },
+      "power": "on",
+      "level": 0.85,
+      "mode": "6 burners",
+      "updatedAt": "2026-11-23T19:59:00Z"
+    },
+    {
+      "externalRef": {
+        "system": "kitchen",
+        "id": "oven-1"
+      },
+      "power": "on",
+      "level": 0.7,
+      "updatedAt": "2026-11-23T19:59:00Z"
+    },
+    {
+      "externalRef": {
+        "system": "kitchen",
+        "id": "coffee-machine-1"
+      },
+      "power": "on",
+      "updatedAt": "2026-11-23T19:59:00Z"
+    },
+    {
+      "objectId": "door_1",
+      "open": 0.6,
+      "updatedAt": "2026-11-23T19:59:30Z"
+    },
+    {
+      "objectId": "window_1",
+      "open": 0.5,
+      "updatedAt": "2026-11-23T19:40:00Z"
     }
-  ]
+  ],
+  "source": "pos+bms"
 }

@@ -8,7 +8,7 @@
  * `fill: "url(#id)"`. toSvg() renders it; react-native-svg supports the same Defs/Pattern/LinearGradient.
  */
 import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asMap, formatReadings,
-  objectStateMap, resolveState, applyInactive } from "./eateryplan-render.mjs";
+  objectStateMap, stateMap, resolveState, applyInactive } from "./eateryplan-render.mjs";
 
 export const ILLUSTRATED_LAYERS = ["background", "shadow", "zones", "fixtures", "walls", "openings", "chairs",
   "tables", "canopy", "climate", "badges", "sensors", "labels", "review"];
@@ -296,7 +296,7 @@ const CANOPY = new Set(["pergola", "palm_tree"]);
 function kit(box, ref, layer, ctx) {
   const { push, u, grad, softShadow } = ctx;
   const p = painter(box);
-  const out = (d, fill, e = {}) => push({ type: "path", d, fill, stroke: e.stroke ?? "none", strokeWidth: e.strokeWidth ?? 0,
+  const out = (d, fill, e = {}) => push({ type: "path", d, fill, stroke: e.stroke ?? "none", strokeWidth: e.strokeWidth ?? 0, effect: e.effect,
     opacity: e.opacity, dash: e.dash, linecap: e.linecap, layer: e.layer || layer, ref });
   const shadow = (d, s = 1) => softShadow(d, layer, ref, s);
   const edge = (c, k = 0.35) => ({ stroke: darken(c, k), strokeWidth: u * 0.12 });
@@ -323,6 +323,7 @@ function drawFixture(fx, ctx) {
   const layer = CANOPY.has(fx.kind) ? "canopy" : "fixtures";
   const { p, out, shadow, edge, lineOut, grain } = kit(box, ref, layer, ctx);
   const rr = Math.min(w, h) * 0.08;
+  const st = ctx.stateOf(fx), on = st.power === "on", lvl = st.level;
   const body = (c, r = rr) => { const d = p.rect(-w / 2, -h / 2, w, h, r); shadow(d); out(d, grad(c), edge(c)); };
   const roundBody = (c) => { const d = p.ellipse(0, 0, w / 2, h / 2); shadow(d); out(d, grad(c, "rad"), edge(c)); };
   const metalLines = (c, n = 5) => { for (let i = 1; i < n; i++) lineOut(p.line(-w * 0.45, -h / 2 + (h * i) / n, w * 0.45, -h / 2 + (h * i) / n), lighten(c, 0.35), u * 0.05, 0.35); };
@@ -616,9 +617,17 @@ function drawFixture(fx, ctx) {
       for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
         const x = -w / 2 + (w * (i + 0.5)) / cols, y = -h / 2 + (h * (j + 0.45)) / rows;
         out(p.circle(x, y, r), "#1E2226", { stroke: "#6B7279", strokeWidth: u * 0.18 });
+        if (on) {                                              // lit burner: blue flame ring, orange core, glow
+          out(p.circle(x, y, r * 1.6), "url(#ep-glow)", { opacity: 0.5 + 0.5 * lvl, effect: "pulse" });
+          out(p.circle(x, y, r * (0.55 + 0.3 * lvl)), "url(#ep-flame)", { effect: "flicker" });
+          for (let k = 0; k < 10; k++) {
+            const an = (k / 10) * Math.PI * 2, r0 = r * 0.5, r1 = r * (0.62 + 0.25 * lvl);
+            out(p.line(x + Math.cos(an) * r0, y + Math.sin(an) * r0, x + Math.cos(an) * r1, y + Math.sin(an) * r1), "none",
+              { stroke: "#60A5FA", strokeWidth: u * 0.12, opacity: 0.9, linecap: "round", effect: "flicker" });
+          }
+        }
         lineOut(p.line(x - r * 0.9, y, x + r * 0.9, y), "#565C63", u * 0.1);
         lineOut(p.line(x, y - r * 0.9, x, y + r * 0.9), "#565C63", u * 0.1);
-        out(p.circle(x, y, r * 0.3), "#E4572E", { opacity: 0.75 });
         out(p.circle(x, h / 2 - h * 0.06, Math.min(r * 0.25, h * 0.04)), "#C9CED3");
       }
       break;
@@ -629,13 +638,13 @@ function drawFixture(fx, ctx) {
       body(c, rr * 0.5);
       metalLines(c, 7);
       if (fx.kind === "oven") {
-        out(p.rect(-w * 0.35, -h * 0.25, w * 0.7, h * 0.45, rr * 0.3), grad("#262A2E"));
+        out(p.rect(-w * 0.35, -h * 0.25, w * 0.7, h * 0.45, rr * 0.3), on ? "url(#ep-ember)" : grad("#262A2E"), on ? { effect: "pulse" } : {});
         out(p.rect(-w * 0.3, -h * 0.2, w * 0.25, h * 0.12, u * 0.1), "#FFFFFF", { opacity: 0.12 });
         lineOut(p.line(-w * 0.3, h * 0.32, w * 0.3, h * 0.32), "#D6DADF", u * 0.3);
         for (const x of [-w * 0.3, -w * 0.1, w * 0.1, w * 0.3]) out(p.circle(x, -h * 0.38, Math.min(w, h) * 0.05), "#20242A");
       } else if (fx.kind === "dishwasher") {
         out(p.rect(-w * 0.42, -h * 0.42, w * 0.84, h * 0.12, u * 0.1), "#2A2E33");
-        out(p.circle(w * 0.3, -h * 0.36, Math.min(w, h) * 0.03), "#34D399");
+        out(p.circle(w * 0.3, -h * 0.36, Math.min(w, h) * 0.03), on ? "#34D399" : "#6B7280");
       } else {
         lineOut(p.line(-w / 2, -h * 0.1, w / 2, -h * 0.1), darken(c, 0.25), u * 0.15);
         lineOut(p.line(w * 0.3, -h * 0.4, w * 0.3, -h * 0.2), "#8A95A0", u * 0.3); lineOut(p.line(w * 0.3, h * 0.05, w * 0.3, h * 0.35), "#8A95A0", u * 0.3);
@@ -649,7 +658,10 @@ function drawFixture(fx, ctx) {
       for (const x of [-w * 0.22, w * 0.22]) {
         out(p.circle(x, h * 0.16, Math.min(w, h) * 0.14), "#FFFFFF", { stroke: "#C9CED3", strokeWidth: u * 0.1 });
         out(p.circle(x, h * 0.16, Math.min(w, h) * 0.08), "#6B3E26");
+        if (on) out(p.raw((P) => `M${P(x, h * 0.1)} Q${P(x + u * 0.5, h * 0.1 + u * 0.6)} ${P(x, h * 0.1 + u * 1.2)} T${P(x, h * 0.1 + u * 2.4)}`), "none",
+          { stroke: "#FFFFFF", strokeWidth: u * 0.18, opacity: 0.75, linecap: "round", effect: "flow", layer: "canopy" });
       }
+      out(p.circle(w * 0.38, -h * 0.36, Math.min(w, h) * 0.05), on ? "#34D399" : "#6B7280");
       break;
     }
     case "display_case": {
@@ -663,6 +675,7 @@ function drawFixture(fx, ctx) {
         out(p.circle(-w / 2 + (w * (i + 0.5)) / cols, -h / 2 + (h * (j + 0.5)) / 2, Math.min(w / cols, h / 2) * 0.3), grad(cc, "rad"));
       }
       lineOut(p.line(-w * 0.45, -h * 0.4, w * 0.1, -h * 0.4), "#FFFFFF", u * 0.2, 0.7);
+      if (on) out(p.rect(-w / 2, -h / 2, w, h, rr * 0.5), "#FFF7D6", { opacity: 0.25 * lvl + 0.1, effect: "pulse" });
       break;
     }
     case "wine_rack": case "shelf": {
@@ -685,7 +698,10 @@ function drawFixture(fx, ctx) {
         grain(c, -w / 2, -h / 2, w, h);
         out(p.rect(-w * 0.25, -h * 0.3, w * 0.4, h * 0.55, u * 0.1), "#FFFFFF");
         for (let i = 1; i < 4; i++) lineOut(p.line(-w * 0.2, -h * 0.3 + h * 0.13 * i, w * 0.1, -h * 0.3 + h * 0.13 * i), "#B0B7BE", u * 0.06);
-      } else out(p.rect(-w * 0.38, -h * 0.32, w * 0.76, h * 0.5, u * 0.1), grad(fx.kind === "tv" ? "#3B4652" : "#7FD1E8"));
+      } else {
+        const lit = on;
+        out(p.rect(-w * 0.38, -h * 0.32, w * 0.76, h * 0.5, u * 0.1), lit ? grad(fx.kind === "tv" ? "#4FA3E0" : "#7FD1E8") : grad("#2C333A"), lit ? { effect: "pulse" } : {});
+      }
       break;
     }
     case "piano": {
@@ -1077,7 +1093,7 @@ function drawClimate(dv, ctx) {
   const box = boxOf(dv.shape), { w, h } = box;
   const ref = { type: "climateDevice", id: dv.id };
   const { p, out, shadow, lineOut } = kit(box, ref, "climate", ctx);
-  const metal = "#C3CAD0", on = ctx.stateOf(dv).power !== "off";
+  const dst = ctx.stateOf(dv), metal = "#C3CAD0", on = dst.power !== "off", lvl = dst.level;
   const panel = (c, r = Math.min(w, h) * 0.2) => { const d = p.rect(-w / 2, -h / 2, w, h, r); shadow(d, 0.8); out(d, grad(c), { stroke: "#94A3AE", strokeWidth: u * 0.12 }); };
 
   if (dv.kind === "ventilation_duct") {
@@ -1117,7 +1133,7 @@ function drawClimate(dv, ctx) {
       const r = (a * Math.PI) / 180, d0 = s * 0.62, n = [-Math.sin(r), Math.cos(r)];
       const c = [Math.cos(r) * d0, Math.sin(r) * d0];
       out(p.raw((P) => `M${P(c[0] - n[0] * s * 0.2, c[1] - n[1] * s * 0.2)} Q${P(c[0] + Math.cos(r) * s * 0.1, c[1] + Math.sin(r) * s * 0.1)} ${P(c[0] + n[0] * s * 0.2, c[1] + n[1] * s * 0.2)}`),
-        "none", { stroke: "#3BA7D9", strokeWidth: u * 0.22, opacity: 0.55, linecap: "round" });
+        "none", { stroke: "#3BA7D9", strokeWidth: u * 0.22, opacity: 0.35 + 0.3 * lvl, linecap: "round", effect: "flow" });
     }
     return;
   }
@@ -1125,27 +1141,28 @@ function drawClimate(dv, ctx) {
   if (dv.kind === "patio_heater") {
     const r = Math.min(w, h) / 2;
     if (on) {
-      out(p.circle(0, 0, r * 2.1), "url(#ep-glow)");
-      out(p.circle(0, 0, r * 1.5), "none", { stroke: "#F08A4B", strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55 });
+      out(p.circle(0, 0, r * (1.5 + 1.2 * lvl)), "url(#ep-glow)", { effect: "pulse" });
+      out(p.circle(0, 0, r * (1.2 + 0.6 * lvl)), "none", { stroke: "#F08A4B", strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55, effect: "flow" });
     }
     shadow(p.circle(0, 0, r));
     out(p.circle(0, 0, r), grad("#D2D8DD", "rad"), { stroke: "#7F8C96", strokeWidth: u * 0.15 });
     for (const k of [0.72, 0.45]) out(p.circle(0, 0, r * k), "none", { stroke: "#9AA6AF", strokeWidth: u * 0.1 });
-    out(p.circle(0, 0, r * 0.18), grad("#3A3F45", "rad"));
+    out(p.circle(0, 0, r * 0.18), on ? "url(#ep-ember)" : grad("#3A3F45", "rad"), on ? { effect: "flicker" } : {});
     return;
   }
 
   if (dv.kind === "wall_heater") {
+    if (on) out(p.ellipse(0, h / 2 + u * 1.5, w * (0.5 + 0.2 * lvl), u * (2.5 + 2 * lvl)), "url(#ep-glow)", { effect: "pulse" });
     panel("#3A3F45", Math.min(w, h) * 0.15);
     const n = 3;
     for (let i = 0; i < n; i++) {
       const y = -h * 0.3 + (h * 0.6 * i) / (n - 1);
-      out(p.rect(-w * 0.42, y - h * 0.07, w * 0.84, h * 0.14, h * 0.07), grad(on ? "#F06A35" : "#6B7178"), { opacity: 0.95 });
+      out(p.rect(-w * 0.42, y - h * 0.07, w * 0.84, h * 0.14, h * 0.07), on ? "url(#ep-ember)" : grad("#6B7178"), { opacity: 0.95, effect: on ? "flicker" : undefined });
     }
     if (on) for (let k = 0; k < 3; k++) {
       const x = -w * 0.3 + (w * 0.6 * k) / 2, y0 = h / 2 + u * 0.8;
       out(p.raw((P) => `M${P(x, y0)} Q${P(x + u * 0.8, y0 + u * 1)} ${P(x, y0 + u * 2)} T${P(x, y0 + u * 4)}`), "none",
-        { stroke: "#F08A4B", strokeWidth: u * 0.2, opacity: 0.55, linecap: "round" });
+        { stroke: "#F08A4B", strokeWidth: u * 0.2, opacity: 0.35 + 0.4 * lvl, linecap: "round", effect: "flow" });
     }
     return;
   }
@@ -1166,9 +1183,11 @@ function drawClimate(dv, ctx) {
       lineOut(p.line(-w / 2 + (w * i) / 4, -h * 0.4, -w / 2 + (w * i) / 4, h * 0.4), "#9AA9B4", u * 0.1);
       lineOut(p.line(-w * 0.4, -h / 2 + (h * i) / 4, w * 0.4, -h / 2 + (h * i) / 4), "#9AA9B4", u * 0.1);
     }
-  } else if (/heater|radiator/.test(dv.kind)) {
+  } else if (/heater|radiator|underfloor/.test(dv.kind)) {
     const n = Math.max(3, Math.round(w / (u * 1.2)));
-    for (let i = 1; i < n; i++) lineOut(p.line(-w / 2 + (w * i) / n, -h * 0.35, -w / 2 + (w * i) / n, h * 0.35), "#E4572E", u * 0.15, 0.8);
+    if (on) out(p.ellipse(0, 0, w * 0.75, h * (1 + lvl)), "url(#ep-glow)", { opacity: 0.6, effect: "pulse" });
+    for (let i = 1; i < n; i++) out(p.line(-w / 2 + (w * i) / n, -h * 0.35, -w / 2 + (w * i) / n, h * 0.35), "none",
+      { stroke: on ? "#E4572E" : "#8A939B", strokeWidth: u * 0.15, opacity: 0.85, linecap: "round", effect: on ? "flicker" : undefined });
   } else if (dv.kind === "thermostat") {
     out(p.circle(0, 0, Math.min(w, h) * 0.3), "none", { stroke: "#3BA7D9", strokeWidth: u * 0.15 });
   }
@@ -1177,7 +1196,7 @@ function drawClimate(dv, ctx) {
     for (let k = 0; k < 3; k++) {
       const d0 = u * (3 + k * 1.6), mid = [box.cx + Math.cos(a) * d0, box.cy + Math.sin(a) * d0], n = [-Math.sin(a) * u * 1.4, Math.cos(a) * u * 1.4];
       push({ type: "path", d: `M${f(mid[0] - n[0])} ${f(mid[1] - n[1])} Q${f(mid[0] + Math.cos(a) * u * 0.8)} ${f(mid[1] + Math.sin(a) * u * 0.8)} ${f(mid[0] + n[0])} ${f(mid[1] + n[1])}`,
-        fill: "none", stroke: "#3BA7D9", strokeWidth: u * 0.25, opacity: 0.7 - k * 0.18, linecap: "round", layer: "climate", ref });
+        fill: "none", stroke: "#3BA7D9", strokeWidth: u * 0.25, opacity: (0.7 - k * 0.18) * (0.5 + 0.5 * lvl), linecap: "round", layer: "climate", ref, effect: "flow" });
     }
   }
 }
@@ -1193,7 +1212,7 @@ function drawClimate(dv, ctx) {
 export function buildIllustratedScene(plan, options = {}) {
   const floor = plan.floors.find((x) => x.id === options.floorId) || plan.floors[0];
   const theme = { ...ILLUSTRATED_THEME, ...(options.theme || {}) };
-  const states = asMap(options.tableStates, "tableId");
+  const states = stateMap(options.tableStates, "tableId", plan);
   const readings = asMap(options.readings, "sensorId");
   const { width: W, height: H, realWorldScale } = floor.coordinateSpace;
   const u = Math.min(W, H) / 100;
@@ -1219,11 +1238,15 @@ export function buildIllustratedScene(plan, options = {}) {
     push({ type: "path", d: translatePath(d, u * 0.3, u * 0.4), fill: theme.shadow, opacity: 0.16 * strength, layer, ref });
     push({ type: "path", d: translatePath(d, u * 0.9, u * 1.2), fill: theme.shadow, opacity: 0.07 * strength, layer, ref });
   };
+  defs.push({ type: "radialGradient", id: "ep-flame", cx: 0.5, cy: 0.5, r: 0.5, stops: [
+    { offset: 0, color: "#FFF1B8" }, { offset: 0.45, color: "#FFB347" }, { offset: 0.8, color: "#FF6A1A", opacity: 0.9 }, { offset: 1, color: "#3B82F6", opacity: 0.6 }] });
+  defs.push({ type: "radialGradient", id: "ep-ember", cx: 0.5, cy: 0.5, r: 0.65, stops: [
+    { offset: 0, color: "#FFD27A" }, { offset: 0.6, color: "#F06A35" }, { offset: 1, color: "#B83A1B" }] });
   defs.push({ type: "radialGradient", id: "ep-glow", cx: 0.5, cy: 0.5, r: 0.5, stops: [
     { offset: 0, color: "#FFB36B", opacity: 0.55 }, { offset: 0.6, color: "#FF8A3D", opacity: 0.18 }, { offset: 1, color: "#FF8A3D", opacity: 0 }] });
   const defIds = new Set();
   const addDef = (d) => { if (!defIds.has(d.id)) { defIds.add(d.id); defs.push(d); } return `url(#${d.id})`; };
-  const objStates = objectStateMap(options.objectStates);
+  const objStates = objectStateMap(options.objectStates, plan);
   const stateOf = (o) => resolveState(o, objStates);
   const ctx = { theme, push, u, M, grad, softShadow, stateOf, addDef, scaled: !!mpu };
   const review = (d, o, type) => {
@@ -1309,11 +1332,23 @@ export function buildIllustratedScene(plan, options = {}) {
           push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: o.appearance?.color || theme.window, strokeWidth: w.thickness * 0.7, layer: "openings", ref });
           push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: "#FFFFFF", strokeWidth: w.thickness * 0.12, layer: "openings", ref });
         }
+      } else if (o.kind === "window" && stateOf(o).hasOpen && stateOf(o).open > 0) {
+        // open casement: two sashes swing inwards from the jambs
+        const ang = (stateOf(o).open * 70 * Math.PI) / 180, outward = o.opensToward === "outside" ? -1 : 1;
+        for (const [hinge, other] of [[p0, p1], [p1, p0]]) {
+          const L = Math.hypot(other[0] - hinge[0], other[1] - hinge[1]) / 2, t = [(other[0] - hinge[0]) / (2 * L), (other[1] - hinge[1]) / (2 * L)];
+          const [tx, ty] = g.tangentAt((t0 + t1) / 2), n = [-ty * outward, tx * outward];
+          const end = [hinge[0] + L * (Math.cos(ang) * t[0] + Math.sin(ang) * n[0]), hinge[1] + L * (Math.cos(ang) * t[1] + Math.sin(ang) * n[1])];
+          push({ type: "path", d: `M${f(hinge[0])} ${f(hinge[1])} L${f(end[0])} ${f(end[1])}`, fill: "none", stroke: theme.window,
+            strokeWidth: u * 0.45, linecap: "round", layer: "openings", ref });
+        }
       } else if (o.kind === "door" && o.swing !== "none") {
         const outward = o.opensToward === "outside" ? -1 : 1;
+        const os = stateOf(o), angle = os.hasOpen ? (os.open * Math.PI) / 2 : Math.PI / 2;   // live state sets the leaf angle
         const leaf = (hinge, jamb, tH, len) => {
           const [tx, ty] = g.tangentAt(tH), n = [-ty * outward, tx * outward];
-          const end = [hinge[0] + n[0] * len, hinge[1] + n[1] * len];
+          const tj = [(jamb[0] - hinge[0]) / (Math.hypot(jamb[0] - hinge[0], jamb[1] - hinge[1]) || 1), (jamb[1] - hinge[1]) / (Math.hypot(jamb[0] - hinge[0], jamb[1] - hinge[1]) || 1)];
+          const end = [hinge[0] + len * (Math.cos(angle) * tj[0] + Math.sin(angle) * n[0]), hinge[1] + len * (Math.cos(angle) * tj[1] + Math.sin(angle) * n[1])];
           const v1 = [end[0] - hinge[0], end[1] - hinge[1]], v2 = [jamb[0] - hinge[0], jamb[1] - hinge[1]];
           const sweep = v1[0] * v2[1] - v1[1] * v2[0] > 0 ? 1 : 0;
           push({ type: "path", d: `M${f(hinge[0])} ${f(hinge[1])} L${f(end[0])} ${f(end[1])}`, fill: "none", stroke: o.appearance?.color || theme.door,

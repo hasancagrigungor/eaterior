@@ -8,7 +8,7 @@ image ──► detection.json (pixels) ──► eateryplan import ──► pl
 ```
 
 1. **Detect.** Something reads the image and fills
-   [`detection.schema.json`](../schemas/v1.6.0/detection.schema.json) in **image pixel coordinates**. It can be a
+   [`detection.schema.json`](../schemas/v1.7.0/detection.schema.json) in **image pixel coordinates**. It can be a
    vision-capable language model, a classic computer-vision pipeline, or a person clicking on the image.
 2. **Import.** `eateryplan import` converts the detection into a plan and validates it. Nothing is saved if the
    result is invalid.

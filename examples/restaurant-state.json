@@ -1,16 +1,19 @@
 {
   "format": "eateryplan-table-state",
-  "schemaVersion": "1.6.0",
+  "schemaVersion": "1.7.0",
   "planId": "restaurant_001",
   "planRevision": 1,
   "generatedAt": "2026-11-23T19:30:00Z",
   "tables": [
     {
-      "tableId": "table_1",
       "status": "occupied",
       "updatedAt": "2026-11-23T19:25:00Z",
       "guestCount": 2,
-      "orderId": "ord-0"
+      "orderId": "ord-0",
+      "externalRef": {
+        "system": "pos",
+        "id": "T-B1"
+      }
     },
     {
       "tableId": "table_2",
@@ -117,5 +120,6 @@
       "status": "available",
       "updatedAt": "2026-11-23T19:25:00Z"
     }
-  ]
+  ],
+  "source": "pos"
 }
