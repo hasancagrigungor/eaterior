@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from .validate import SCHEMA_VERSION
 
-LEGACY = {("cafeplan", "1.0.0"), ("cafeplan", "1.1.0"), ("cafeplan", "1.1.1"), ("eateryplan", "1.0.0"), ("eateryplan", "1.1.0")}
+LEGACY = {("cafeplan", "1.0.0"), ("cafeplan", "1.1.0"), ("cafeplan", "1.1.1"), ("eateryplan", "1.0.0"), ("eateryplan", "1.1.0"), ("eateryplan", "1.1.1")}
 
 
 def migrate(doc: dict) -> tuple[dict, list[str]]:

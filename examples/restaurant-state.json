@@ -1,6 +1,6 @@
 {
   "format": "eateryplan-table-state",
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "planId": "restaurant_001",
   "planRevision": 1,
   "generatedAt": "2026-11-23T19:30:00Z",

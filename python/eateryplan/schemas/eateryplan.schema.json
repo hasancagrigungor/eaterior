@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.1/eateryplan.schema.json",
-  "title": "Eatery Plan v1.1.1",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.2.0/eateryplan.schema.json",
+  "title": "Eatery Plan v1.2.0",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -20,7 +20,8 @@
       "enum": [
         "1.0.0",
         "1.1.0",
-        "1.1.1"
+        "1.1.1",
+        "1.2.0"
       ],
       "description": "1.0.0 documents remain valid. Legacy CafePlan 1.x files are converted with `eateryplan migrate`."
     },
@@ -895,6 +896,8 @@
             "planter",
             "tree",
             "parasol",
+            "pergola",
+            "palm_tree",
             "rug",
             "sink",
             "hand_sink",
@@ -1221,8 +1224,13 @@
             "thermostat",
             "humidifier",
             "dehumidifier",
+            "ceiling_cassette",
+            "ventilation_duct",
+            "patio_heater",
+            "wall_heater",
             "other"
-          ]
+          ],
+          "description": "Device type. ceiling_cassette: ceiling-recessed AC; ventilation_duct: a duct run (use a long rect, polygon or path); patio_heater: free-standing outdoor heater; wall_heater: wall-mounted heater."
         },
         "shape": {
           "$ref": "#/$defs/shape"

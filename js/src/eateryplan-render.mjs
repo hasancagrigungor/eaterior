@@ -43,7 +43,7 @@ export const DEFAULT_THEME = {
 
 const CLIMATE_CODE = {
   air_conditioner: "AC", hvac_indoor_unit: "HVAC", hvac_outdoor_unit: "ODU", ventilation_fan: "FAN",
-  exhaust_hood: "HOOD", air_supply_vent: "SUP", air_return_vent: "RET", air_purifier: "AIR", heater: "HEAT",
+  exhaust_hood: "HOOD", ceiling_cassette: "AC", ventilation_duct: "DUCT", patio_heater: "HEAT", wall_heater: "HEAT", air_supply_vent: "SUP", air_return_vent: "RET", air_purifier: "AIR", heater: "HEAT",
   radiator: "RAD", underfloor_heating: "UFH", thermostat: "T", humidifier: "HUM", dehumidifier: "DHUM", other: "",
 };
 
@@ -444,6 +444,11 @@ function defToSvg(d) {
   if (d.type === "pattern") {
     return `<pattern id="${esc(d.id)}" patternUnits="userSpaceOnUse" width="${f(d.width)}" height="${f(d.height)}"` +
       `${d.rotation ? ` patternTransform="rotate(${f(d.rotation)})"` : ""}>${d.items.map((i) => pathToSvg(i)).join("")}</pattern>`;
+  }
+  if (d.type === "radialGradient") {
+    return `<radialGradient id="${esc(d.id)}" cx="${d.cx}" cy="${d.cy}" r="${d.r}">` +
+      d.stops.map((st) => `<stop offset="${st.offset}" stop-color="${esc(st.color)}" stop-opacity="${st.opacity ?? 1}"/>`).join("") +
+      `</radialGradient>`;
   }
   if (d.type === "linearGradient") {
     return `<linearGradient id="${esc(d.id)}" x1="${d.x1}" y1="${d.y1}" x2="${d.x2}" y2="${d.y2}">` +

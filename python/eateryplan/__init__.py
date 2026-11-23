@@ -6,4 +6,4 @@ from .importer import detection_to_plan
 
 __all__ = ["Report", "Issue", "SCHEMA_VERSION", "validate_plan", "check_table_state", "check_telemetry",
            "check_detection", "migrate", "detection_to_plan"]
-__version__ = "1.1.1"
+__version__ = "1.2.0"

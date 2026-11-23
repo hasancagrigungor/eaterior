@@ -47,11 +47,11 @@ test("booth tables get benches instead of chairs", () => {
   const sc = buildIllustratedScene(restaurant);
   const booth = restaurant.floors[0].tables.find((t) => t.chairStyle?.kind === "booth");
   const seats = sc.items.filter((i) => i.layer === "chairs" && i.ref.id === booth.id && i.fill !== "#1B2430");
-  assert.ok(seats.length >= 2 && seats.length <= 4);
+  assert.ok(seats.length >= 2);
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.1.1/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.2.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -73,4 +73,21 @@ test("wall height changes the depth", () => {
   tall.floors[0].walls[0].heightMeters = 4; low.floors[0].walls[0].heightMeters = 0.5;
   const top = (p) => buildIllustratedScene(p).items.filter((i) => i.ref?.id === "w_north" && i.fill === "#FFFFFF")[0].d;
   assert.notEqual(top(tall), top(low));
+});
+
+test("every climate device kind draws something", () => {
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.2.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const kinds = schema.$defs.climateDevice.properties.kind.enum;
+  const plan = structuredClone(restaurant);
+  plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
+    shape: { kind: "rect", x: 300 + (i % 8) * 70, y: 250 + Math.floor(i / 8) * 60, width: 40, height: 30 } }));
+  const sc = buildIllustratedScene(plan);
+  for (let i = 0; i < kinds.length; i++) assert.ok(sc.items.some((it) => it.ref?.id === `cd_${i}`), kinds[i]);
+  assert.ok(!/NaN/.test(toSvg(sc)));
+});
+
+test("radial gradients and glow are defined", () => {
+  const sc = buildIllustratedScene(restaurant);
+  assert.ok(sc.defs.some((d) => d.type === "radialGradient" && d.id === "ep-glow"));
+  assert.match(toSvg(sc), /<radialGradient /);
 });

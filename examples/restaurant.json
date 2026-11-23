@@ -1,6 +1,6 @@
 {
   "format": "eateryplan",
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
@@ -1626,34 +1626,34 @@
           "kind": "tree",
           "shape": {
             "kind": "ellipse",
-            "cx": 210,
-            "cy": 330,
+            "cx": 215,
+            "cy": 345,
+            "rx": 36,
+            "ry": 36
+          }
+        },
+        {
+          "id": "palm_tree_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_patio",
+          "kind": "palm_tree",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 55,
+            "cy": 595,
             "rx": 40,
             "ry": 40
           }
         },
         {
-          "id": "tree_3",
+          "id": "palm_tree_2",
           "floorId": "floor_0",
           "zoneId": "zone_patio",
-          "kind": "tree",
+          "kind": "palm_tree",
           "shape": {
             "kind": "ellipse",
-            "cx": 60,
-            "cy": 600,
-            "rx": 42,
-            "ry": 42
-          }
-        },
-        {
-          "id": "tree_4",
-          "floorId": "floor_0",
-          "zoneId": "zone_patio",
-          "kind": "tree",
-          "shape": {
-            "kind": "ellipse",
-            "cx": 220,
-            "cy": 600,
+            "cx": 222,
+            "cy": 598,
             "rx": 32,
             "ry": 32
           }
@@ -1678,23 +1678,28 @@
           "kind": "parasol",
           "shape": {
             "kind": "ellipse",
-            "cx": 185,
-            "cy": 270,
+            "cx": 80,
+            "cy": 420,
             "rx": 38,
             "ry": 38
           }
         },
         {
-          "id": "parasol_3",
+          "id": "pergola_1",
           "floorId": "floor_0",
           "zoneId": "zone_patio",
-          "kind": "parasol",
+          "kind": "pergola",
           "shape": {
-            "kind": "ellipse",
-            "cx": 80,
-            "cy": 420,
-            "rx": 38,
-            "ry": 38
+            "kind": "rect",
+            "x": 35,
+            "y": 205,
+            "width": 205,
+            "height": 130
+          },
+          "name": "Pergola",
+          "appearance": {
+            "material": "wood",
+            "accentColor": "#5E9E4B"
           }
         },
         {
@@ -1718,9 +1723,9 @@
           "shape": {
             "kind": "rect",
             "x": 26,
-            "y": 190,
-            "width": 22,
-            "height": 110
+            "y": 360,
+            "width": 20,
+            "height": 100
           }
         }
       ],
@@ -1729,26 +1734,88 @@
           "id": "ac_1",
           "floorId": "floor_0",
           "zoneId": "zone_dining",
-          "name": "Dining AC",
-          "kind": "air_conditioner",
+          "name": "Dining cassette AC",
+          "kind": "ceiling_cassette",
           "shape": {
             "kind": "rect",
-            "x": 820,
-            "y": 604,
-            "width": 80,
-            "height": 14
+            "x": 562,
+            "y": 447,
+            "width": 30,
+            "height": 30
           },
-          "mount": "wall",
-          "airflowDirectionDeg": 270,
+          "mount": "ceiling",
           "coveredZoneIds": [
-            "zone_dining",
-            "zone_bar"
+            "zone_dining"
           ],
           "capabilities": [
             "cooling",
             "heating",
             "setpoint"
           ]
+        },
+        {
+          "id": "ac_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_bar",
+          "name": "Bar cassette AC",
+          "kind": "ceiling_cassette",
+          "shape": {
+            "kind": "rect",
+            "x": 870,
+            "y": 440,
+            "width": 26,
+            "height": 26
+          },
+          "mount": "ceiling",
+          "coveredZoneIds": [
+            "zone_bar"
+          ]
+        },
+        {
+          "id": "duct_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_dining",
+          "name": "Supply duct",
+          "kind": "ventilation_duct",
+          "shape": {
+            "kind": "rect",
+            "x": 470,
+            "y": 322,
+            "width": 228,
+            "height": 14
+          },
+          "mount": "ceiling"
+        },
+        {
+          "id": "heater_2",
+          "floorId": "floor_0",
+          "zoneId": "zone_patio",
+          "name": "Patio heater",
+          "kind": "patio_heater",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 135,
+            "cy": 72,
+            "rx": 13,
+            "ry": 13
+          },
+          "mount": "floor"
+        },
+        {
+          "id": "heater_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_patio",
+          "name": "Wall heater",
+          "kind": "wall_heater",
+          "shape": {
+            "kind": "rect",
+            "x": 219,
+            "y": 425,
+            "width": 60,
+            "height": 12,
+            "rotationDeg": 90
+          },
+          "mount": "wall"
         },
         {
           "id": "ac_2",
@@ -1803,13 +1870,13 @@
           "floorId": "floor_0",
           "zoneId": "zone_patio",
           "name": "Patio heater",
-          "kind": "heater",
+          "kind": "patio_heater",
           "shape": {
-            "kind": "rect",
-            "x": 150,
-            "y": 470,
-            "width": 34,
-            "height": 16
+            "kind": "ellipse",
+            "cx": 135,
+            "cy": 482,
+            "rx": 13,
+            "ry": 13
           },
           "mount": "floor"
         }

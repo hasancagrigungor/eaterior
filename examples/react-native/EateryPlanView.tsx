@@ -7,7 +7,7 @@
  * The same display list drives web and mobile, so both draw identical plans.
  */
 import React, { useMemo } from "react";
-import Svg, { Defs, G, Image as SvgImage, LinearGradient, Path, Pattern, Rect, Stop, Text as SvgText } from "react-native-svg";
+import Svg, { Defs, G, Image as SvgImage, LinearGradient, Path, Pattern, RadialGradient, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { buildScene } from "./eateryplan-render.mjs";
 import { buildIllustratedScene } from "./eateryplan-illustrated.mjs";
 
@@ -42,6 +42,12 @@ export function EateryPlanView({ plan, floorId, theme = "illustrated", tableStat
                   <Path key={j} d={p.d} fill={p.fill} stroke={p.stroke ?? "none"} strokeWidth={p.strokeWidth ?? 0} opacity={p.opacity ?? 1} />
                 ))}
               </Pattern>
+            ) : d.type === "radialGradient" ? (
+              <RadialGradient key={d.id} id={d.id} cx={String(d.cx)} cy={String(d.cy)} r={String(d.r)}>
+                {d.stops.map((st: any, j: number) => (
+                  <Stop key={j} offset={String(st.offset)} stopColor={st.color} stopOpacity={st.opacity ?? 1} />
+                ))}
+              </RadialGradient>
             ) : (
               <LinearGradient key={d.id} id={d.id} x1={String(d.x1)} y1={String(d.y1)} x2={String(d.x2)} y2={String(d.y2)}>
                 {d.stops.map((st: any, j: number) => (

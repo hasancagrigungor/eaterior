@@ -74,7 +74,7 @@
   }
   const stateFor = (p) => states.find((s) => s.planId === p?.planId) || null;
 
-  async function getJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); }
+  async function getJson(url) { const r = await fetch(url, { cache: "no-cache" }); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); }
 
   function render() {
     if (!plan) return;

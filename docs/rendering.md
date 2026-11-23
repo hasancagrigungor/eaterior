@@ -79,7 +79,11 @@ table, zone or device. The reference renderer emits `ref` on every display-list 
   Every piece casts a small offset shadow.
 - **Tables** draw seats from `chairStyle` (chairs face the table), place settings from `tableSetting`, and a numbered
   badge. With live state, the badge and an outline take the status colour.
-- **Defs**: the scene has `defs` (patterns, gradients) referenced as `fill: "url(#id)"`. SVG and react-native-svg
+- **Light and material**: fills use soft linear/radial gradients from a fixed top-left light, wood surfaces get grain,
+  every object casts a two-layer soft shadow, and wall bases get a faint ambient-occlusion band.
+- **Canopy layer**: pergolas and palm fronds are drawn above tables and chairs; ceiling devices (cassette AC,
+  ducts) above that, ducts semi-transparent.
+- **Defs**: the scene has `defs` (patterns, linear and radial gradients) referenced as `fill: "url(#id)"`. SVG and react-native-svg
   support them directly; a Canvas renderer can build them with `createPattern` / `createLinearGradient`.
 
 ### Walls with depth

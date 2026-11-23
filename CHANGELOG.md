@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0 — 2026-11-23
+
+- New fixture kinds: `pergola`, `palm_tree`. New climate device kinds: `ceiling_cassette`, `ventilation_duct`,
+  `patio_heater`, `wall_heater`. The detection schema accepts every plan kind.
+- Illustrated theme, more realistic: soft two-layer shadows, gradient lighting on materials, wood grain, detailed
+  chairs, plates with cutlery, richer plants, stainless kitchen equipment, bevelled tiles, ambient occlusion at wall
+  bases; canopy layer for pergolas and palms; drawings for all new kinds.
+- SVG output supports radial gradients.
+
 ## 1.1.1 — 2026-11-23
 
 - Optional `wall.heightMeters` (backwards compatible).

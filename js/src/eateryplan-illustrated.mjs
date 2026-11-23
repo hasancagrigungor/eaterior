@@ -11,7 +11,7 @@ import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asM
   from "./eateryplan-render.mjs";
 
 export const ILLUSTRATED_LAYERS = ["background", "shadow", "zones", "fixtures", "walls", "openings", "chairs",
-  "tables", "climate", "sensors", "labels", "review"];
+  "tables", "canopy", "climate", "sensors", "labels", "review"];
 
 export const ILLUSTRATED_THEME = {
   background: "#8FD3E6",
@@ -111,16 +111,37 @@ function floorPattern(id, spec, M) {
   const rect = (x, y, w, h, fill, extra = {}) => items.push({ type: "path", d: `M${f(x)} ${f(y)} h${f(w)} v${f(h)} h${f(-w)} Z`, fill, ...extra });
   const line = (x1, y1, x2, y2, stroke, sw, opacity = 1) =>
     items.push({ type: "path", d: `M${f(x1)} ${f(y1)} L${f(x2)} ${f(y2)}`, fill: "none", stroke, strokeWidth: sw, opacity });
+  const curve = (x1, y1, cx, cy, x2, y2, stroke, sw, opacity) =>
+    items.push({ type: "path", d: `M${f(x1)} ${f(y1)} Q${f(cx)} ${f(cy)} ${f(x2)} ${f(y2)}`, fill: "none", stroke, strokeWidth: sw, opacity });
   const dot = (x, y, r, fill, opacity = 1) => items.push({ type: "path", d: circlePath(x, y, r), fill, opacity });
+  const ell = (x, y, rx, ry, fill, opacity) => items.push({ type: "path",
+    d: `M${f(x + rx)} ${f(y)} A${f(rx)} ${f(ry)} 0 1 1 ${f(x - rx)} ${f(y)} A${f(rx)} ${f(ry)} 0 1 1 ${f(x + rx)} ${f(y)} Z`, fill, opacity });
+  // a square tile with a bevel: light top/left edge, dark bottom/right edge
+  const tile = (x, y, s, fill, grout) => {
+    rect(x, y, s, s, fill);
+    line(x + s * 0.06, y + s * 0.06, x + s * 0.94, y + s * 0.06, lighten(fill, 0.35), s * 0.03, 0.8);
+    line(x + s * 0.06, y + s * 0.06, x + s * 0.06, y + s * 0.94, lighten(fill, 0.25), s * 0.03, 0.7);
+    line(x + s * 0.06, y + s * 0.94, x + s * 0.94, y + s * 0.94, darken(fill, 0.18), s * 0.03, 0.7);
+    line(x + s * 0.94, y + s * 0.06, x + s * 0.94, y + s * 0.94, darken(fill, 0.18), s * 0.03, 0.7);
+    line(x, y, x + s, y, grout, s * 0.05); line(x, y, x, y + s, grout, s * 0.05);
+  };
+  const r = rng(id);
   let w, h, rotation = 0;
   switch (spec.floor) {
     case "wood_planks": {
       const pw = M(0.2), pl = M(1.4);
       w = pl; h = pw * 4;
       const shades = [c, darken(c, 0.07), lighten(c, 0.06), darken(c, 0.12)];
-      [0, 0.5, 0.25, 0.75].forEach((o, r) => {
+      [0, 0.5, 0.25, 0.75].forEach((o, row) => {
         for (const x0 of [o * pl - pl, o * pl]) {
-          rect(x0, r * pw, pl, pw, shades[r], { stroke: darken(c, 0.28), strokeWidth: pw * 0.05 });
+          const y0 = row * pw, sh = shades[row];
+          rect(x0, y0, pl, pw, sh, { stroke: darken(c, 0.3), strokeWidth: pw * 0.045 });
+          for (let k = 1; k <= 2; k++) {
+            const yy = y0 + (pw * k) / 3 + (r() - 0.5) * pw * 0.1;
+            curve(x0 + pl * 0.04, yy, x0 + pl * 0.5, yy + (r() - 0.5) * pw * 0.35, x0 + pl * 0.96, yy, darken(sh, 0.22), pw * 0.025, 0.55);
+          }
+          if (r() < 0.35) ell(x0 + pl * (0.2 + r() * 0.6), y0 + pw * 0.5, pw * 0.16, pw * 0.08, darken(sh, 0.3), 0.6);
+          line(x0, y0 + pw * 0.04, x0 + pl, y0 + pw * 0.04, lighten(sh, 0.18), pw * 0.03, 0.6);
         }
       });
       rotation = -45;
@@ -129,71 +150,93 @@ function floorPattern(id, spec, M) {
     case "terrace_deck": {
       const pw = M(0.14);
       w = M(2); h = pw * 2;
-      rect(0, 0, w, pw, c, { stroke: darken(c, 0.35), strokeWidth: pw * 0.12 });
-      rect(0, pw, w, pw, darken(c, 0.06), { stroke: darken(c, 0.35), strokeWidth: pw * 0.12 });
+      for (const [y0, sh] of [[0, c], [pw, darken(c, 0.06)]]) {
+        rect(0, y0, w, pw, sh, { stroke: darken(c, 0.4), strokeWidth: pw * 0.14 });
+        curve(w * 0.02, y0 + pw * 0.5, w * 0.5, y0 + pw * 0.35, w * 0.98, y0 + pw * 0.55, darken(sh, 0.2), pw * 0.04, 0.6);
+        line(0, y0 + pw * 0.12, w, y0 + pw * 0.12, lighten(sh, 0.2), pw * 0.04, 0.6);
+        for (const x of [w * 0.1, w * 0.9]) { dot(x, y0 + pw * 0.3, pw * 0.05, darken(c, 0.5)); dot(x, y0 + pw * 0.7, pw * 0.05, darken(c, 0.5)); }
+      }
       break;
     }
     case "wood_herringbone": {
       const s = M(0.28), t = s * 0.45;
       w = 2 * s; h = 2 * t;
       for (let k = -4; k <= 4; k++) {
-        const y = k * t, fill = k % 2 ? darken(c, 0.1) : lighten(c, 0.05), st = { stroke: darken(c, 0.3), strokeWidth: t * 0.06 };
-        items.push({ type: "path", d: `M0 ${f(y)} L${f(s)} ${f(y - s * 0.6)} L${f(s)} ${f(y - s * 0.6 + t)} L0 ${f(y + t)} Z`, fill, ...st });
-        items.push({ type: "path", d: `M${f(s)} ${f(y - s * 0.6)} L${f(2 * s)} ${f(y)} L${f(2 * s)} ${f(y + t)} L${f(s)} ${f(y - s * 0.6 + t)} Z`,
-          fill: k % 2 ? lighten(c, 0.05) : darken(c, 0.1), ...st });
+        const y = k * t, f1 = k % 2 ? darken(c, 0.1) : lighten(c, 0.05), f2 = k % 2 ? lighten(c, 0.05) : darken(c, 0.1);
+        const st = { stroke: darken(c, 0.32), strokeWidth: t * 0.06 };
+        items.push({ type: "path", d: `M0 ${f(y)} L${f(s)} ${f(y - s * 0.6)} L${f(s)} ${f(y - s * 0.6 + t)} L0 ${f(y + t)} Z`, fill: f1, ...st });
+        items.push({ type: "path", d: `M${f(s)} ${f(y - s * 0.6)} L${f(2 * s)} ${f(y)} L${f(2 * s)} ${f(y + t)} L${f(s)} ${f(y - s * 0.6 + t)} Z`, fill: f2, ...st });
+        line(s * 0.1, y + t * 0.45 - s * 0.06, s * 0.9, y + t * 0.45 - s * 0.54, darken(f1, 0.18), t * 0.05, 0.5);
+        line(s * 1.1, y + t * 0.45 - s * 0.54, s * 1.9, y + t * 0.45 - s * 0.06, darken(f2, 0.18), t * 0.05, 0.5);
       }
       break;
     }
     case "tile_checker": {
-      const ts = M(0.3), b = a || "#F7F3EE";
+      const ts = M(0.3), b = a || "#F7F3EE", grout = darken(b, 0.18);
       w = h = 2 * ts;
-      rect(0, 0, w, h, b); rect(0, 0, ts, ts, c); rect(ts, ts, ts, ts, c);
-      line(0, ts, w, ts, darken(b, 0.15), ts * 0.04); line(ts, 0, ts, h, darken(b, 0.15), ts * 0.04);
+      tile(0, 0, ts, c, grout); tile(ts, 0, ts, b, grout); tile(0, ts, ts, b, grout); tile(ts, ts, ts, c, grout);
       break;
     }
     case "tile_square": {
       const ts = M(0.3);
-      w = h = ts;
-      rect(0, 0, ts, ts, c);
-      if (a) rect(ts * 0.08, ts * 0.08, ts * 0.84, ts * 0.84, a, { opacity: 0.25 });
-      line(0, 0, ts, 0, darken(c, 0.18), ts * 0.06); line(0, 0, 0, ts, darken(c, 0.18), ts * 0.06);
+      w = h = 2 * ts;
+      const fills = [c, darken(c, 0.04), lighten(c, 0.04), c];
+      [[0, 0], [ts, 0], [0, ts], [ts, ts]].forEach(([x, y], i) => tile(x, y, ts, a && i % 3 === 0 ? mix(c, a, 0.35) : fills[i], darken(c, 0.2)));
       break;
     }
     case "stone": {
       const ts = M(0.4);
       w = 2 * ts; h = 2 * ts;
-      rect(0, 0, w, h, c);
+      rect(0, 0, w, h, darken(c, 0.25));
       for (const [x, y, ww] of [[0, 0, ts], [ts, 0, ts], [-ts / 2, ts, ts], [ts / 2, ts, ts], [1.5 * ts, ts, ts]]) {
-        rect(x + ts * 0.04, y + ts * 0.04, ww - ts * 0.08, ts - ts * 0.08, (x + y) % 2 ? lighten(c, 0.08) : darken(c, 0.05));
+        const sh = mix(c, r() < 0.5 ? "#FFFFFF" : "#8B7E6A", 0.08 + r() * 0.1), g = ts * 0.05;
+        items.push({ type: "path", d: `M${f(x + g)} ${f(y + g)} h${f(ww - 2 * g)} v${f(ts - 2 * g)} h${f(-(ww - 2 * g))} Z`, fill: sh });
+        line(x + g, y + g, x + ww - g, y + g, lighten(sh, 0.3), g * 0.6, 0.7);
+        line(x + g, y + ts - g, x + ww - g, y + ts - g, darken(sh, 0.2), g * 0.6, 0.6);
+        for (let k = 0; k < 3; k++) dot(x + g + r() * (ww - 2 * g), y + g + r() * (ts - 2 * g), ts * 0.015, darken(sh, 0.3), 0.4);
       }
       break;
     }
     case "marble": {
-      w = h = M(1.4);
+      w = h = M(1.2);
       rect(0, 0, w, h, c);
-      const v = darken(c, 0.18);
-      items.push({ type: "path", d: `M0 ${f(h * 0.2)} Q${f(w * 0.35)} ${f(h * 0.05)} ${f(w * 0.55)} ${f(h * 0.35)} T${f(w)} ${f(h * 0.45)}`, fill: "none", stroke: v, strokeWidth: w * 0.006, opacity: 0.6 });
-      items.push({ type: "path", d: `M${f(w * 0.1)} ${f(h)} Q${f(w * 0.3)} ${f(h * 0.7)} ${f(w * 0.6)} ${f(h * 0.8)} T${f(w)} ${f(h * 0.6)}`, fill: "none", stroke: v, strokeWidth: w * 0.004, opacity: 0.45 });
-      line(w * 0.5, 0, w * 0.5, h, darken(c, 0.08), w * 0.004, 0.5); line(0, h * 0.5, w, h * 0.5, darken(c, 0.08), w * 0.004, 0.5);
+      const v = darken(c, 0.22);
+      for (let k = 0; k < 4; k++) {
+        const y0 = r() * h, y1 = r() * h;
+        items.push({ type: "path", d: `M0 ${f(y0)} Q${f(w * 0.3)} ${f(r() * h)} ${f(w * 0.55)} ${f((y0 + y1) / 2)} T${f(w)} ${f(y1)}`,
+          fill: "none", stroke: v, strokeWidth: w * (0.002 + r() * 0.004), opacity: 0.35 + r() * 0.3 });
+      }
+      line(w * 0.5, 0, w * 0.5, h, darken(c, 0.1), w * 0.004, 0.6); line(0, h * 0.5, w, h * 0.5, darken(c, 0.1), w * 0.004, 0.6);
+      line(0, 0, w, 0, lighten(c, 0.5), w * 0.004, 0.8);
       break;
     }
-    case "terrazzo": case "concrete": case "grass": case "carpet": default: {
-      const kind = spec.floor || "concrete";
-      w = h = M(kind === "carpet" ? 0.25 : 0.6);
+    case "carpet": {
+      w = h = M(0.2);
       rect(0, 0, w, h, c);
-      const r = rng(kind + c);
-      if (kind === "carpet") {
-        line(0, h, w, 0, lighten(c, 0.2), w * 0.04, 0.5);
-      } else if (kind === "grass") {
-        for (let i = 0; i < 14; i++) {
-          const x = r() * w, y = r() * h, l = M(0.05) * (0.6 + r());
-          line(x, y, x + l * 0.3, y - l, i % 2 ? darken(c, 0.15) : lighten(c, 0.15), M(0.012));
-        }
-      } else {
-        const colors = kind === "terrazzo" ? [a || "#E07A5F", "#3D405B", "#81B29A", "#F2CC8F", "#FFFFFF"] : [darken(c, 0.15), lighten(c, 0.15)];
-        for (let i = 0; i < (kind === "terrazzo" ? 18 : 22); i++) {
-          dot(r() * w, r() * h, M(kind === "terrazzo" ? 0.018 : 0.008) * (0.5 + r()), colors[i % colors.length], kind === "terrazzo" ? 0.9 : 0.35);
-        }
+      line(0, h, w, 0, lighten(c, 0.12), w * 0.05, 0.45);
+      line(0, 0, w, h, darken(c, 0.1), w * 0.03, 0.3);
+      dot(w * 0.25, h * 0.25, w * 0.04, lighten(c, 0.2), 0.4);
+      break;
+    }
+    case "grass": {
+      w = h = M(0.6);
+      rect(0, 0, w, h, c);
+      for (let i = 0; i < 26; i++) {
+        const x = r() * w, y = r() * h, l = M(0.06) * (0.6 + r());
+        line(x, y, x + l * (r() - 0.5) * 0.6, y - l, i % 3 ? darken(c, 0.15) : lighten(c, 0.2), M(0.012));
+      }
+      break;
+    }
+    case "terrazzo": case "concrete": default: {
+      const kind = spec.floor || "concrete";
+      w = h = M(0.6);
+      rect(0, 0, w, h, c);
+      const colors = kind === "terrazzo" ? [a || "#E07A5F", "#3D405B", "#81B29A", "#F2CC8F", "#FFFFFF"] : [darken(c, 0.15), lighten(c, 0.15)];
+      for (let i = 0; i < (kind === "terrazzo" ? 26 : 30); i++) {
+        if (kind === "terrazzo") {
+          const x = r() * w, y = r() * h, s = M(0.018) * (0.6 + r());
+          items.push({ type: "path", d: `M${f(x)} ${f(y - s)} L${f(x + s)} ${f(y + s * 0.3)} L${f(x - s * 0.6)} ${f(y + s)} Z`, fill: colors[i % colors.length], opacity: 0.9 });
+        } else dot(r() * w, r() * h, M(0.008) * (0.5 + r()), colors[i % colors.length], 0.35);
       }
     }
   }
@@ -204,69 +247,151 @@ function floorPattern(id, spec, M) {
 function materialColor(theme, ap, fallback) {
   return ap?.color || theme.materials[ap?.material] || fallback;
 }
+const WOODS = new Set(["wood", "wood_light", "wood_dark"]);
+const CANOPY = new Set(["pergola", "palm_tree"]);
+
+/** Shared helpers for symbols drawn in a box's local frame. */
+function kit(box, ref, layer, ctx) {
+  const { push, u, grad, softShadow } = ctx;
+  const p = painter(box);
+  const out = (d, fill, e = {}) => push({ type: "path", d, fill, stroke: e.stroke ?? "none", strokeWidth: e.strokeWidth ?? 0,
+    opacity: e.opacity, dash: e.dash, linecap: e.linecap, layer: e.layer || layer, ref });
+  const shadow = (d, s = 1) => softShadow(d, layer, ref, s);
+  const edge = (c, k = 0.35) => ({ stroke: darken(c, k), strokeWidth: u * 0.12 });
+  const lineOut = (d, c, sw, opacity) => out(d, "none", { stroke: c, strokeWidth: sw, opacity, linecap: "round" });
+  // fine wood grain along the longer axis of a local rectangle
+  const grain = (c, x, y, ww, hh) => {
+    const horiz = ww >= hh, across = horiz ? hh : ww, n = Math.max(3, Math.round(across / (u * 0.8)));
+    for (let i = 1; i < n; i++) {
+      const t = i / n, wob = (i % 2 ? 1 : -1) * across * 0.03;
+      const d = horiz
+        ? p.raw((P) => `M${P(x + ww * 0.04, y + hh * t)} Q${P(x + ww * 0.3, y + hh * t + wob)} ${P(x + ww * 0.55, y + hh * t)} Q${P(x + ww * 0.8, y + hh * t - wob)} ${P(x + ww * 0.96, y + hh * t)}`)
+        : p.raw((P) => `M${P(x + ww * t, y + hh * 0.04)} Q${P(x + ww * t + wob, y + hh * 0.3)} ${P(x + ww * t, y + hh * 0.55)} Q${P(x + ww * t - wob, y + hh * 0.8)} ${P(x + ww * t, y + hh * 0.96)}`);
+      out(d, "none", { stroke: darken(c, 0.25), strokeWidth: u * 0.06, opacity: 0.4 });
+    }
+  };
+  return { p, out, shadow, edge, lineOut, grain, grad, u };
+}
 
 function drawFixture(fx, ctx) {
-  const { theme, push, M, u } = ctx;
+  const { theme, M, u, grad } = ctx;
   const box = boxOf(fx.shape), ap = fx.appearance || {};
   const { w, h } = box;
-  const p = painter(box), sh = painter(box, u * 0.5, u * 0.6);
   const ref = { type: "fixture", id: fx.id };
-  const out = (d, fill, extra = {}) => push({ type: "path", d, fill, stroke: extra.stroke ?? "none", strokeWidth: extra.strokeWidth ?? 0,
-    opacity: extra.opacity, dash: extra.dash, linecap: extra.linecap, layer: "fixtures", ref });
-  const shadow = (d) => out(d, theme.shadow, { opacity: 0.18 });
-  const edge = (c) => ({ stroke: darken(c, 0.35), strokeWidth: u * 0.15 });
+  const layer = CANOPY.has(fx.kind) ? "canopy" : "fixtures";
+  const { p, out, shadow, edge, lineOut, grain } = kit(box, ref, layer, ctx);
   const rr = Math.min(w, h) * 0.08;
-  const body = (c, r = rr) => { shadow(sh.rect(-w / 2, -h / 2, w, h, r)); out(p.rect(-w / 2, -h / 2, w, h, r), c, edge(c)); };
-  const roundBody = (c) => { shadow(sh.ellipse(0, 0, w / 2, h / 2)); out(p.ellipse(0, 0, w / 2, h / 2), c, edge(c)); };
-  const lineOut = (d, c, sw, opacity) => out(d, "none", { stroke: c, strokeWidth: sw, opacity, linecap: "round" });
+  const body = (c, r = rr) => { const d = p.rect(-w / 2, -h / 2, w, h, r); shadow(d); out(d, grad(c), edge(c)); };
+  const roundBody = (c) => { const d = p.ellipse(0, 0, w / 2, h / 2); shadow(d); out(d, grad(c, "rad"), edge(c)); };
+  const metalLines = (c, n = 5) => { for (let i = 1; i < n; i++) lineOut(p.line(-w * 0.45, -h / 2 + (h * i) / n, w * 0.45, -h / 2 + (h * i) / n), lighten(c, 0.35), u * 0.05, 0.35); };
 
   if (box.free) {
-    // polygon / path outline (e.g. a curved bar): draw the real shape with its material
     const base = { bar_counter: theme.materials.wood_dark, prep_counter: theme.materials.metal, rug: "#C2185B" }[fx.kind] || theme.materials.wood_light;
     const c = materialColor(theme, ap, base), d = shapeToPath(fx.shape);
-    if (fx.kind !== "rug") shadow(translatePath(d, u * 0.5, u * 0.6));
-    out(d, c, edge(c));
-    if (fx.kind === "bar_counter" || fx.kind === "counter") out(d, "none", { stroke: lighten(c, 0.25), strokeWidth: u * 0.5, opacity: 0.6 });
+    if (fx.kind !== "rug") shadow(d);
+    out(d, grad(c), edge(c));
+    if (fx.kind === "bar_counter" || fx.kind === "counter") {
+      out(d, "none", { stroke: lighten(c, 0.3), strokeWidth: u * 0.6, opacity: 0.5 });
+      out(d, "none", { stroke: "#C9A227", strokeWidth: u * 0.18, opacity: 0.8 });
+    }
     return;
   }
+
   switch (fx.kind) {
     case "tree": {
-      const leaf = ap.color || "#4F8A3C", r = Math.min(w, h) / 2, rnd = rng(fx.id);
-      shadow(sh.circle(u * 0.8, u * 0.8, r));
-      const lobes = 9;
-      out(p.raw((P) => {
+      const leaf = ap.color || "#4F8A3C", r = Math.min(w, h) / 2, rnd = rng(fx.id), lobes = 10;
+      const canopy = p.raw((P) => {
         let d = "";
         for (let i = 0; i <= lobes; i++) {
           const a = (i / lobes) * Math.PI * 2, rr2 = r * (0.86 + rnd() * 0.14);
-          const pt = [Math.cos(a) * rr2, Math.sin(a) * rr2];
-          const am = ((i - 0.5) / lobes) * Math.PI * 2, cp = [Math.cos(am) * r * 1.12, Math.sin(am) * r * 1.12];
-          d += i === 0 ? `M${P(pt[0], pt[1])}` : ` Q${P(cp[0], cp[1])} ${P(pt[0], pt[1])}`;
+          const am = ((i - 0.5) / lobes) * Math.PI * 2;
+          d += i === 0 ? `M${P(Math.cos(a) * rr2, Math.sin(a) * rr2)}` : ` Q${P(Math.cos(am) * r * 1.12, Math.sin(am) * r * 1.12)} ${P(Math.cos(a) * rr2, Math.sin(a) * rr2)}`;
         }
         return d + " Z";
-      }), leaf, { stroke: darken(leaf, 0.3), strokeWidth: u * 0.2 });
-      for (let i = 0; i < 6; i++) {
-        const a = rnd() * Math.PI * 2, d0 = r * 0.45 * rnd();
-        out(p.circle(Math.cos(a) * d0, Math.sin(a) * d0, r * (0.25 + rnd() * 0.2)), i % 2 ? lighten(leaf, 0.15) : darken(leaf, 0.08), { opacity: 0.85 });
+      });
+      shadow(canopy, 1.3);
+      out(canopy, grad(leaf, "rad"), { stroke: darken(leaf, 0.3), strokeWidth: u * 0.2 });
+      for (let i = 0; i < 9; i++) {
+        const a = rnd() * Math.PI * 2, d0 = r * 0.55 * rnd(), rr2 = r * (0.18 + rnd() * 0.2);
+        out(p.circle(Math.cos(a) * d0, Math.sin(a) * d0, rr2), grad(i % 2 ? lighten(leaf, 0.12) : darken(leaf, 0.06), "rad"), { opacity: 0.9 });
       }
-      out(p.circle(-r * 0.25, -r * 0.3, r * 0.22), lighten(leaf, 0.3), { opacity: 0.5 });
+      out(p.circle(-r * 0.28, -r * 0.32, r * 0.2), lighten(leaf, 0.35), { opacity: 0.45 });
+      break;
+    }
+    case "palm_tree": {
+      const r = Math.min(w, h) / 2, leaf = ap.color || "#3F8F3A", rnd = rng(fx.id), n = 9;
+      shadow(p.circle(0, 0, r * 0.8), 0.9);
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rnd() * 0.3, len = r * (0.82 + rnd() * 0.18), bend = (rnd() - 0.5) * 0.6;
+        const dir = [Math.cos(a), Math.sin(a)], perp = [-dir[1], dir[0]], m = 12;
+        const rib = [], left = [], right = [];
+        for (let k = 0; k <= m; k++) {
+          const t = k / m, along = len * t, side = bend * len * t * t;
+          const c0 = [dir[0] * along + perp[0] * side, dir[1] * along + perp[1] * side];
+          const wid = len * 0.17 * Math.sin(Math.PI * Math.min(1, t * 1.05)) * (1 - 0.25 * t) * (k % 2 ? 1 : 0.6);
+          rib.push(c0);
+          left.push([c0[0] + perp[0] * wid, c0[1] + perp[1] * wid]);
+          right.push([c0[0] - perp[0] * wid, c0[1] - perp[1] * wid]);
+        }
+        const c = i % 2 ? leaf : lighten(leaf, 0.12);
+        out(p.poly([...left, ...right.reverse()]), grad(c), { stroke: darken(leaf, 0.32), strokeWidth: u * 0.07 });
+        out(p.poly(rib, false), "none", { stroke: darken(leaf, 0.35), strokeWidth: u * 0.12 });
+      }
+      out(p.circle(0, 0, r * 0.13), grad("#7A5533", "rad"), { stroke: "#4E331C", strokeWidth: u * 0.1 });
+      for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + 0.4; out(p.circle(Math.cos(a) * r * 0.13, Math.sin(a) * r * 0.13, r * 0.06), "#5B3A22"); }
+      break;
+    }
+    case "pergola": {
+      const c = materialColor(theme, ap, theme.materials.wood), long = w >= h;
+      const post = Math.max(M(0.16), u * 0.8), beam = Math.max(M(0.14), u * 0.6), slat = Math.max(M(0.07), u * 0.35), gap = Math.max(M(0.4), u * 2);
+      const L = long ? w : h, S = long ? h : w;
+      const R = (a, b, la, lb) => (long ? p.rect(a, b, la, lb, 0) : p.rect(b, a, lb, la, 0));   // a along the long axis
+      const slats = [];
+      for (let x = -L / 2 + gap / 2; x < L / 2; x += gap) slats.push(R(x - slat / 2, -S / 2 - beam * 0.6, slat, S + beam * 1.2));
+      for (const d of slats) out(translatePath(d, u * 1.6, u * 2.1), theme.shadow, { opacity: 0.13 });
+      for (const side of [-1, 1]) {
+        const d = R(-L / 2, side < 0 ? -S / 2 : S / 2 - beam, L, beam);
+        out(translatePath(d, u * 1.6, u * 2.1), theme.shadow, { opacity: 0.15 });
+        out(d, grad(darken(c, 0.08)), edge(c));
+      }
+      for (const d of slats) out(d, grad(c), { stroke: darken(c, 0.35), strokeWidth: u * 0.08, opacity: 0.95 });
+      const posts = Math.max(2, Math.ceil(L / M(3)) + 1);
+      for (let i = 0; i < posts; i++) {
+        const x = -L / 2 + post / 2 + ((L - post) * i) / (posts - 1);
+        for (const side of [-1, 1]) {
+          const d = R(x - post / 2, side < 0 ? -S / 2 - post * 0.1 : S / 2 - post * 0.9, post, post);
+          out(d, grad(darken(c, 0.25)), edge(c, 0.5));
+        }
+      }
+      if (ap.accentColor) {
+        const vr = rng(fx.id);
+        for (let x = -L / 2 + gap; x < L / 2 - gap / 2; x += gap * 1.7) {
+          for (const side of [-1, 1]) {
+            const pt = long ? [x + (vr() - 0.5) * gap, side * (S / 2 - beam / 2)] : [side * (S / 2 - beam / 2), x + (vr() - 0.5) * gap];
+            drawLeaves(p, pt[0], pt[1], Math.max(M(0.35), u * 1.8), ap.accentColor, out, fx.id + x + side, 6);
+          }
+        }
+      }
       break;
     }
     case "parasol": {
       const c = ap.color || "#E9E4D8", c2 = ap.accentColor || "#D35D47", r = Math.min(w, h) / 2, n = 8;
-      shadow(sh.circle(u * 1.2, u * 1.2, r));
+      shadow(p.circle(0, 0, r), 1.2);
       for (let i = 0; i < n; i++) {
-        const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2;
-        out(p.poly([[0, 0], [Math.cos(a0) * r, Math.sin(a0) * r], [Math.cos(a1) * r, Math.sin(a1) * r]]), i % 2 ? c : c2,
-          { stroke: darken(c2, 0.25), strokeWidth: u * 0.1, opacity: 0.92 });
+        const a0 = (i / n) * Math.PI * 2, a1 = ((i + 1) / n) * Math.PI * 2, am = (a0 + a1) / 2;
+        const d = p.raw((P) => `M${P(0, 0)} L${P(Math.cos(a0) * r, Math.sin(a0) * r)} Q${P(Math.cos(am) * r * 0.9, Math.sin(am) * r * 0.9)} ${P(Math.cos(a1) * r, Math.sin(a1) * r)} Z`);
+        out(d, grad(i % 2 ? c : c2), { stroke: darken(c2, 0.25), strokeWidth: u * 0.1, opacity: 0.94 });
       }
-      out(p.circle(0, 0, r * 0.08), "#5B4636");
+      out(p.circle(0, 0, r * 0.09), grad("#6B5444", "rad"));
       break;
     }
     case "counter": case "prep_counter": case "bar_counter": {
       const c = materialColor(theme, ap, fx.kind === "prep_counter" ? theme.materials.metal : fx.kind === "bar_counter" ? theme.materials.wood_dark : theme.materials.wood_light);
       body(c, rr * 0.5);
-      out(p.rect(-w / 2 + w * 0.02, -h / 2 + h * 0.08, w * 0.96, h * 0.55, rr * 0.3), lighten(c, fx.kind === "bar_counter" ? 0.18 : 0.1));
-      if (fx.kind === "prep_counter") for (let i = 1; i < 4; i++) lineOut(p.line(-w / 2 + (w * i) / 4, -h / 2, -w / 2 + (w * i) / 4, h / 2), darken(c, 0.2), u * 0.1);
+      const top = lighten(c, fx.kind === "bar_counter" ? 0.18 : 0.1);
+      out(p.rect(-w / 2 + w * 0.02, -h / 2 + h * 0.08, w * 0.96, h * 0.55, rr * 0.3), grad(top));
+      if (fx.kind === "prep_counter") { metalLines(c, 6); for (let i = 1; i < 4; i++) lineOut(p.line(-w / 2 + (w * i) / 4, -h / 2, -w / 2 + (w * i) / 4, h / 2), darken(c, 0.2), u * 0.1); }
+      else if (WOODS.has(ap.material) || !ap.material) grain(top, -w / 2 + w * 0.02, -h / 2 + h * 0.08, w * 0.96, h * 0.55);
       if (fx.kind === "bar_counter") lineOut(p.line(-w / 2 + w * 0.02, h / 2 + u * 0.5, w / 2 - w * 0.02, h / 2 + u * 0.5), "#C9A227", u * 0.35);
       break;
     }
@@ -274,45 +399,53 @@ function drawFixture(fx, ctx) {
       const c = ap.color || (fx.kind === "sofa" ? "#C0504D" : "#D9776E"), cush = ap.accentColor || lighten(c, 0.15);
       body(darken(c, 0.05), rr * 1.5);
       const arm = Math.min(w * 0.12, h * 0.25), back = h * 0.3;
-      out(p.rect(-w / 2, -h / 2, w, back, rr), darken(c, 0.15));
-      out(p.rect(-w / 2, -h / 2, arm, h, rr), darken(c, 0.1)); out(p.rect(w / 2 - arm, -h / 2, arm, h, rr), darken(c, 0.1));
-      const n = fx.kind === "armchair" ? 1 : Math.max(1, Math.round((w - 2 * arm) / (h * 0.7)));
-      const cw = (w - 2 * arm) / n;
-      for (let i = 0; i < n; i++) out(p.rect(-w / 2 + arm + i * cw + u * 0.2, -h / 2 + back + u * 0.1, cw - u * 0.4, h - back - u * 0.4, rr), cush, edge(cush));
+      out(p.rect(-w / 2, -h / 2, w, back, rr), grad(darken(c, 0.15)));
+      out(p.rect(-w / 2, -h / 2, arm, h, rr), grad(darken(c, 0.1))); out(p.rect(w / 2 - arm, -h / 2, arm, h, rr), grad(darken(c, 0.1)));
+      const n = fx.kind === "armchair" ? 1 : Math.max(1, Math.round((w - 2 * arm) / (h * 0.7))), cw = (w - 2 * arm) / n;
+      for (let i = 0; i < n; i++) {
+        const x = -w / 2 + arm + i * cw + u * 0.2, y = -h / 2 + back + u * 0.1, cw2 = cw - u * 0.4, ch = h - back - u * 0.4;
+        out(p.rect(x, y, cw2, ch, rr), grad(cush), edge(cush, 0.25));
+        out(p.rect(x + cw2 * 0.12, y + ch * 0.12, cw2 * 0.76, ch * 0.76, rr), "none", { stroke: darken(cush, 0.15), strokeWidth: u * 0.06, dash: [u * 0.3, u * 0.3], opacity: 0.7 });
+      }
       break;
     }
     case "chair": case "bar_stool": {
-      drawSeat(p, sh, Math.min(w, h) / 2, fx.kind === "bar_stool" ? "stool" : "chair", ap.color || theme.chair, (d, fill, e) => out(d, fill, e), shadow, u);
+      drawSeat(kit({ cx: box.cx, cy: box.cy, rot: box.rot }, ref, layer, ctx), Math.min(w, h) / 2, fx.kind === "bar_stool" ? "stool" : "chair", ap.color || theme.chair);
       break;
     }
     case "plant": case "planter": {
       const pot = ap.accentColor || "#8D5A3B", leaf = ap.color || "#3E8E41";
       if (fx.kind === "planter") {
         body(pot, rr);
+        out(p.rect(-w / 2 + u * 0.4, -h / 2 + u * 0.4, w - u * 0.8, h - u * 0.8, rr), "#5A3D2B", { opacity: 0.8 });
         const n = Math.max(2, Math.round(w / h));
-        for (let i = 0; i < n; i++) drawLeaves(p, -w / 2 + (w * (i + 0.5)) / n, 0, Math.min(w / n, h) * 0.55, leaf, out, fx.id + i);
+        for (let i = 0; i < n; i++) drawLeaves(p, -w / 2 + (w * (i + 0.5)) / n, 0, Math.min(w / n, h) * 0.6, leaf, out, fx.id + i);
       } else {
         const r = Math.min(w, h) / 2;
-        shadow(sh.circle(0, 0, r * 0.95));
-        out(p.circle(0, 0, r * 0.45), pot, edge(pot));
+        shadow(p.circle(0, 0, r * 0.9));
+        out(p.circle(0, 0, r * 0.48), grad(pot, "rad"), edge(pot));
+        out(p.circle(0, 0, r * 0.38), "#4A3324");
         drawLeaves(p, 0, 0, r, leaf, out, fx.id);
       }
       break;
     }
     case "rug": {
       const c = ap.color || "#C2185B", a2 = ap.accentColor || lighten(c, 0.45);
-      if (box.round) { out(p.ellipse(0, 0, w / 2, h / 2), c); out(p.ellipse(0, 0, w / 2 - u, h / 2 - u), "none", { stroke: a2, strokeWidth: u * 0.4, dash: [u, u * 0.6] }); }
-      else { out(p.rect(-w / 2, -h / 2, w, h, rr), c); out(p.rect(-w / 2 + u, -h / 2 + u, w - 2 * u, h - 2 * u, rr), "none", { stroke: a2, strokeWidth: u * 0.4, dash: [u, u * 0.6] }); }
+      const outer = box.round ? p.ellipse(0, 0, w / 2, h / 2) : p.rect(-w / 2, -h / 2, w, h, rr);
+      const inner = box.round ? p.ellipse(0, 0, w / 2 - u, h / 2 - u) : p.rect(-w / 2 + u, -h / 2 + u, w - 2 * u, h - 2 * u, rr);
+      out(outer, grad(c)); out(inner, "none", { stroke: a2, strokeWidth: u * 0.4, dash: [u, u * 0.6] });
       break;
     }
     case "sink": case "hand_sink": {
       const c = materialColor(theme, ap, "#E6E9EC");
       body(c, rr);
-      const n = fx.kind === "sink" && w > h * 1.6 ? 2 : 1;
+      const n = fx.kind === "sink" && w > h * 1.6 ? 2 : fx.kind === "sink" && h > w * 1.6 ? 2 : 1, vert = h > w;
       for (let i = 0; i < n; i++) {
-        const x = -w / 2 + (w * (i + 0.5)) / n;
-        out(p.ellipse(x, h * 0.05, (w / n) * 0.32, h * 0.3), "#C3CCD4", { stroke: "#9AA5AF", strokeWidth: u * 0.12 });
-        out(p.circle(x, -h * 0.32, Math.min(w, h) * 0.06), "#8A95A0");
+        const x = vert ? 0 : -w / 2 + (w * (i + 0.5)) / n, y = vert ? -h / 2 + (h * (i + 0.5)) / n : h * 0.05;
+        const bw = vert ? w * 0.32 : (w / n) * 0.32, bh = vert ? (h / n) * 0.32 : h * 0.3;
+        out(p.ellipse(x, y, bw, bh), grad("#B8C2CB", "rad"), { stroke: "#8E9AA5", strokeWidth: u * 0.12 });
+        out(p.circle(x, y, Math.min(bw, bh) * 0.12), "#6F7B86");
+        out(p.circle(vert ? w * 0.36 : x, vert ? y : -h * 0.36, Math.min(w, h) * 0.06), grad("#C9D1D8", "rad"), { stroke: "#7D8892", strokeWidth: u * 0.06 });
       }
       break;
     }
@@ -321,9 +454,12 @@ function drawFixture(fx, ctx) {
       body(c, rr * 0.5);
       const cols = Math.max(2, Math.round(w / (h / 2))), rows = 2, r = Math.min(w / cols, h / rows) * 0.3;
       for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
-        const x = -w / 2 + (w * (i + 0.5)) / cols, y = -h / 2 + (h * (j + 0.5)) / rows;
-        out(p.circle(x, y, r), "#1E2226", { stroke: "#6B7279", strokeWidth: u * 0.2 });
-        out(p.circle(x, y, r * 0.35), "#E4572E", { opacity: 0.7 });
+        const x = -w / 2 + (w * (i + 0.5)) / cols, y = -h / 2 + (h * (j + 0.45)) / rows;
+        out(p.circle(x, y, r), "#1E2226", { stroke: "#6B7279", strokeWidth: u * 0.18 });
+        lineOut(p.line(x - r * 0.9, y, x + r * 0.9, y), "#565C63", u * 0.1);
+        lineOut(p.line(x, y - r * 0.9, x, y + r * 0.9), "#565C63", u * 0.1);
+        out(p.circle(x, y, r * 0.3), "#E4572E", { opacity: 0.75 });
+        out(p.circle(x, h / 2 - h * 0.06, Math.min(r * 0.25, h * 0.04)), "#C9CED3");
       }
       break;
     }
@@ -331,16 +467,29 @@ function drawFixture(fx, ctx) {
       const base = { oven: "#5B6168", dishwasher: "#C5CCD2", fridge: "#E9EDF0", freezer: "#DDEBF3" }[fx.kind];
       const c = materialColor(theme, ap, base);
       body(c, rr * 0.5);
-      if (fx.kind === "oven") { out(p.rect(-w * 0.35, -h * 0.25, w * 0.7, h * 0.45, rr * 0.3), "#262A2E"); lineOut(p.line(-w * 0.3, h * 0.32, w * 0.3, h * 0.32), "#D6DADF", u * 0.3); }
-      else if (fx.kind === "dishwasher") { for (let i = 1; i < 4; i++) lineOut(p.line(-w * 0.4, -h / 2 + (h * i) / 4, w * 0.4, -h / 2 + (h * i) / 4), darken(c, 0.2), u * 0.12); }
-      else { lineOut(p.line(-w / 2, -h * 0.1, w / 2, -h * 0.1), darken(c, 0.2), u * 0.15); lineOut(p.line(w * 0.3, h * 0.1, w * 0.3, h * 0.4), "#8A95A0", u * 0.3); }
+      metalLines(c, 7);
+      if (fx.kind === "oven") {
+        out(p.rect(-w * 0.35, -h * 0.25, w * 0.7, h * 0.45, rr * 0.3), grad("#262A2E"));
+        out(p.rect(-w * 0.3, -h * 0.2, w * 0.25, h * 0.12, u * 0.1), "#FFFFFF", { opacity: 0.12 });
+        lineOut(p.line(-w * 0.3, h * 0.32, w * 0.3, h * 0.32), "#D6DADF", u * 0.3);
+        for (const x of [-w * 0.3, -w * 0.1, w * 0.1, w * 0.3]) out(p.circle(x, -h * 0.38, Math.min(w, h) * 0.05), "#20242A");
+      } else if (fx.kind === "dishwasher") {
+        out(p.rect(-w * 0.42, -h * 0.42, w * 0.84, h * 0.12, u * 0.1), "#2A2E33");
+        out(p.circle(w * 0.3, -h * 0.36, Math.min(w, h) * 0.03), "#34D399");
+      } else {
+        lineOut(p.line(-w / 2, -h * 0.1, w / 2, -h * 0.1), darken(c, 0.25), u * 0.15);
+        lineOut(p.line(w * 0.3, -h * 0.4, w * 0.3, -h * 0.2), "#8A95A0", u * 0.3); lineOut(p.line(w * 0.3, h * 0.05, w * 0.3, h * 0.35), "#8A95A0", u * 0.3);
+      }
       break;
     }
     case "coffee_machine": {
       const c = materialColor(theme, ap, "#2F3337");
       body(c, rr);
-      out(p.rect(-w * 0.4, -h * 0.4, w * 0.8, h * 0.3, rr * 0.5), "#B9C0C6");
-      for (const x of [-w * 0.22, w * 0.22]) out(p.circle(x, h * 0.18, Math.min(w, h) * 0.12), "#FFFFFF", { stroke: "#C9CED3", strokeWidth: u * 0.1 });
+      out(p.rect(-w * 0.42, -h * 0.42, w * 0.84, h * 0.3, rr * 0.5), grad("#C2C9CF"));
+      for (const x of [-w * 0.22, w * 0.22]) {
+        out(p.circle(x, h * 0.16, Math.min(w, h) * 0.14), "#FFFFFF", { stroke: "#C9CED3", strokeWidth: u * 0.1 });
+        out(p.circle(x, h * 0.16, Math.min(w, h) * 0.08), "#6B3E26");
+      }
       break;
     }
     case "display_case": {
@@ -350,8 +499,10 @@ function drawFixture(fx, ctx) {
       const palette = ["#E9A0B3", "#F2C46D", "#9B6A4E", "#F6E7C8", "#B5D99C"], r = rng(fx.id);
       const cols = Math.max(2, Math.round(w / (h * 0.45)));
       for (let i = 0; i < cols; i++) for (let j = 0; j < 2; j++) {
-        out(p.circle(-w / 2 + (w * (i + 0.5)) / cols, -h / 2 + (h * (j + 0.5)) / 2, Math.min(w / cols, h / 2) * 0.28), palette[Math.floor(r() * palette.length)]);
+        const cc = palette[Math.floor(r() * palette.length)];
+        out(p.circle(-w / 2 + (w * (i + 0.5)) / cols, -h / 2 + (h * (j + 0.5)) / 2, Math.min(w / cols, h / 2) * 0.3), grad(cc, "rad"));
       }
+      lineOut(p.line(-w * 0.45, -h * 0.4, w * 0.1, -h * 0.4), "#FFFFFF", u * 0.2, 0.7);
       break;
     }
     case "wine_rack": case "shelf": {
@@ -360,35 +511,40 @@ function drawFixture(fx, ctx) {
       const cols = Math.max(2, Math.round(w / (h * 0.5))), r = rng(fx.id);
       for (let i = 0; i < cols; i++) {
         const x = -w / 2 + (w * (i + 0.5)) / cols;
-        if (fx.kind === "wine_rack") out(p.circle(x, 0, Math.min(w / cols, h) * 0.3), i % 2 ? "#5A1A27" : "#2E3B1F");
-        else out(p.rect(x - (w / cols) * 0.35, -h * 0.3, (w / cols) * 0.7, h * 0.6, u * 0.2), ["#E07A5F", "#3D405B", "#81B29A", "#F2CC8F"][Math.floor(r() * 4)]);
+        if (fx.kind === "wine_rack") {
+          out(p.circle(x, 0, Math.min(w / cols, h) * 0.32), grad(i % 2 ? "#5A1A27" : "#2E3B1F", "rad"));
+          out(p.circle(x, 0, Math.min(w / cols, h) * 0.12), "#C9A227", { opacity: 0.8 });
+        } else out(p.rect(x - (w / cols) * 0.35, -h * 0.3, (w / cols) * 0.7, h * 0.6, u * 0.2), grad(["#E07A5F", "#3D405B", "#81B29A", "#F2CC8F"][Math.floor(r() * 4)]));
       }
       break;
     }
     case "host_stand": case "pos_terminal": case "tv": {
       const c = materialColor(theme, ap, fx.kind === "host_stand" ? theme.materials.wood : "#2A2E33");
       body(c, rr);
-      if (fx.kind === "host_stand") out(p.rect(-w * 0.25, -h * 0.3, w * 0.4, h * 0.55, u * 0.1), "#FFFFFF");
-      else out(p.rect(-w * 0.38, -h * 0.32, w * 0.76, h * 0.5, u * 0.1), fx.kind === "tv" ? "#3B4652" : "#7FD1E8");
+      if (fx.kind === "host_stand") {
+        grain(c, -w / 2, -h / 2, w, h);
+        out(p.rect(-w * 0.25, -h * 0.3, w * 0.4, h * 0.55, u * 0.1), "#FFFFFF");
+        for (let i = 1; i < 4; i++) lineOut(p.line(-w * 0.2, -h * 0.3 + h * 0.13 * i, w * 0.1, -h * 0.3 + h * 0.13 * i), "#B0B7BE", u * 0.06);
+      } else out(p.rect(-w * 0.38, -h * 0.32, w * 0.76, h * 0.5, u * 0.1), grad(fx.kind === "tv" ? "#3B4652" : "#7FD1E8"));
       break;
     }
     case "piano": {
       const c = ap.color || "#16181B";
-      const body2 = (q) => q.raw((P) => `M${P(-w / 2, -h / 2)} L${P(w / 2, -h / 2)} L${P(w / 2, h * 0.05)} ` +
+      const shape = p.raw((P) => `M${P(-w / 2, -h / 2)} L${P(w / 2, -h / 2)} L${P(w / 2, h * 0.05)} ` +
         `Q${P(w / 2, h / 2)} ${P(w * 0.1, h / 2)} Q${P(-w * 0.15, h / 2)} ${P(-w * 0.2, h * 0.2)} Q${P(-w / 2, h * 0.1)} ${P(-w / 2, -h * 0.1)} Z`);
-      shadow(body2(sh)); out(body2(p), c, { stroke: "#000000", strokeWidth: u * 0.1 });
+      shadow(shape); out(shape, grad(c), { stroke: "#000000", strokeWidth: u * 0.1 });
       out(p.rect(-w / 2 + u * 0.3, -h / 2 + u * 0.3, w - u * 0.6, h * 0.16, u * 0.1), "#FFFFFF");
       const keys = Math.max(8, Math.round(w / (u * 0.9)));
       for (let i = 1; i < keys; i++) if (i % 7 !== 3 && i % 7 !== 0) out(p.rect(-w / 2 + u * 0.3 + ((w - u * 0.6) * i) / keys - u * 0.12, -h / 2 + u * 0.3, u * 0.24, h * 0.1), "#16181B");
       break;
     }
     case "toilet": case "urinal": {
-      const c = "#FFFFFF";
-      if (fx.kind === "urinal") { body(c, Math.min(w, h) * 0.4); break; }
-      shadow(sh.ellipse(0, h * 0.1, w * 0.4, h * 0.38));
-      out(p.rect(-w / 2, -h / 2, w, h * 0.3, u * 0.3), c, edge("#D5DBE0"));
-      out(p.ellipse(0, h * 0.1, w * 0.4, h * 0.38), c, edge("#D5DBE0"));
-      out(p.ellipse(0, h * 0.12, w * 0.24, h * 0.24), "#DDEFF5");
+      if (fx.kind === "urinal") { body("#FFFFFF", Math.min(w, h) * 0.4); out(p.ellipse(0, h * 0.05, w * 0.28, h * 0.25), "#DDEFF5"); break; }
+      shadow(p.ellipse(0, h * 0.1, w * 0.4, h * 0.38));
+      out(p.rect(-w / 2, -h / 2, w, h * 0.3, u * 0.3), grad("#FFFFFF"), edge("#D5DBE0"));
+      out(p.ellipse(0, h * 0.1, w * 0.4, h * 0.38), grad("#FFFFFF", "rad"), edge("#D5DBE0"));
+      out(p.ellipse(0, h * 0.12, w * 0.24, h * 0.24), grad("#D6ECF3", "rad"));
+      out(p.circle(0, -h * 0.36, Math.min(w, h) * 0.05), "#C9D1D8");
       break;
     }
     case "stairs": case "elevator": {
@@ -411,135 +567,216 @@ function drawFixture(fx, ctx) {
   }
 }
 
-function drawLeaves(p, x, y, r, leaf, out, seed) {
+function drawLeaves(p, x, y, r, leaf, out, seed, count = 8) {
   const rnd = rng(seed);
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + rnd() * 0.4, len = r * (0.75 + rnd() * 0.25);
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2 + rnd() * 0.4, len = r * (0.75 + rnd() * 0.25);
     const lx = x + Math.cos(a) * len * 0.55, ly = y + Math.sin(a) * len * 0.55;
-    out(p.raw((P) => {
-      const tip = [x + Math.cos(a) * len, y + Math.sin(a) * len], side = [-Math.sin(a) * len * 0.22, Math.cos(a) * len * 0.22];
-      return `M${P(x, y)} Q${P(lx + side[0], ly + side[1])} ${P(tip[0], tip[1])} Q${P(lx - side[0], ly - side[1])} ${P(x, y)} Z`;
-    }), i % 2 ? leaf : lighten(leaf, 0.18));
+    const tip = [x + Math.cos(a) * len, y + Math.sin(a) * len], side = [-Math.sin(a) * len * 0.22, Math.cos(a) * len * 0.22];
+    out(p.raw((P) => `M${P(x, y)} Q${P(lx + side[0], ly + side[1])} ${P(tip[0], tip[1])} Q${P(lx - side[0], ly - side[1])} ${P(x, y)} Z`),
+      i % 2 ? leaf : lighten(leaf, 0.18), { stroke: darken(leaf, 0.25), strokeWidth: len * 0.02 });
+    out(p.line(x, y, x + Math.cos(a) * len * 0.85, y + Math.sin(a) * len * 0.85), "none", { stroke: darken(leaf, 0.3), strokeWidth: len * 0.025, opacity: 0.7 });
   }
   out(p.circle(x, y, r * 0.12), darken(leaf, 0.2));
 }
 
-/** A seat in local frame: +y faces the table. */
-function drawSeat(p, sh, r, kind, color, out, shadow, u) {
-  const edge = { stroke: darken(color, 0.35), strokeWidth: u * 0.12 };
+/** A seat in its local frame (+y faces the table). `k` is a kit() for that frame. */
+function drawSeat(k, r, kind, color) {
+  const { p, out, shadow, edge, grad, u } = k;
   if (kind === "stool") {
-    shadow(sh.circle(0, 0, r));
-    out(p.circle(0, 0, r), color, edge);
-    out(p.circle(0, 0, r * 0.55), lighten(color, 0.2));
+    const d = p.circle(0, 0, r);
+    shadow(d);
+    out(d, grad(color, "rad"), edge(color));
+    out(p.circle(0, 0, r * 0.62), "none", { stroke: lighten(color, 0.3), strokeWidth: u * 0.1, opacity: 0.8 });
     return;
   }
   const s = kind === "armchair" ? r * 2.3 : r * 2;
-  shadow(sh.rect(-s / 2, -s / 2, s, s, s * 0.2));
-  out(p.rect(-s / 2, -s / 2, s, s, s * 0.2), color, edge);
-  out(p.rect(-s / 2, -s / 2, s, s * 0.26, s * 0.12), darken(color, 0.18));
+  const seat = p.rect(-s / 2, -s / 2, s, s, s * 0.2);
+  shadow(seat);
+  out(seat, grad(color), edge(color));
+  out(p.rect(-s * 0.36, -s * 0.18, s * 0.72, s * 0.6, s * 0.16), lighten(color, 0.14), { opacity: 0.75 });
+  out(p.rect(-s / 2, -s / 2, s, s * 0.27, s * 0.12), grad(darken(color, 0.2)));
+  out(p.line(-s * 0.38, -s / 2 + s * 0.25, s * 0.38, -s / 2 + s * 0.25), "none", { stroke: lighten(color, 0.25), strokeWidth: u * 0.08, opacity: 0.7 });
   if (kind === "armchair") {
-    out(p.rect(-s / 2, -s / 2, s * 0.18, s, s * 0.08), darken(color, 0.1));
-    out(p.rect(s / 2 - s * 0.18, -s / 2, s * 0.18, s, s * 0.08), darken(color, 0.1));
+    out(p.rect(-s / 2, -s / 2, s * 0.18, s, s * 0.08), grad(darken(color, 0.1)));
+    out(p.rect(s / 2 - s * 0.18, -s / 2, s * 0.18, s, s * 0.08), grad(darken(color, 0.1)));
   }
 }
 
 function drawTable(t, ctx, state) {
-  const { theme, push, u, M } = ctx;
+  const { theme, push, u, M, grad } = ctx;
   const box = boxOf(t.shape), ap = t.appearance || {}, cs = t.chairStyle || {};
   const { w, h } = box;
   const ref = { type: "table", id: t.id };
-  const out = (layer) => (d, fill, extra = {}) => push({ type: "path", d, fill, stroke: extra.stroke ?? "none",
-    strokeWidth: extra.strokeWidth ?? 0, opacity: extra.opacity, dash: extra.dash, layer, ref });
-  const chairOut = out("chairs"), tableOut = out("tables");
-  const shadowChair = (d) => chairOut(d, theme.shadow, { opacity: 0.18 });
   const top = materialColor(theme, ap, theme.materials.wood);
   const [cx, cy] = [box.cx, box.cy];
+  const T = kit(box, ref, "tables", ctx), C = kit(box, ref, "chairs", ctx);
 
   // seats
   const seats = t.chairs?.length ? t.chairs.map((c) => ({ p: [c.x, c.y], r: M(0.22) })) : autoChairs(t, u);
   const seatColor = cs.color || theme.chair;
   if ((cs.kind === "bench" || cs.kind === "booth") && !box.round && !box.free) {
-    const p = painter(box), sh = painter(box, u * 0.5, u * 0.6), depth = M(cs.kind === "booth" ? 0.55 : 0.4);
+    const depth = M(cs.kind === "booth" ? 0.55 : 0.4);
     for (const side of [-1, 1]) {
       const y = side * (h / 2 + depth / 2 + u * 0.3);
-      shadowChair(sh.rect(-w / 2, y - depth / 2, w, depth, depth * 0.25));
-      chairOut(p.rect(-w / 2, y - depth / 2, w, depth, depth * 0.25), seatColor, { stroke: darken(seatColor, 0.35), strokeWidth: u * 0.12 });
-      if (cs.kind === "booth") chairOut(p.rect(-w / 2, side > 0 ? y + depth / 2 - depth * 0.3 : y - depth / 2, w, depth * 0.3, depth * 0.15), darken(seatColor, 0.2));
+      const d = C.p.rect(-w / 2, y - depth / 2, w, depth, depth * 0.25);
+      C.shadow(d);
+      C.out(d, grad(seatColor), C.edge(seatColor));
+      const n = Math.max(1, Math.round(w / M(0.6)));
+      for (let i = 1; i < n; i++) C.out(C.p.line(-w / 2 + (w * i) / n, y - depth * 0.4, -w / 2 + (w * i) / n, y + depth * 0.4), "none",
+        { stroke: darken(seatColor, 0.25), strokeWidth: u * 0.1, opacity: 0.7 });
+      if (cs.kind === "booth") C.out(C.p.rect(-w / 2, side > 0 ? y + depth / 2 - depth * 0.3 : y - depth / 2, w, depth * 0.3, depth * 0.15), grad(darken(seatColor, 0.22)));
     }
   } else {
     for (const s of seats) {
       const a = Math.atan2(cy - s.p[1], cx - s.p[0]);
-      const sb = { cx: s.p[0], cy: s.p[1], rot: (a * 180) / Math.PI - 90 };
-      drawSeat(painter(sb), painter(sb, u * 0.5, u * 0.6), s.r, cs.kind || "chair", seatColor, chairOut, shadowChair, u);
+      drawSeat(kit({ cx: s.p[0], cy: s.p[1], rot: (a * 180) / Math.PI - 90 }, ref, "chairs", ctx), s.r, cs.kind || "chair", seatColor);
     }
   }
 
   // table top
-  const p = painter(box), sh = painter(box, u * 0.6, u * 0.8);
-  const shape = (q, inset = 0) => box.round ? q.ellipse(0, 0, w / 2 - inset, h / 2 - inset)
-    : box.free ? null : q.rect(-w / 2 + inset, -h / 2 + inset, w - 2 * inset, h - 2 * inset, Math.max(0, Math.min(w, h) * 0.08 - inset));
-  const outline = shape(p) || shapeToPath(t.shape);
-  tableOut(shape(sh) || outline, theme.shadow, { opacity: 0.22 });
+  const shape = (inset = 0) => box.round ? T.p.ellipse(0, 0, w / 2 - inset, h / 2 - inset)
+    : box.free ? null : T.p.rect(-w / 2 + inset, -h / 2 + inset, w - 2 * inset, h - 2 * inset, Math.max(0, Math.min(w, h) * 0.08 - inset));
+  const outline = shape() || shapeToPath(t.shape);
+  T.shadow(outline, 1.2);
   if (ap.tablecloth) {
-    tableOut(box.round ? p.ellipse(0, 0, w / 2 + u * 0.4, h / 2 + u * 0.4) : outline, ap.tablecloth, { stroke: darken(ap.tablecloth, 0.25), strokeWidth: u * 0.12 });
-    tableOut(shape(p, Math.min(w, h) * 0.06) || outline, lighten(ap.tablecloth, 0.12));
+    T.out(box.round ? T.p.ellipse(0, 0, w / 2 + u * 0.4, h / 2 + u * 0.4) : outline, grad(ap.tablecloth), { stroke: darken(ap.tablecloth, 0.25), strokeWidth: u * 0.12 });
+    T.out(shape(Math.min(w, h) * 0.06) || outline, lighten(ap.tablecloth, 0.12), { opacity: 0.8 });
   } else {
-    tableOut(outline, top, { stroke: darken(top, 0.35), strokeWidth: u * 0.15, opacity: ap.material === "glass" ? 0.85 : 1 });
-    tableOut(shape(p, Math.min(w, h) * 0.07) || outline, lighten(top, 0.12));
+    T.out(outline, grad(top, box.round ? "rad" : "lin"), { stroke: darken(top, 0.38), strokeWidth: u * 0.15, opacity: ap.material === "glass" ? 0.8 : 1 });
+    if (!box.free) {
+      const inset = Math.min(w, h) * 0.07;
+      T.out(shape(inset), "none", { stroke: lighten(top, 0.25), strokeWidth: u * 0.1, opacity: 0.6 });
+      if (WOODS.has(ap.material) || !ap.material) T.grain(top, -w / 2 + inset, -h / 2 + inset, w - 2 * inset, h - 2 * inset);
+      if (ap.material === "marble") T.out(T.p.raw((P) => `M${P(-w * 0.35, -h * 0.2)} Q${P(0, h * 0.1)} ${P(w * 0.3, -h * 0.05)}`), "none", { stroke: darken(top, 0.2), strokeWidth: u * 0.06, opacity: 0.6 });
+    }
   }
 
-  // place settings
+  // place settings: plate, cutlery, glass
   if (ap.tableSetting && ap.tableSetting !== "none") {
     const pr = Math.min(Math.min(w, h) * 0.13, M(0.13));
     for (const s of seats) {
-      const dx = cx - s.p[0], dy = cy - s.p[1], L = Math.hypot(dx, dy) || 1;
-      const inward = s.r * 1.3 + pr * 1.25;
-      const pc = [s.p[0] + (dx / L) * inward, s.p[1] + (dy / L) * inward];
-      tableOut(circlePath(pc[0], pc[1], pr), "#FFFFFF", { stroke: "#D5D9DD", strokeWidth: u * 0.1 });
-      tableOut(circlePath(pc[0], pc[1], pr * 0.6), "#F4F6F7", { stroke: "#E2E6E9", strokeWidth: u * 0.08 });
+      const dx = cx - s.p[0], dy = cy - s.p[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+      const pc = [s.p[0] + ux * (s.r * 1.3 + pr * 1.35), s.p[1] + uy * (s.r * 1.3 + pr * 1.35)];
+      push({ type: "path", d: circlePath(pc[0], pc[1], pr), fill: grad("#FFFFFF", "rad"), stroke: "#C9CFD4", strokeWidth: u * 0.08, layer: "tables", ref });
+      push({ type: "path", d: circlePath(pc[0], pc[1], pr * 0.62), fill: "#F6F7F8", stroke: "#E0E4E7", strokeWidth: u * 0.06, layer: "tables", ref });
+      for (const side of [-1, 1]) {
+        const ox = -uy * side * pr * 1.3, oy = ux * side * pr * 1.3;
+        push({ type: "path", d: `M${f(pc[0] + ox - ux * pr * 0.8)} ${f(pc[1] + oy - uy * pr * 0.8)} L${f(pc[0] + ox + ux * pr * 0.8)} ${f(pc[1] + oy + uy * pr * 0.8)}`,
+          fill: "none", stroke: "#9AA3AB", strokeWidth: u * 0.14, linecap: "round", layer: "tables", ref });
+      }
       if (ap.tableSetting === "plates_glasses") {
-        tableOut(circlePath(pc[0] - (dy / L) * pr * 1.25, pc[1] + (dx / L) * pr * 1.25, pr * 0.32), "#CDEFF7", { stroke: "#9FD3E0", strokeWidth: u * 0.06 });
+        const gx = pc[0] - uy * pr * 1.3 + ux * pr * 1.2, gy = pc[1] + ux * pr * 1.3 + uy * pr * 1.2;
+        push({ type: "path", d: circlePath(gx, gy, pr * 0.34), fill: grad("#D7F1F8", "rad"), stroke: "#9FD3E0", strokeWidth: u * 0.06, layer: "tables", ref });
       }
     }
   }
 
   // status ring and number badge
   const st = state?.status;
-  if (st) tableOut(outline, "none", { stroke: theme.status[st] || theme.status.unknown, strokeWidth: u * 0.6, opacity: 0.95 });
+  if (st) push({ type: "path", d: outline, fill: "none", stroke: theme.status[st] || theme.status.unknown, strokeWidth: u * 0.6, opacity: 0.95, layer: "tables", ref });
   const br = u * 1.5;
-  tableOut(circlePath(cx, cy, br), st ? theme.status[st] || theme.badge.fill : theme.badge.fill,
-    { stroke: theme.badge.stroke, strokeWidth: u * 0.15 });
+  push({ type: "path", d: circlePath(cx, cy, br), fill: st ? theme.status[st] || theme.badge.fill : theme.badge.fill,
+    stroke: theme.badge.stroke, strokeWidth: u * 0.15, layer: "tables", ref });
   push({ type: "text", x: cx, y: cy, text: t.number, fontSize: br * (t.number.length > 2 ? 0.85 : 1.15), weight: 700,
     fill: theme.badge.text, rotation: 0, layer: "tables", ref });
 }
 
 function drawClimate(dv, ctx) {
-  const { theme, push, u } = ctx;
-  const box = boxOf(dv.shape), { w, h } = box, p = painter(box), sh = painter(box, u * 0.4, u * 0.5);
+  const { theme, push, u, M, grad } = ctx;
+  const box = boxOf(dv.shape), { w, h } = box;
   const ref = { type: "climateDevice", id: dv.id };
-  const out = (d, fill, extra = {}) => push({ type: "path", d, fill, stroke: extra.stroke ?? "none", strokeWidth: extra.strokeWidth ?? 0,
-    opacity: extra.opacity, dash: extra.dash, linecap: "round", layer: "climate", ref });
-  const c = materialColor(theme, dv.appearance, dv.kind === "exhaust_hood" ? "#C5CCD2" : "#FFFFFF");
+  const { p, out, shadow, lineOut } = kit(box, ref, "climate", ctx);
+  const metal = "#C3CAD0";
+  const panel = (c, r = Math.min(w, h) * 0.2) => { const d = p.rect(-w / 2, -h / 2, w, h, r); shadow(d, 0.8); out(d, grad(c), { stroke: "#94A3AE", strokeWidth: u * 0.12 }); };
+
+  if (dv.kind === "ventilation_duct") {
+    if (box.free) {
+      const d = shapeToPath(dv.shape);
+      out(d, grad(metal), { stroke: "#7F8C96", strokeWidth: u * 0.15, opacity: 0.6 });
+      return;
+    }
+    const long = w >= h, L = long ? w : h, S = long ? h : w;
+    const R = (a, b, la, lb) => (long ? p.rect(a, b, la, lb, 0) : p.rect(b, a, lb, la, 0));
+    const L2 = (a1, b1, a2, b2) => (long ? p.line(a1, b1, a2, b2) : p.line(b1, a1, b2, a2));
+    out(R(-L / 2, -S / 2, L, S), grad(metal), { stroke: "#7F8C96", strokeWidth: u * 0.15, opacity: 0.62 });
+    lineOut(L2(-L / 2, -S * 0.2, L / 2, -S * 0.2), "#FFFFFF", u * 0.2, 0.55);
+    for (let x = -L / 2 + M(1.2); x < L / 2; x += M(1.2)) lineOut(L2(x, -S / 2, x, S / 2), "#7F8C96", u * 0.12, 0.6);
+    for (let x = -L / 2 + M(1.5); x < L / 2 - M(0.5); x += M(3)) {
+      const s = Math.min(S * 0.8, M(0.4));
+      out(R(x - s / 2, -s / 2, s, s), "#E9EDF0", { stroke: "#7F8C96", strokeWidth: u * 0.1, opacity: 0.85 });
+      for (let k = 1; k < 4; k++) lineOut(L2(x - s / 2 + (s * k) / 4, -s * 0.4, x - s / 2 + (s * k) / 4, s * 0.4), "#9AA6AF", u * 0.06, 0.9);
+    }
+    return;
+  }
+
+  if (dv.kind === "ceiling_cassette" || (dv.kind === "air_conditioner" && dv.mount === "ceiling")) {
+    panel("#F4F6F8", Math.min(w, h) * 0.06);
+    const s = Math.min(w, h);
+    for (const [x, y, ww, hh] of [[-w * 0.35, -h * 0.42, w * 0.7, s * 0.08], [-w * 0.35, h * 0.34, w * 0.7, s * 0.08],
+      [-w * 0.42, -h * 0.35, s * 0.08, h * 0.7], [w * 0.34, -h * 0.35, s * 0.08, h * 0.7]]) out(p.rect(x, y, ww, hh, s * 0.03), grad("#C3CDD5"));
+    out(p.rect(-w * 0.24, -h * 0.24, w * 0.48, h * 0.48, s * 0.04), "#E8EDF1", { stroke: "#B7C2CA", strokeWidth: u * 0.08 });
+    for (let k = 1; k < 5; k++) {
+      lineOut(p.line(-w * 0.24 + (w * 0.48 * k) / 5, -h * 0.22, -w * 0.24 + (w * 0.48 * k) / 5, h * 0.22), "#C3CDD5", u * 0.06);
+      lineOut(p.line(-w * 0.22, -h * 0.24 + (h * 0.48 * k) / 5, w * 0.22, -h * 0.24 + (h * 0.48 * k) / 5), "#C3CDD5", u * 0.06);
+    }
+    out(p.circle(w * 0.4, h * 0.4, s * 0.03), "#34D399");
+    for (const a of [0, 90, 180, 270]) {
+      const r = (a * Math.PI) / 180, d0 = s * 0.62, n = [-Math.sin(r), Math.cos(r)];
+      const c = [Math.cos(r) * d0, Math.sin(r) * d0];
+      out(p.raw((P) => `M${P(c[0] - n[0] * s * 0.2, c[1] - n[1] * s * 0.2)} Q${P(c[0] + Math.cos(r) * s * 0.1, c[1] + Math.sin(r) * s * 0.1)} ${P(c[0] + n[0] * s * 0.2, c[1] + n[1] * s * 0.2)}`),
+        "none", { stroke: "#3BA7D9", strokeWidth: u * 0.22, opacity: 0.55, linecap: "round" });
+    }
+    return;
+  }
+
+  if (dv.kind === "patio_heater") {
+    const r = Math.min(w, h) / 2;
+    out(p.circle(0, 0, r * 2.1), "url(#ep-glow)");
+    out(p.circle(0, 0, r * 1.5), "none", { stroke: "#F08A4B", strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55 });
+    shadow(p.circle(0, 0, r));
+    out(p.circle(0, 0, r), grad("#D2D8DD", "rad"), { stroke: "#7F8C96", strokeWidth: u * 0.15 });
+    for (const k of [0.72, 0.45]) out(p.circle(0, 0, r * k), "none", { stroke: "#9AA6AF", strokeWidth: u * 0.1 });
+    out(p.circle(0, 0, r * 0.18), grad("#3A3F45", "rad"));
+    return;
+  }
+
+  if (dv.kind === "wall_heater") {
+    panel("#3A3F45", Math.min(w, h) * 0.15);
+    const n = 3;
+    for (let i = 0; i < n; i++) {
+      const y = -h * 0.3 + (h * 0.6 * i) / (n - 1);
+      out(p.rect(-w * 0.42, y - h * 0.07, w * 0.84, h * 0.14, h * 0.07), grad("#F06A35"), { opacity: 0.95 });
+    }
+    for (let k = 0; k < 3; k++) {
+      const x = -w * 0.3 + (w * 0.6 * k) / 2, y0 = h / 2 + u * 0.8;
+      out(p.raw((P) => `M${P(x, y0)} Q${P(x + u * 0.8, y0 + u * 1)} ${P(x, y0 + u * 2)} T${P(x, y0 + u * 4)}`), "none",
+        { stroke: "#F08A4B", strokeWidth: u * 0.2, opacity: 0.55, linecap: "round" });
+    }
+    return;
+  }
+
+  const c = dv.appearance?.color || theme.materials[dv.appearance?.material] || (dv.kind === "exhaust_hood" ? "#C5CCD2" : "#FFFFFF");
   if (dv.kind === "exhaust_hood") {
-    // ceiling-mounted over the cooking line: outline only, so the equipment below stays visible
     out(p.rect(-w / 2, -h / 2, w, h, u * 0.4), c, { opacity: 0.18 });
     out(p.rect(-w / 2, -h / 2, w, h, u * 0.4), "none", { stroke: "#6B7680", strokeWidth: u * 0.25, dash: [u * 1.2, u * 0.6] });
     return;
   }
-  out(sh.rect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.25), theme.shadow, { opacity: 0.15 });
-  out(p.rect(-w / 2, -h / 2, w, h, Math.min(w, h) * 0.25), c, { stroke: "#9AA9B4", strokeWidth: u * 0.15 });
+  panel(c);
   if (["air_conditioner", "hvac_indoor_unit"].includes(dv.kind)) {
-    for (let i = 1; i <= 2; i++) out(p.line(-w * 0.4, -h / 2 + (h * i) / 3, w * 0.4, -h / 2 + (h * i) / 3), "none", { stroke: "#B7C4CC", strokeWidth: u * 0.15 });
+    out(p.rect(-w * 0.44, h * 0.08, w * 0.88, h * 0.26, h * 0.1), grad("#DCE3E8"));
+    for (let i = 1; i <= 3; i++) lineOut(p.line(-w * 0.4, h * 0.08 + (h * 0.26 * i) / 4, w * 0.4, h * 0.08 + (h * 0.26 * i) / 4), "#AAB6BF", u * 0.07);
     out(p.circle(w * 0.38, -h * 0.22, Math.min(w, h) * 0.08), "#34D399");
   } else if (/vent|fan|purifier/.test(dv.kind)) {
-    const n = 3;
-    for (let i = 1; i < n; i++) {
-      out(p.line(-w / 2 + (w * i) / n, -h * 0.4, -w / 2 + (w * i) / n, h * 0.4), "none", { stroke: "#9AA9B4", strokeWidth: u * 0.12 });
-      out(p.line(-w * 0.4, -h / 2 + (h * i) / n, w * 0.4, -h / 2 + (h * i) / n), "none", { stroke: "#9AA9B4", strokeWidth: u * 0.12 });
+    for (let i = 1; i < 4; i++) {
+      lineOut(p.line(-w / 2 + (w * i) / 4, -h * 0.4, -w / 2 + (w * i) / 4, h * 0.4), "#9AA9B4", u * 0.1);
+      lineOut(p.line(-w * 0.4, -h / 2 + (h * i) / 4, w * 0.4, -h / 2 + (h * i) / 4), "#9AA9B4", u * 0.1);
     }
   } else if (/heater|radiator/.test(dv.kind)) {
     const n = Math.max(3, Math.round(w / (u * 1.2)));
-    for (let i = 1; i < n; i++) out(p.line(-w / 2 + (w * i) / n, -h * 0.35, -w / 2 + (w * i) / n, h * 0.35), "none", { stroke: "#E4572E", strokeWidth: u * 0.15, opacity: 0.8 });
+    for (let i = 1; i < n; i++) lineOut(p.line(-w / 2 + (w * i) / n, -h * 0.35, -w / 2 + (w * i) / n, h * 0.35), "#E4572E", u * 0.15, 0.8);
+  } else if (dv.kind === "thermostat") {
+    out(p.circle(0, 0, Math.min(w, h) * 0.3), "none", { stroke: "#3BA7D9", strokeWidth: u * 0.15 });
   }
   if (dv.airflowDirectionDeg != null) {
     const a = (dv.airflowDirectionDeg * Math.PI) / 180;
@@ -572,7 +809,24 @@ export function buildIllustratedScene(plan, options = {}) {
   const vis = (o) => o.visible !== false;
   const ordered = (arr) => (arr || []).filter(vis).map((o, i) => [o, i])
     .sort((p, q) => (p[0].zIndex || 0) - (q[0].zIndex || 0) || p[1] - q[1]).map((p) => p[0]);
-  const ctx = { theme, push, u, M };
+  const gradIds = new Set();
+  const grad = (c, mode = "lin") => {
+    const id = `ep-${mode}-${c.slice(1).toLowerCase()}`;
+    if (!gradIds.has(id)) {
+      gradIds.add(id);
+      defs.push(mode === "rad"
+        ? { type: "radialGradient", id, cx: 0.4, cy: 0.35, r: 0.75, stops: [{ offset: 0, color: lighten(c, 0.28) }, { offset: 1, color: darken(c, 0.1) }] }
+        : { type: "linearGradient", id, x1: 0, y1: 0, x2: 1, y2: 1, stops: [{ offset: 0, color: lighten(c, 0.16) }, { offset: 0.55, color: c }, { offset: 1, color: darken(c, 0.14) }] });
+    }
+    return `url(#${id})`;
+  };
+  const softShadow = (d, layer, ref, strength = 1) => {
+    push({ type: "path", d: translatePath(d, u * 0.3, u * 0.4), fill: theme.shadow, opacity: 0.16 * strength, layer, ref });
+    push({ type: "path", d: translatePath(d, u * 0.9, u * 1.2), fill: theme.shadow, opacity: 0.07 * strength, layer, ref });
+  };
+  defs.push({ type: "radialGradient", id: "ep-glow", cx: 0.5, cy: 0.5, r: 0.5, stops: [
+    { offset: 0, color: "#FFB36B", opacity: 0.55 }, { offset: 0.6, color: "#FF8A3D", opacity: 0.18 }, { offset: 1, color: "#FF8A3D", opacity: 0 }] });
+  const ctx = { theme, push, u, M, grad, softShadow };
   const review = (d, o, type) => {
     if (options.highlightReview !== false && o.needsReview) {
       push({ type: "path", d, fill: "none", stroke: theme.review, strokeWidth: u * 0.5, dash: [u * 1.2, u * 0.8], layer: "review", ref: { type, id: o.id } });
@@ -731,7 +985,7 @@ export function buildIllustratedScene(plan, options = {}) {
  */
 function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
   const K = 0.03 * depth;                      // top offset per metre of wall height, relative to distance from cam
-  const faces = [], decals = [], tops = [];
+  const faces = [], decals = [], tops = [], aos = [];
   const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
   const poly = (pts) => pts.map((q, i) => `${i ? "L" : "M"}${f(q[0])} ${f(q[1])}`).join(" ") + " Z";
   const faceColor = theme.wallFace || "#E4ECF1";
@@ -762,6 +1016,10 @@ function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
         const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
         if (dot(nrm, [cam[0] - mid[0], cam[1] - mid[1]]) <= 0) return;
         const shade = 0.16 + 0.3 * ((1 - nrm[1]) / 2) + 0.06 * Math.abs(nrm[0]);
+        for (const [s, op] of [[u * 1.8, 0.07], [u * 0.8, 0.08]]) {
+          aos.push({ type: "path", d: poly([a, b, [b[0] + nrm[0] * s, b[1] + nrm[1] * s], [a[0] + nrm[0] * s, a[1] + nrm[1] * s]]),
+            fill: theme.shadow, opacity: op, layer: "zones" });
+        }
         faces.push({ type: "path", d: poly([a, b, lift(b), lift(a)]), fill: mix(faceColor, "#7F95A3", shade),
           stroke: mix(faceColor, "#7F95A3", shade + 0.15), strokeWidth: u * 0.06, layer: "walls", ref });
       };
@@ -799,6 +1057,7 @@ function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
         stroke: theme.wallEdge, strokeWidth: u * 0.12, layer: "walls", ref, order: 0 });
     }
   }
+  for (const it of aos) push(it);
   for (const it of faces) push(it);
   for (const it of decals) push(it);
   for (const it of tops.filter((t) => t.order === 0)) { delete it.order; push(it); }

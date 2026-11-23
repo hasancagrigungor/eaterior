@@ -1,4 +1,4 @@
-# Eatery Plan 1.1.1 — Specification
+# Eatery Plan 1.2.0 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.1.1" (1.0.0 and 1.1.0 still valid), planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.2.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -108,9 +108,13 @@ Everything is optional. Without `appearance`, renderers choose defaults from `ki
 Fixture kinds cover a restaurant: counters (`counter`, `bar_counter`, `prep_counter`), seating (`sofa`, `chair`,
 `armchair`, `bar_stool`), kitchen equipment (`stove`, `oven`, `fridge`, `freezer`, `dishwasher`, `sink`,
 `hand_sink`, `coffee_machine`), front of house (`display_case`, `wine_rack`, `shelf`, `host_stand`, `pos_terminal`,
-`tv`, `piano`), restrooms (`toilet`, `urinal`), outdoor and decor (`plant`, `planter`, `tree`, `parasol`, `rug`), and
+`tv`, `piano`), restrooms (`toilet`, `urinal`), outdoor and decor (`plant`, `planter`, `tree`, `palm_tree`, `parasol`, `pergola`, `rug`), and
 building elements (`stairs`, `elevator`, `column`). A fixture with a polygon or path shape (e.g. a curved bar) is drawn
 with its real outline.
+
+Climate devices (1.2.0) add `ceiling_cassette` (ceiling-recessed AC), `ventilation_duct` (a duct run: long rect,
+polygon or path), `patio_heater` and `wall_heater`. An `air_conditioner` with `mount: "ceiling"` is also drawn as a
+cassette.
 
 ### Walls and openings
 
