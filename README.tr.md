@@ -27,7 +27,8 @@ masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya foto
 ## Kullanım
 
 ```bash
-pip install -e python
+pip install eateryplan
+npm install eateryplan
 eateryplan validate examples/plan.json
 eateryplan import examples/detection.json plan.json --image cizim.png --name "Kafem"
 ```

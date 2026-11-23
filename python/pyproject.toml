@@ -5,12 +5,35 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "eateryplan"
 version = "1.7.0"
-description = "Reference validator, migrator and image-detection importer for the Eatery Plan floor-plan format"
+description = "Validator, migrator and image-detection importer for Eatery Plan, an open JSON format for restaurant, cafe and bar floor plans"
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
+authors = [{ name = "Hasan Cagri Gungor" }]
 dependencies = ["jsonschema>=4.18"]
-keywords = ["floor-plan", "restaurant", "cafe", "json-schema", "pos"]
+keywords = ["floor-plan", "restaurant", "cafe", "bar", "pos", "json-schema", "digital-twin", "validator"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/hasancagrigungor/eatery-plan"
+Documentation = "https://github.com/hasancagrigungor/eatery-plan/blob/main/docs/specification.md"
+Repository = "https://github.com/hasancagrigungor/eatery-plan"
+Issues = "https://github.com/hasancagrigungor/eatery-plan/issues"
+Changelog = "https://github.com/hasancagrigungor/eatery-plan/blob/main/CHANGELOG.md"
 
 [project.scripts]
 eateryplan = "eateryplan.cli:main"
@@ -19,4 +42,4 @@ eateryplan = "eateryplan.cli:main"
 packages = ["eateryplan"]
 
 [tool.setuptools.package-data]
-eateryplan = ["schemas/*.json"]
+eateryplan = ["schemas/*.json", "py.typed"]

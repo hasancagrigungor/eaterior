@@ -1,0 +1,48 @@
+name: Publish packages
+
+# Runs when a GitHub release is published (or by hand). Uses trusted publishing (OIDC), so no tokens are stored:
+#  - PyPI: add a trusted publisher for project "eateryplan" -> this repository, workflow "publish.yml", environment "pypi"
+#  - npm:  add a trusted publisher for package "eateryplan" -> this repository, workflow "publish.yml"
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade build twine
+      - run: python -m build --outdir dist python
+      - run: python -m twine check dist/*
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          skip-existing: true
+
+  npm:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
+      - run: npm test
+        working-directory: js
+      - name: Publish unless this version is already on npm
+        working-directory: js
+        run: |
+          V=$(node -p "require('./package.json').version")
+          if npm view "eateryplan@$V" version >/dev/null 2>&1; then echo "eateryplan@$V already published"; else npm publish --provenance --access public; fi

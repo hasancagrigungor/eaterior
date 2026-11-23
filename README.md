@@ -47,17 +47,25 @@ Dashed amber outlines mark objects that need a person to confirm them.
 schemas/v1.7.0/     eateryplan · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
 docs/               specification · rendering contract · image import · integration
-python/eateryplan/  validator, legacy migrator, detection importer (CLI + library)
-js/                 dependency-free renderer (plain + illustrated themes) → SVG / react-native-svg / Canvas
+python/eateryplan/  validator, migrator, detection importer — `pip install eateryplan`
+js/                 UI library (plain + illustrated themes) → SVG / react-native-svg / Canvas — `npm install eateryplan`
 demo/               browser viewer
 ```
 
 ## Quick start
 
+### Install
+
+```bash
+pip install eateryplan        # validator, importer, CLI (Python)
+npm install eateryplan        # UI library for web, React Native and Canvas
+```
+
+The JSON Schemas live in [`schemas/`](schemas) on GitHub (and ship inside both packages' tooling).
+
 ### Validate
 
 ```bash
-pip install -e python
 eateryplan validate examples/plan.json
 eateryplan validate examples/plan.json --json      # machine-readable issues
 eateryplan check-state examples/plan.json examples/table-state.json
