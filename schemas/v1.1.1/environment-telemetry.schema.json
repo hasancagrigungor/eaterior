@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.1/environment-telemetry.schema.json",
+  "title": "Eatery Plan Environment Telemetry v1.1.1",
+  "description": "One sensor reading. Keys in readings must match the sensor's metrics: temperature->temperatureC, humidity->relativeHumidityPct, co2->co2Ppm, pm25->pm25UgM3, pm10->pm10UgM3, voc->vocPpb, pressure->pressureHpa, noise->noiseDbA, occupancy->occupancyCount, light->illuminanceLux.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "planId",
+    "sensorId",
+    "timestamp",
+    "readings"
+  ],
+  "properties": {
+    "format": {
+      "const": "eateryplan-telemetry"
+    },
+    "schemaVersion": {
+      "enum": [
+        "1.0.0",
+        "1.1.0",
+        "1.1.1"
+      ]
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "sensorId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "quality": {
+      "enum": [
+        "ok",
+        "estimated",
+        "stale",
+        "error"
+      ]
+    },
+    "readings": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "temperatureC": {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 100
+        },
+        "relativeHumidityPct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "co2Ppm": {
+          "type": "number",
+          "minimum": 0
+        },
+        "pm25UgM3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "pm10UgM3": {
+          "type": "number",
+          "minimum": 0
+        },
+        "vocPpb": {
+          "type": "number",
+          "minimum": 0
+        },
+        "pressureHpa": {
+          "type": "number",
+          "minimum": 0
+        },
+        "noiseDbA": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "occupancyCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "illuminanceLux": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+      },
+      "additionalProperties": true,
+      "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+    }
+  }
+}

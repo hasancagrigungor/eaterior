@@ -45,6 +45,7 @@
       <option value="plain">Plain</option>
     </select>
   </label>
+  <label><input type="checkbox" id="walls3d" checked> 3D walls</label>
   <label><input type="checkbox" id="live" checked> Live table state</label>
   <label><input type="checkbox" id="chairs" checked> Chairs</label>
   <label><input type="checkbox" id="review" checked> Highlight “needs review”</label>
@@ -84,6 +85,7 @@
       tableStates: live ? state : null,
       readings: live && telemetry && telemetry.planId === plan.planId ? { [telemetry.sensorId]: telemetry } : null,
       showChairs: $("chairs").checked,
+      walls3d: $("walls3d").checked,
       highlightReview: $("review").checked,
       showBackground: false,
     });
@@ -116,7 +118,7 @@
   }
 
   $("plan").addEventListener("change", (e) => loadPlan(e.target.value));
-  for (const id of ["theme", "live", "chairs", "review"]) $(id).addEventListener("change", render);
+  for (const id of ["theme", "walls3d", "live", "chairs", "review"]) $(id).addEventListener("change", render);
   $("open").addEventListener("click", () => $("file").click());
   $("file").addEventListener("change", async (e) => {
     const f = e.target.files[0]; if (!f) return;

@@ -51,11 +51,26 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.1.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.1.1/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
     shape: { kind: "rect", x: 300 + (i % 10) * 60, y: 250 + Math.floor(i / 10) * 60, width: 40, height: 30 } }));
   const sc = buildIllustratedScene(plan);
   for (let i = 0; i < kinds.length; i++) assert.ok(sc.items.some((it) => it.ref?.id === `fx_${i}`), kinds[i]);
+});
+
+test("walls have visible faces and tops in 3D, and stay flat when walls3d is off", () => {
+  const wallId = restaurant.floors[0].walls[0].id;
+  const items3d = buildIllustratedScene(restaurant).items.filter((i) => i.layer === "walls" && i.ref?.id === wallId);
+  const flat = buildIllustratedScene(restaurant, { walls3d: false }).items.filter((i) => i.layer === "walls" && i.ref?.id === wallId);
+  assert.ok(items3d.some((i) => i.fill !== "none" && /Z$/.test(i.d)), "top/face polygons");
+  assert.ok(flat.every((i) => i.fill === "none"), "flat walls are strokes");
+});
+
+test("wall height changes the depth", () => {
+  const tall = structuredClone(restaurant), low = structuredClone(restaurant);
+  tall.floors[0].walls[0].heightMeters = 4; low.floors[0].walls[0].heightMeters = 0.5;
+  const top = (p) => buildIllustratedScene(p).items.filter((i) => i.ref?.id === "w_north" && i.fill === "#FFFFFF")[0].d;
+  assert.notEqual(top(tall), top(low));
 });

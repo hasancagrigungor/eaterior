@@ -1,4 +1,4 @@
-# Eatery Plan 1.1.0 — Specification
+# Eatery Plan 1.1.1 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.1.0" (1.0.0 still valid), planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.1.1" (1.0.0 and 1.1.0 still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -114,7 +114,8 @@ with its real outline.
 
 ### Walls and openings
 
-- A wall runs from `a` to `b` with `thickness` centred on that line.
+- A wall runs from `a` to `b` with `thickness` centred on that line. Optional `heightMeters` (1.1.1) is its physical
+  height; renderers may use it for depth effects.
 - `bulge` makes the wall a circular arc: `bulge = tan(sweep / 4)` (same as DXF). `0` is straight, `1` a semicircle;
   positive values bulge to the **right** of `a → b` as seen on screen.
 - `opening.position` is the centre of the opening along the wall, `0` at `a`, `1` at `b` (arc length on curved walls).

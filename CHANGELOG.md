@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 — 2026-11-23
+
+- Optional `wall.heightMeters` (backwards compatible).
+- Illustrated theme: walls with 3D depth (visible wall faces, jambs, windows on the face), computed from a camera above
+  the floor centre; options `walls3d`, `camera`, `wallDepth`. The data stays 2D.
+
 ## 1.1.0 — 2026-11-23
 
 Format 1.1.0 (backwards compatible: every 1.0.0 document is valid).

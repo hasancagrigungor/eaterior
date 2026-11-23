@@ -18,6 +18,7 @@ export const ILLUSTRATED_THEME = {
   buildingShadow: "#000000",
   wall: "#FFFFFF",
   wallEdge: "#B9D3DD",
+  wallFace: "#E4ECF1",
   window: "#7FE3F2",
   door: "#2B3A4A",
   shadow: "#1B2430",
@@ -554,6 +555,7 @@ function drawClimate(dv, ctx) {
 /**
  * @param plan    Eatery Plan document
  * @param options floorId, tableStates, readings, theme (partial), showZoneNames (default true),
+ *                walls3d (default true), camera {x, y} (default: floor centre), wallDepth (default 1),
  *                showChairs, highlightReview, resolveAsset/showBackground (ignored: the illustration replaces the drawing)
  */
 export function buildIllustratedScene(plan, options = {}) {
@@ -609,55 +611,70 @@ export function buildIllustratedScene(plan, options = {}) {
     openingsByWall.get(o.wallId).push(o);
   }
   const walls = ordered(floor.walls);
-  for (const pass of ["edge", "fill"]) {
-    for (const w of walls) {
-      const g = new WallGeom(w);
-      if (g.length <= 0) continue;
-      const gaps = (openingsByWall.get(w.id) || []).map((o) => {
-        const c = o.position * g.length, hh = o.width / 2;
-        return [Math.max(0, (c - hh) / g.length), Math.min(1, (c + hh) / g.length), o];
-      }).sort((a, b) => a[0] - b[0]);
-      let t = 0;
-      const solid = [];
-      for (const [t0, t1] of gaps) { if (t0 > t) solid.push([t, t0]); t = Math.max(t, t1); }
-      if (t < 1) solid.push([t, 1]);
-      const color = w.appearance?.color || theme.wall;
-      for (const [t0, t1] of solid) {
-        const ext = pass === "edge" ? w.thickness / 2 + u * 0.25 : w.thickness / 2;
-        const d = g.segmentPath(t0, t1, t0 === 0 ? ext : pass === "edge" ? u * 0.25 : 0, t1 === 1 ? ext : pass === "edge" ? u * 0.25 : 0);
-        push({ type: "path", d, fill: "none", stroke: pass === "edge" ? theme.wallEdge : color,
-          strokeWidth: w.thickness + (pass === "edge" ? u * 0.5 : 0), dash: w.kind === "half_height" && pass === "fill" ? [w.thickness, w.thickness * 0.5] : null,
-          layer: "walls", ref: { type: "wall", id: w.id } });
-      }
-      if (pass === "fill") {
-        for (const [t0, t1, o] of gaps) {
-          const p0 = g.pointAt(t0), p1 = g.pointAt(t1), ref = { type: "opening", id: o.id };
-          if (o.kind === "window") {
-            push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: o.appearance?.color || theme.window, strokeWidth: w.thickness * 0.7, layer: "openings", ref });
-            push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: "#FFFFFF", strokeWidth: w.thickness * 0.12, layer: "openings", ref });
-          } else if (o.kind === "door" && o.swing !== "none") {
-            const outward = o.opensToward === "outside" ? -1 : 1;
-            const leaf = (hinge, jamb, tH, len) => {
-              const [tx, ty] = g.tangentAt(tH), n = [-ty * outward, tx * outward];
-              const end = [hinge[0] + n[0] * len, hinge[1] + n[1] * len];
-              const v1 = [end[0] - hinge[0], end[1] - hinge[1]], v2 = [jamb[0] - hinge[0], jamb[1] - hinge[1]];
-              const sweep = v1[0] * v2[1] - v1[1] * v2[0] > 0 ? 1 : 0;
-              push({ type: "path", d: `M${f(hinge[0])} ${f(hinge[1])} L${f(end[0])} ${f(end[1])}`, fill: "none", stroke: o.appearance?.color || theme.door,
-                strokeWidth: u * 0.35, opacity: 0.75, linecap: "round", layer: "openings", ref });
-              push({ type: "path", d: `M${f(end[0])} ${f(end[1])} A${f(len)} ${f(len)} 0 0 ${sweep} ${f(jamb[0])} ${f(jamb[1])}`, fill: "none",
-                stroke: theme.door, strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55, layer: "openings", ref });
-            };
-            const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
-            if (o.swing === "double") { const mid = g.pointAt((t0 + t1) / 2); leaf(p0, mid, t0, L / 2); leaf(p1, mid, t1, L / 2); }
-            else if (o.swing === "sliding") {
-              const [tx, ty] = g.tangentAt((t0 + t1) / 2), off = w.thickness * 0.4;
-              push({ type: "path", d: `M${f(p0[0] - ty * off)} ${f(p0[1] + tx * off)} L${f(p1[0] - ty * off)} ${f(p1[1] + tx * off)}`, fill: "none",
-                stroke: theme.door, strokeWidth: u * 0.35, opacity: 0.75, layer: "openings", ref });
-            } else if (o.hinge === "end") leaf(p1, p0, t1, L); else leaf(p0, p1, t0, L);
-          }
-          if (o.needsReview) review(circlePath(...g.pointAt((t0 + t1) / 2), o.width / 2), o, "opening");
+  const use3d = options.walls3d !== false;
+  const wallData = [];
+  for (const w of walls) {
+    const g = new WallGeom(w);
+    if (g.length <= 0) continue;
+    const gaps = (openingsByWall.get(w.id) || []).map((o) => {
+      const c = o.position * g.length, hh = o.width / 2;
+      return [Math.max(0, (c - hh) / g.length), Math.min(1, (c + hh) / g.length), o];
+    }).sort((a, b) => a[0] - b[0]);
+    // in 3D the wall stays solid behind windows; windows are drawn on the visible wall face
+    const cuts = use3d ? gaps.filter(([, , o]) => o.kind !== "window") : gaps;
+    let t = 0;
+    const solid = [];
+    for (const [t0, t1] of cuts) { if (t0 > t) solid.push([t, t0]); t = Math.max(t, t1); }
+    if (t < 1) solid.push([t, 1]);
+    wallData.push({ w, g, gaps, solid, color: w.appearance?.color || theme.wall });
+  }
+
+  if (use3d) {
+    drawWalls3D(wallData, { theme, push, u, cam: options.camera ? [options.camera.x, options.camera.y] : [W / 2, H / 2],
+      depth: options.wallDepth ?? 1 });
+  } else {
+    for (const pass of ["edge", "fill"]) {
+      for (const { w, g, solid, color } of wallData) {
+        for (const [t0, t1] of solid) {
+          const ext = pass === "edge" ? w.thickness / 2 + u * 0.25 : w.thickness / 2;
+          const d = g.segmentPath(t0, t1, t0 === 0 ? ext : pass === "edge" ? u * 0.25 : 0, t1 === 1 ? ext : pass === "edge" ? u * 0.25 : 0);
+          push({ type: "path", d, fill: "none", stroke: pass === "edge" ? theme.wallEdge : color,
+            strokeWidth: w.thickness + (pass === "edge" ? u * 0.5 : 0), dash: w.kind === "half_height" && pass === "fill" ? [w.thickness, w.thickness * 0.5] : null,
+            layer: "walls", ref: { type: "wall", id: w.id } });
         }
       }
+    }
+  }
+
+  for (const { w, g, gaps } of wallData) {
+    for (const [t0, t1, o] of gaps) {
+      const p0 = g.pointAt(t0), p1 = g.pointAt(t1), ref = { type: "opening", id: o.id };
+      if (o.kind === "window") {
+        if (!use3d) {
+          push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: o.appearance?.color || theme.window, strokeWidth: w.thickness * 0.7, layer: "openings", ref });
+          push({ type: "path", d: g.segmentPath(t0, t1), fill: "none", stroke: "#FFFFFF", strokeWidth: w.thickness * 0.12, layer: "openings", ref });
+        }
+      } else if (o.kind === "door" && o.swing !== "none") {
+        const outward = o.opensToward === "outside" ? -1 : 1;
+        const leaf = (hinge, jamb, tH, len) => {
+          const [tx, ty] = g.tangentAt(tH), n = [-ty * outward, tx * outward];
+          const end = [hinge[0] + n[0] * len, hinge[1] + n[1] * len];
+          const v1 = [end[0] - hinge[0], end[1] - hinge[1]], v2 = [jamb[0] - hinge[0], jamb[1] - hinge[1]];
+          const sweep = v1[0] * v2[1] - v1[1] * v2[0] > 0 ? 1 : 0;
+          push({ type: "path", d: `M${f(hinge[0])} ${f(hinge[1])} L${f(end[0])} ${f(end[1])}`, fill: "none", stroke: o.appearance?.color || theme.door,
+            strokeWidth: u * 0.35, opacity: 0.75, linecap: "round", layer: "openings", ref });
+          push({ type: "path", d: `M${f(end[0])} ${f(end[1])} A${f(len)} ${f(len)} 0 0 ${sweep} ${f(jamb[0])} ${f(jamb[1])}`, fill: "none",
+            stroke: theme.door, strokeWidth: u * 0.18, dash: [u * 0.7, u * 0.5], opacity: 0.55, layer: "openings", ref });
+        };
+        const L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]);
+        if (o.swing === "double") { const mid = g.pointAt((t0 + t1) / 2); leaf(p0, mid, t0, L / 2); leaf(p1, mid, t1, L / 2); }
+        else if (o.swing === "sliding") {
+          const [tx, ty] = g.tangentAt((t0 + t1) / 2), off = w.thickness * 0.4;
+          push({ type: "path", d: `M${f(p0[0] - ty * off)} ${f(p0[1] + tx * off)} L${f(p1[0] - ty * off)} ${f(p1[1] + tx * off)}`, fill: "none",
+            stroke: theme.door, strokeWidth: u * 0.35, opacity: 0.75, layer: "openings", ref });
+        } else if (o.hinge === "end") leaf(p1, p0, t1, L); else leaf(p0, p1, t0, L);
+      }
+      if (o.needsReview) review(circlePath(...g.pointAt((t0 + t1) / 2), o.width / 2), o, "opening");
     }
   }
 
@@ -692,8 +709,12 @@ export function buildIllustratedScene(plan, options = {}) {
         `M${f(b[0] - n[0])} ${f(b[1] - n[1])} L${f(b[0] + n[0])} ${f(b[1] + n[1])}`, fill: "none", stroke: "#FFFFFF", strokeWidth: u * 0.2, layer: "labels", ref });
       let deg = (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI;
       if (deg > 90) deg -= 180; else if (deg < -90) deg += 180;
-      push({ type: "text", x: lb.position.x, y: lb.position.y, text: lb.text, fontSize: lb.fontSize || u * 1.8, weight: 600, fill: "#FFFFFF",
-        rotation: lb.rotationDeg || deg, layer: "labels", ref });
+      if (lb.rotationDeg || Math.abs(deg) > 1) {
+        push({ type: "text", x: lb.position.x, y: lb.position.y, text: lb.text, fontSize: lb.fontSize || u * 1.8, weight: 600, fill: "#FFFFFF",
+          rotation: lb.rotationDeg || deg, layer: "labels", ref });
+      } else {
+        chip(push, lb.position.x, lb.position.y, lb.text, lb.fontSize || u * 1.6, theme, ref, "labels");
+      }
     } else {
       chip(push, lb.position.x, lb.position.y, lb.text, lb.fontSize || u * 1.7, theme, ref, "labels");
     }
@@ -702,6 +723,86 @@ export function buildIllustratedScene(plan, options = {}) {
   const order = new Map(ILLUSTRATED_LAYERS.map((l, i) => [l, i]));
   const sorted = items.map((it, i) => [it, i]).sort((p, q) => order.get(p[0].layer) - order.get(q[0].layer) || p[1] - q[1]).map((p) => p[0]);
   return { floorId: floor.id, width: W, height: H, viewBox: `0 0 ${f(W)} ${f(H)}`, background: theme.background, defs, items: sorted };
+}
+
+/**
+ * Walls with depth: a camera above `cam` sees each wall's top shifted away from it and the wall face that points
+ * towards it. Faces, window decals and tops are plain 2D polygons, so any SVG/Canvas renderer can draw them.
+ */
+function drawWalls3D(wallData, { theme, push, u, cam, depth }) {
+  const K = 0.03 * depth;                      // top offset per metre of wall height, relative to distance from cam
+  const faces = [], decals = [], tops = [];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+  const poly = (pts) => pts.map((q, i) => `${i ? "L" : "M"}${f(q[0])} ${f(q[1])}`).join(" ") + " Z";
+  const faceColor = theme.wallFace || "#E4ECF1";
+
+  for (const { w, g, gaps, solid, color } of wallData) {
+    const hgt = w.heightMeters ?? (w.kind === "half_height" ? 1.1 : 2.8);
+    const cap = Math.max(w.thickness * 2.6, u * 2.5) * depth, T = w.thickness;
+    const lift = (q, frac = 1) => {
+      let ox = (q[0] - cam[0]) * K * hgt, oy = (q[1] - cam[1]) * K * hgt;
+      const L = Math.hypot(ox, oy);
+      if (L > cap) { ox *= cap / L; oy *= cap / L; }
+      return [q[0] + ox * frac, q[1] + oy * frac];
+    };
+    const ref = { type: "wall", id: w.id };
+    for (const [t0, t1] of solid) {
+      const n = g.curved ? Math.max(2, Math.ceil(16 * (t1 - t0))) : 1;
+      const samples = [];
+      for (let i = 0; i <= n; i++) {
+        const t = t0 + ((t1 - t0) * i) / n, [tx, ty] = g.tangentAt(t);
+        let p = g.pointAt(t);
+        if (!g.curved && i === 0 && t0 === 0) p = [p[0] - tx * T / 2, p[1] - ty * T / 2];
+        if (!g.curved && i === n && t1 === 1) p = [p[0] + tx * T / 2, p[1] + ty * T / 2];
+        samples.push({ p, nrm: [-ty, tx], tan: [tx, ty] });
+      }
+      const Ls = samples.map(({ p, nrm }) => [p[0] + nrm[0] * T / 2, p[1] + nrm[1] * T / 2]);
+      const Rs = samples.map(({ p, nrm }) => [p[0] - nrm[0] * T / 2, p[1] - nrm[1] * T / 2]);
+      const face = (a, b, nrm) => {
+        const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        if (dot(nrm, [cam[0] - mid[0], cam[1] - mid[1]]) <= 0) return;
+        const shade = 0.16 + 0.3 * ((1 - nrm[1]) / 2) + 0.06 * Math.abs(nrm[0]);
+        faces.push({ type: "path", d: poly([a, b, lift(b), lift(a)]), fill: mix(faceColor, "#7F95A3", shade),
+          stroke: mix(faceColor, "#7F95A3", shade + 0.15), strokeWidth: u * 0.06, layer: "walls", ref });
+      };
+      for (let i = 0; i < n; i++) {
+        const nm = samples[i].nrm;
+        face(Ls[i], Ls[i + 1], nm);
+        face(Rs[i + 1], Rs[i], [-nm[0], -nm[1]]);
+      }
+      face(Rs[0], Ls[0], [-samples[0].tan[0], -samples[0].tan[1]]);
+      face(Ls[n], Rs[n], samples[n].tan);
+
+      // windows: decal on the visible face, glass line on the top
+      if (!g.curved) {
+        for (const [wa, wb, o] of gaps) {
+          if (o.kind !== "window") continue;
+          const a0 = Math.max(wa, t0), a1 = Math.min(wb, t1);
+          if (a1 <= a0) continue;
+          const nm = samples[0].nrm, at = (t, side) => {
+            const p = g.pointAt(t);
+            return [p[0] + side * nm[0] * T / 2, p[1] + side * nm[1] * T / 2];
+          };
+          for (const side of [1, -1]) {
+            const b1 = at(a0, side), b2 = at(a1, side), mid = [(b1[0] + b2[0]) / 2, (b1[1] + b2[1]) / 2];
+            if (dot([nm[0] * side, nm[1] * side], [cam[0] - mid[0], cam[1] - mid[1]]) <= 0) continue;
+            const q = (b, fr) => { const top = lift(b); return [b[0] + (top[0] - b[0]) * fr, b[1] + (top[1] - b[1]) * fr]; };
+            decals.push({ type: "path", d: poly([q(b1, 0.3), q(b2, 0.3), q(b2, 0.85), q(b1, 0.85)]), fill: o.appearance?.color || theme.window,
+              stroke: "#FFFFFF", strokeWidth: u * 0.25, opacity: 0.9, layer: "walls", ref: { type: "opening", id: o.id } });
+          }
+          const c0 = lift(g.pointAt(a0)), c1 = lift(g.pointAt(a1));
+          tops.push({ type: "path", d: `M${f(c0[0])} ${f(c0[1])} L${f(c1[0])} ${f(c1[1])}`, fill: "none", stroke: o.appearance?.color || theme.window,
+            strokeWidth: T * 0.45, layer: "walls", ref: { type: "opening", id: o.id }, order: 1 });
+        }
+      }
+      tops.push({ type: "path", d: poly([...Ls.map((q) => lift(q)), ...Rs.slice().reverse().map((q) => lift(q))]), fill: color,
+        stroke: theme.wallEdge, strokeWidth: u * 0.12, layer: "walls", ref, order: 0 });
+    }
+  }
+  for (const it of faces) push(it);
+  for (const it of decals) push(it);
+  for (const it of tops.filter((t) => t.order === 0)) { delete it.order; push(it); }
+  for (const it of tops.filter((t) => t.order === 1)) { delete it.order; push(it); }
 }
 
 function chip(push, x, y, text, fs, theme, ref, layer) {

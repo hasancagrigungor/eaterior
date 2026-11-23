@@ -9,7 +9,7 @@ produced from a photo or sketch of a floor plan.
 ![Garden Bistro, illustrated theme](docs/images/restaurant-illustrated.png)
 
 *[`examples/restaurant.json`](examples/restaurant.json) with live table status, drawn entirely in code by the
-illustrated theme. The JSON only says what things are (zone kinds, floor finish, materials, colours, chair style);
+illustrated theme, walls with 3D depth. The JSON only says what things are (zone kinds, floor finish, materials, colours, chair style);
 the renderer decides how they look.*
 
 | Plain theme with live status | Plan imported from a drawing |
@@ -23,9 +23,9 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **One plan, every screen.** Geometry is stored in floor units with a fixed origin and axis convention; clients
   scale it to fit. The aspect ratio of the real room is kept.
 - **Physical layout only.** Orders, reservations, live table status and sensor readings stay in your existing
-  systems and are joined by id ([table state](schemas/v1.1.0/table-state.schema.json),
-  [telemetry](schemas/v1.1.0/environment-telemetry.schema.json)).
-- **Made to be generated.** A pixel-based [detection format](schemas/v1.1.0/detection.schema.json) and a
+  systems and are joined by id ([table state](schemas/v1.1.1/table-state.schema.json),
+  [telemetry](schemas/v1.1.1/environment-telemetry.schema.json)).
+- **Made to be generated.** A pixel-based [detection format](schemas/v1.1.1/detection.schema.json) and a
   deterministic importer turn any drawing into a validated plan, with confidence and review flags.
 - **Strictly validated.** JSON Schema for structure, plus a reference validator for references and geometry.
 - **Looks are data, drawing is code.** Optional `appearance` fields (floor finish, material, colours, chair style)
@@ -35,7 +35,7 @@ Dashed amber outlines mark objects that need a person to confirm them.
 ## What is in the repository
 
 ```
-schemas/v1.1.0/     eateryplan · table-state · environment-telemetry · detection (JSON Schema 2020-12)
+schemas/v1.1.1/     eateryplan · table-state · environment-telemetry · detection (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
 docs/               specification · rendering contract · image import
 python/eateryplan/  validator, legacy migrator, detection importer (CLI + library)
@@ -118,7 +118,7 @@ cd js && npm test
 
 ## Status
 
-Format version **1.1.0** (1.0.0 documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
+Format version **1.1.1** (1.0.0 and 1.1.0 documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
 rules in the [specification](docs/specification.md#8-extensibility-and-versioning). Issues and pull requests are
 welcome.
 

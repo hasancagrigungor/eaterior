@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.0/eateryplan.schema.json",
-  "title": "Eatery Plan v1.1.0",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.1/eateryplan.schema.json",
+  "title": "Eatery Plan v1.1.1",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -19,7 +19,8 @@
     "schemaVersion": {
       "enum": [
         "1.0.0",
-        "1.1.0"
+        "1.1.0",
+        "1.1.1"
       ],
       "description": "1.0.0 documents remain valid. Legacy CafePlan 1.x files are converted with `eateryplan migrate`."
     },
@@ -577,6 +578,11 @@
         },
         "appearance": {
           "$ref": "#/$defs/appearance"
+        },
+        "heightMeters": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Physical wall height in metres (optional). Renderers use it for depth effects; defaults: 2.8 m, half_height 1.1 m."
         }
       },
       "required": [

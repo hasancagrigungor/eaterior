@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.0/environment-telemetry.schema.json",
-  "title": "Eatery Plan Environment Telemetry v1.1.0",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.1.1/environment-telemetry.schema.json",
+  "title": "Eatery Plan Environment Telemetry v1.1.1",
   "description": "One sensor reading. Keys in readings must match the sensor's metrics: temperature->temperatureC, humidity->relativeHumidityPct, co2->co2Ppm, pm25->pm25UgM3, pm10->pm10UgM3, voc->vocPpb, pressure->pressureHpa, noise->noiseDbA, occupancy->occupancyCount, light->illuminanceLux.",
   "type": "object",
   "additionalProperties": false,
@@ -18,7 +18,8 @@
     "schemaVersion": {
       "enum": [
         "1.0.0",
-        "1.1.0"
+        "1.1.0",
+        "1.1.1"
       ]
     },
     "planId": {

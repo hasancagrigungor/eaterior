@@ -81,3 +81,13 @@ table, zone or device. The reference renderer emits `ref` on every display-list 
   badge. With live state, the badge and an outline take the status colour.
 - **Defs**: the scene has `defs` (patterns, gradients) referenced as `fill: "url(#id)"`. SVG and react-native-svg
   support them directly; a Canvas renderer can build them with `createPattern` / `createLinearGradient`.
+
+### Walls with depth
+
+By default the illustrated theme gives walls a 3D look while the data stays 2D. A camera is assumed above the floor
+centre (`camera` option); each wall's top is shifted away from it in proportion to the wall height
+(`heightMeters`, default 2.8 m, `half_height` 1.1 m) and its distance from the camera, and the wall face pointing
+towards the camera is drawn as a shaded quad between the floor line and the shifted top. Door openings show their
+jambs; windows are drawn on the visible face. The shift is capped relative to the wall thickness so faces never hide
+furniture in the room. Hit-testing and validation always use the 2D floor geometry. Options: `walls3d: false` for flat
+walls, `wallDepth` to scale the effect.
