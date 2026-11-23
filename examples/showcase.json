@@ -21,7 +21,7 @@
         "xAxis": "right",
         "yAxis": "down",
         "width": 1000,
-        "height": 1130,
+        "height": 1420,
         "realWorldScale": {
           "metersPerUnit": 0.016,
           "source": "measured"
@@ -316,6 +316,23 @@
           "appearance": {
             "floor": "stone",
             "color": "#CFC6B6"
+          }
+        },
+        {
+          "id": "zone_rugs",
+          "floorId": "floor_0",
+          "name": "Rugs",
+          "kind": "other",
+          "shape": {
+            "kind": "rect",
+            "x": 16,
+            "y": 1135,
+            "width": 968,
+            "height": 275
+          },
+          "appearance": {
+            "floor": "concrete",
+            "color": "#D9D5CE"
           }
         }
       ],
@@ -988,6 +1005,198 @@
             "color": "#4A4F55",
             "accentColor": "#8C969E"
           }
+        },
+        {
+          "id": "rug_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 34.2,
+            "y": 1156.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "persian"
+          }
+        },
+        {
+          "id": "rug_2",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 195.5,
+            "y": 1156.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "kilim"
+          }
+        },
+        {
+          "id": "rug_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 419.3,
+            "cy": 1200,
+            "rx": 46.9,
+            "ry": 46.9
+          },
+          "appearance": {
+            "style": "moroccan"
+          }
+        },
+        {
+          "id": "rug_4",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 518.2,
+            "y": 1156.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "striped"
+          }
+        },
+        {
+          "id": "rug_5",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 679.5,
+            "y": 1156.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "geometric"
+          }
+        },
+        {
+          "id": "rug_6",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 903.3,
+            "cy": 1200,
+            "rx": 46.9,
+            "ry": 46.9
+          },
+          "appearance": {
+            "style": "shag"
+          }
+        },
+        {
+          "id": "rug_7",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 34.2,
+            "y": 1276.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "jute"
+          }
+        },
+        {
+          "id": "rug_8",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 195.5,
+            "y": 1276.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "floral"
+          }
+        },
+        {
+          "id": "rug_9",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 419.3,
+            "cy": 1320,
+            "rx": 46.9,
+            "ry": 46.9
+          },
+          "appearance": {
+            "style": "bordered"
+          }
+        },
+        {
+          "id": "rug_10",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 518.2,
+            "y": 1276.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "abstract"
+          }
+        },
+        {
+          "id": "rug_11",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 679.5,
+            "y": 1276.3,
+            "width": 125.0,
+            "height": 87.5
+          },
+          "appearance": {
+            "style": "chevron"
+          }
+        },
+        {
+          "id": "rug_12",
+          "floorId": "floor_0",
+          "zoneId": "zone_rugs",
+          "kind": "rug",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 903.3,
+            "cy": 1320,
+            "rx": 46.9,
+            "ry": 46.9
+          },
+          "appearance": {
+            "style": "braided"
+          }
         }
       ],
       "climateDevices": [],
@@ -1325,6 +1534,138 @@
         },
         {
           "id": "label_31",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "persian",
+          "position": {
+            "x": 96.7,
+            "y": 1258
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_32",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "kilim",
+          "position": {
+            "x": 258.0,
+            "y": 1258
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_33",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "moroccan",
+          "position": {
+            "x": 419.3,
+            "y": 1258
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_34",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "striped",
+          "position": {
+            "x": 580.7,
+            "y": 1258
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_35",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "geometric",
+          "position": {
+            "x": 742.0,
+            "y": 1258
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_36",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "shag",
+          "position": {
+            "x": 903.3,
+            "y": 1258
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_37",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "jute",
+          "position": {
+            "x": 96.7,
+            "y": 1378
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_38",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "floral",
+          "position": {
+            "x": 258.0,
+            "y": 1378
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_39",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "bordered",
+          "position": {
+            "x": 419.3,
+            "y": 1378
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_40",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "abstract",
+          "position": {
+            "x": 580.7,
+            "y": 1378
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_41",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "chevron",
+          "position": {
+            "x": 742.0,
+            "y": 1378
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_42",
+          "floorId": "floor_0",
+          "kind": "text",
+          "text": "braided",
+          "position": {
+            "x": 903.3,
+            "y": 1378
+          },
+          "fontSize": 10
+        },
+        {
+          "id": "label_43",
           "floorId": "floor_0",
           "kind": "text",
           "text": "Eatery Plan — component gallery",

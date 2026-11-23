@@ -12,8 +12,8 @@ from jsonschema import Draft202012Validator
 
 from . import geometry as g
 
-SCHEMA_VERSION = "1.5.0"
-SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0")
+SCHEMA_VERSION = "1.6.0"
+SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0")
 BOUNDS_TOLERANCE = 0.01  # objects may exceed the floor by 1 % of its size
 LOW_CONFIDENCE = 0.5
 METRIC_TO_READING = {

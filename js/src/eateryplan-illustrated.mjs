@@ -593,10 +593,7 @@ function drawFixture(fx, ctx) {
       break;
     }
     case "rug": {
-      const c = ap.color || "#C2185B", a2 = ap.accentColor || lighten(c, 0.45);
-      const outer = box.round ? p.ellipse(0, 0, w / 2, h / 2) : p.rect(-w / 2, -h / 2, w, h, rr);
-      const inner = box.round ? p.ellipse(0, 0, w / 2 - u, h / 2 - u) : p.rect(-w / 2 + u, -h / 2 + u, w - 2 * u, h - 2 * u, rr);
-      out(outer, grad(c)); out(inner, "none", { stroke: a2, strokeWidth: u * 0.4, dash: [u, u * 0.6] });
+      drawRug(fx, box, { p, out, shadow }, ctx);
       break;
     }
     case "sink": case "hand_sink": {
@@ -726,6 +723,156 @@ function drawFixture(fx, ctx) {
       const c = materialColor(theme, ap, "#B0B7BE");
       if (box.round) roundBody(c); else body(c, rr);
       out(box.round ? p.ellipse(0, 0, w * 0.35, h * 0.35) : p.rect(-w * 0.35, -h * 0.35, w * 0.7, h * 0.7, rr), lighten(c, 0.18));
+    }
+  }
+}
+
+const RUG_COLORS = {
+  persian: ["#8E1B2B", "#1F2E4D"], kilim: ["#B5442E", "#2F4A6D"], moroccan: ["#F3EDE2", "#2B2B2B"], striped: ["#2E5E7E", "#F2E9DA"],
+  geometric: ["#D9A441", "#2F3E46"], shag: ["#D8C9B0", "#B9A68A"], jute: ["#C8A77A", "#8B6B43"], floral: ["#F1E4D0", "#B03A48"],
+  bordered: ["#7A8C6E", "#E8E1D0"], abstract: ["#E7DCCB", "#D36A4A"], chevron: ["#2F3E46", "#E8E1D0"], braided: ["#B8864E", "#6E4B2A"],
+};
+
+/** Rugs: the field is filled with an SVG pattern (so motifs never leave the rug), borders and medallions are shapes. */
+function drawRug(fx, box, k, ctx) {
+  const { M, u, grad, addDef } = ctx;
+  const { p, out, shadow } = k;
+  const ap = fx.appearance || {};
+  const style = RUG_COLORS[ap.style] ? ap.style : "bordered";
+  const c = ap.color || RUG_COLORS[style][0], a = ap.accentColor || RUG_COLORS[style][1];
+  const { w, h } = box, round = !!box.round, min = Math.min(w, h), rnd = rng(fx.id);
+  const shapeAt = (inset) => round ? p.ellipse(0, 0, Math.max(0.1, w / 2 - inset), Math.max(0.1, h / 2 - inset))
+    : p.rect(-w / 2 + inset, -h / 2 + inset, Math.max(0.1, w - 2 * inset), Math.max(0.1, h - 2 * inset), style === "shag" ? min * 0.08 : min * 0.015);
+  const P = (d, fill, e = {}) => ({ type: "path", d, fill, stroke: e.stroke ?? "none", strokeWidth: e.sw ?? 0, opacity: e.op });
+  const R = (x, y, ww, hh, fill, e) => P(`M${f(x)} ${f(y)} h${f(ww)} v${f(hh)} h${f(-ww)} Z`, fill, e);
+  const C = (x, y, r, fill, e) => P(circlePath(x, y, r), fill, e);
+  const Poly = (pts, fill, e) => P(pts.map((q, i) => `${i ? "L" : "M"}${f(q[0])} ${f(q[1])}`).join(" ") + " Z", fill, e);
+  const L = (x1, y1, x2, y2, stroke, sw, op) => P(`M${f(x1)} ${f(y1)} L${f(x2)} ${f(y2)}`, "none", { stroke, sw, op });
+  const pat = (name, pw, ph, items, extraRot = 0) =>
+    addDef({ type: "pattern", id: `ep-rug-${fx.id}-${name}`, width: pw, height: ph, rotation: (box.rot || 0) + extraRot, items });
+  const T = Math.max(M(0.22), u * 1.2);
+  const border = min * 0.11;
+  const outer = shapeAt(0);
+  shadow(outer, 0.35);
+
+  // fringe on the short ends of woven rectangular rugs
+  if (!round && ["persian", "kilim", "moroccan", "jute", "bordered", "floral"].includes(style)) {
+    const alongX = w >= h, len = min * 0.07, step = u * 0.5, span = alongX ? h : w;
+    for (const side of [-1, 1]) for (let t = -span / 2 + step / 2; t < span / 2; t += step) {
+      out(alongX ? p.line(side * w / 2, t, side * (w / 2 + len), t) : p.line(t, side * h / 2, t, side * (h / 2 + len)), "none",
+        { stroke: "#EDE3CF", strokeWidth: u * 0.1, opacity: 0.9 });
+    }
+  }
+
+  switch (style) {
+    case "persian": {
+      out(outer, grad(a), { stroke: darken(a, 0.3), strokeWidth: u * 0.1 });
+      const field = pat("field", T, T, [R(0, 0, T, T, c),
+        Poly([[T / 2, T * 0.15], [T * 0.85, T / 2], [T / 2, T * 0.85], [T * 0.15, T / 2]], "#D8B25A", { op: 0.85 }),
+        Poly([[T / 2, T * 0.32], [T * 0.68, T / 2], [T / 2, T * 0.68], [T * 0.32, T / 2]], darken(c, 0.25)),
+        C(0, 0, T * 0.07, "#F2E6C9"), C(T, 0, T * 0.07, "#F2E6C9"), C(0, T, T * 0.07, "#F2E6C9"), C(T, T, T * 0.07, "#F2E6C9")]);
+      out(shapeAt(border), field);
+      out(shapeAt(border * 0.45), "none", { stroke: "#D8B25A", strokeWidth: u * 0.18 });
+      out(shapeAt(border), "none", { stroke: "#D8B25A", strokeWidth: u * 0.25 });
+      const mw = (w - 2 * border) * 0.32, mh = (h - 2 * border) * 0.32;
+      out(p.poly([[0, -mh], [mw, 0], [0, mh], [-mw, 0]]), grad(a), { stroke: "#D8B25A", strokeWidth: u * 0.2 });
+      out(p.poly([[0, -mh * 0.62], [mw * 0.62, 0], [0, mh * 0.62], [-mw * 0.62, 0]]), grad(lighten(c, 0.08)), { stroke: "#D8B25A", strokeWidth: u * 0.12 });
+      out(p.ellipse(0, 0, mw * 0.2, mh * 0.2), "#D8B25A");
+      if (!round) for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+        const cx = sx * (w / 2 - border), cy = sy * (h / 2 - border), q = min * 0.14;
+        out(p.poly([[cx, cy], [cx - sx * q, cy], [cx, cy - sy * q]]), a, { stroke: "#D8B25A", strokeWidth: u * 0.1 });
+      }
+      break;
+    }
+    case "kilim": {
+      const bh = T * 0.5, cols = [c, a, "#E9D8B4", darken(c, 0.2)], items = [];
+      cols.forEach((col, i) => items.push(R(0, i * bh, T * 2, bh, col)));
+      for (let x = 0; x < T * 2; x += T / 2) {
+        items.push(Poly([[x, bh * 1.5], [x + T / 4, bh * 1.05], [x + T / 2, bh * 1.5], [x + T / 4, bh * 1.95]], "#E9D8B4"));
+        items.push(Poly([[x, bh * 3.5], [x + T / 4, bh * 3.1], [x + T / 2, bh * 3.5], [x + T / 4, bh * 3.9]], a));
+      }
+      out(outer, pat("bands", T * 2, bh * 4, items, w >= h ? 90 : 0), { stroke: darken(c, 0.35), strokeWidth: u * 0.15 });
+      break;
+    }
+    case "moroccan": {
+      const items = [R(0, 0, T, T * 1.4, c), Poly([[T / 2, 0], [T, T * 0.7], [T / 2, T * 1.4], [0, T * 0.7]], "none", { stroke: a, sw: T * 0.05, op: 0.85 })];
+      out(outer, pat("trellis", T, T * 1.4, items), { stroke: darken(c, 0.15), strokeWidth: u * 0.15 });
+      break;
+    }
+    case "striped": {
+      const sw = T * 0.6, items = [R(0, 0, sw * 4, sw * 4, c), R(sw, 0, sw * 0.6, sw * 4, a), R(sw * 2.2, 0, sw * 0.25, sw * 4, mix(c, a, 0.5)), R(sw * 3, 0, sw * 0.6, sw * 4, a)];
+      out(outer, pat("stripes", sw * 4, sw * 4, items, w >= h ? 0 : 90), { stroke: darken(c, 0.3), strokeWidth: u * 0.12 });
+      break;
+    }
+    case "geometric": {
+      const items = [R(0, 0, 2 * T, 2 * T, c), Poly([[0, 0], [T, 0], [0, T]], a), Poly([[T, T], [2 * T, T], [2 * T, 0]], a),
+        Poly([[0, T], [T, 2 * T], [0, 2 * T]], mix(c, a, 0.5)), Poly([[T, T], [2 * T, 2 * T], [T, 2 * T]], a)];
+      out(shapeAt(0), grad(a));
+      out(shapeAt(border * 0.5), pat("tri", 2 * T, 2 * T, items), { stroke: lighten(c, 0.3), strokeWidth: u * 0.12 });
+      break;
+    }
+    case "shag": {
+      const tt = T * 0.6, items = [R(0, 0, tt, tt, c)];
+      for (let i = 0; i < 40; i++) {
+        const x = rnd() * tt, y = rnd() * tt, l = tt * 0.28;
+        items.push(L(x, y, x + (rnd() - 0.5) * l, y + (rnd() - 0.5) * l, [darken(c, 0.18), lighten(c, 0.3), a][i % 3], tt * 0.07, 0.9));
+      }
+      out(outer, pat("pile", tt, tt, items), { stroke: lighten(c, 0.2), strokeWidth: u * 0.35, opacity: 0.95 });
+      break;
+    }
+    case "jute": {
+      const tt = T * 0.35, items = [R(0, 0, tt, tt, c)];
+      for (let i = 0; i < 3; i++) {
+        items.push(L(0, (tt * (i + 0.5)) / 3, tt / 2, (tt * (i + 0.5)) / 3, darken(c, 0.2), tt * 0.08, 0.8));
+        items.push(L(tt / 2 + (tt * (i + 0.5)) / 6, 0, tt / 2 + (tt * (i + 0.5)) / 6, tt / 2, darken(c, 0.15), tt * 0.08, 0.8));
+        items.push(L((tt * (i + 0.5)) / 6, tt / 2, (tt * (i + 0.5)) / 6, tt, darken(c, 0.15), tt * 0.08, 0.8));
+        items.push(L(tt / 2, tt / 2 + (tt * (i + 0.5)) / 6, tt, tt / 2 + (tt * (i + 0.5)) / 6, darken(c, 0.2), tt * 0.08, 0.8));
+      }
+      out(outer, grad(a));
+      out(shapeAt(border * 0.6), pat("weave", tt, tt, items));
+      break;
+    }
+    case "floral": {
+      const tt = T * 1.5, items = [R(0, 0, tt, tt, c)];
+      for (const [fx2, fy] of [[tt * 0.3, tt * 0.3], [tt * 0.8, tt * 0.8]]) {
+        for (let i = 0; i < 5; i++) { const an = (i / 5) * Math.PI * 2; items.push(C(fx2 + Math.cos(an) * tt * 0.07, fy + Math.sin(an) * tt * 0.07, tt * 0.06, a)); }
+        items.push(C(fx2, fy, tt * 0.04, "#D8B25A"));
+        items.push(P(`M${f(fx2 + tt * 0.1)} ${f(fy + tt * 0.08)} Q${f(fx2 + tt * 0.2)} ${f(fy + tt * 0.05)} ${f(fx2 + tt * 0.24)} ${f(fy + tt * 0.16)} Q${f(fx2 + tt * 0.14)} ${f(fy + tt * 0.18)} ${f(fx2 + tt * 0.1)} ${f(fy + tt * 0.08)} Z`, "#6E9B5A"));
+      }
+      out(outer, grad(a));
+      out(shapeAt(border), pat("flowers", tt, tt, items));
+      out(shapeAt(border * 0.5), "none", { stroke: c, strokeWidth: u * 0.18, opacity: 0.9 });
+      break;
+    }
+    case "abstract": {
+      out(outer, grad(c), { stroke: darken(c, 0.2), strokeWidth: u * 0.12 });
+      const iw = w * 0.32, ih = h * 0.32;
+      out(p.ellipse(-iw * 0.6, -ih * 0.3, iw * 0.55, ih * 0.45), a, { opacity: 0.85 });
+      out(p.ellipse(iw * 0.7, ih * 0.4, iw * 0.45, ih * 0.55), mix(c, a, 0.4), { opacity: 0.9 });
+      out(p.ellipse(iw * 0.2, -ih * 0.6, iw * 0.25, ih * 0.22), "#4E6E6A", { opacity: 0.8 });
+      out(p.raw((Pt) => `M${Pt(-w * 0.38, h * 0.3)} Q${Pt(-w * 0.05, -h * 0.1)} ${Pt(w * 0.15, h * 0.2)} T${Pt(w * 0.38, -h * 0.25)}`), "none",
+        { stroke: "#2F3E46", strokeWidth: u * 0.25, opacity: 0.7 });
+      break;
+    }
+    case "chevron": {
+      const tt = T, items = [R(0, 0, tt, tt, c), Poly([[0, tt * 0.25], [tt / 2, 0], [tt, tt * 0.25], [tt, tt * 0.5], [tt / 2, tt * 0.25], [0, tt * 0.5]], a),
+        Poly([[0, tt * 0.75], [tt / 2, tt * 0.5], [tt, tt * 0.75], [tt, tt], [tt / 2, tt * 0.75], [0, tt]], a)];
+      out(outer, pat("zigzag", tt, tt, items, w >= h ? 90 : 0), { stroke: darken(c, 0.3), strokeWidth: u * 0.12 });
+      break;
+    }
+    case "braided": {
+      const step = Math.max(u * 0.9, min * 0.06), n = Math.max(3, Math.floor(min / 2 / step));
+      for (let i = 0; i < n; i++) {
+        const d = shapeAt(i * step), col = [c, a, mix(c, a, 0.5)][i % 3];
+        out(d, grad(col), { stroke: darken(col, 0.25), strokeWidth: u * 0.08 });
+        out(shapeAt(i * step + step * 0.5), "none", { stroke: lighten(col, 0.25), strokeWidth: step * 0.35, dash: [step * 0.5, step * 0.4], opacity: 0.55 });
+      }
+      break;
+    }
+    default: { // bordered
+      out(outer, grad(a), { stroke: darken(a, 0.3), strokeWidth: u * 0.1 });
+      out(shapeAt(border), grad(c));
+      out(shapeAt(border * 1.35), "none", { stroke: lighten(c, 0.35), strokeWidth: u * 0.15, opacity: 0.8 });
     }
   }
 }
@@ -1074,9 +1221,11 @@ export function buildIllustratedScene(plan, options = {}) {
   };
   defs.push({ type: "radialGradient", id: "ep-glow", cx: 0.5, cy: 0.5, r: 0.5, stops: [
     { offset: 0, color: "#FFB36B", opacity: 0.55 }, { offset: 0.6, color: "#FF8A3D", opacity: 0.18 }, { offset: 1, color: "#FF8A3D", opacity: 0 }] });
+  const defIds = new Set();
+  const addDef = (d) => { if (!defIds.has(d.id)) { defIds.add(d.id); defs.push(d); } return `url(#${d.id})`; };
   const objStates = objectStateMap(options.objectStates);
   const stateOf = (o) => resolveState(o, objStates);
-  const ctx = { theme, push, u, M, grad, softShadow, stateOf, scaled: !!mpu };
+  const ctx = { theme, push, u, M, grad, softShadow, stateOf, addDef, scaled: !!mpu };
   const review = (d, o, type) => {
     if (options.highlightReview !== false && o.needsReview) {
       push({ type: "path", d, fill: "none", stroke: theme.review, strokeWidth: u * 0.5, dash: [u * 1.2, u * 0.8], layer: "review", ref: { type, id: o.id } });

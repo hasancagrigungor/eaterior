@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.0 — 2026-11-23
+
+- Rugs: 12 styles via `appearance.style` (persian, kilim, moroccan, striped, geometric, shag, jute, floral, bordered,
+  abstract, chevron, braided), round/oval or rectangular/square, fringes on woven rugs, motifs clipped to the rug and
+  rotated with it.
+- Gallery and restaurant examples include rugs; README images rendered at full size.
+
 ## 1.5.0 — 2026-11-23
 
 - Parquet: `wood_wide_planks`, `wood_chevron`, `wood_basketweave`.

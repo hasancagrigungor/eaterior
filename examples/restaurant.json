@@ -1,6 +1,6 @@
 {
   "format": "eateryplan",
-  "schemaVersion": "1.5.0",
+  "schemaVersion": "1.6.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
@@ -1094,6 +1094,74 @@
         }
       ],
       "fixtures": [
+        {
+          "id": "rug_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_dining",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 500,
+            "y": 380,
+            "width": 150,
+            "height": 165
+          },
+          "name": "Dining rug",
+          "appearance": {
+            "style": "persian"
+          }
+        },
+        {
+          "id": "rug_2",
+          "floorId": "floor_0",
+          "zoneId": "zone_dining",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 735,
+            "y": 505,
+            "width": 135,
+            "height": 72
+          },
+          "name": "Communal rug",
+          "appearance": {
+            "style": "kilim"
+          }
+        },
+        {
+          "id": "rug_3",
+          "floorId": "floor_0",
+          "zoneId": "zone_office",
+          "kind": "rug",
+          "shape": {
+            "kind": "rect",
+            "x": 575,
+            "y": 75,
+            "width": 90,
+            "height": 60
+          },
+          "name": "Office rug",
+          "appearance": {
+            "style": "moroccan"
+          }
+        },
+        {
+          "id": "rug_4",
+          "floorId": "floor_0",
+          "zoneId": "zone_entrance",
+          "kind": "rug",
+          "shape": {
+            "kind": "ellipse",
+            "cx": 630,
+            "cy": 590,
+            "rx": 22,
+            "ry": 22
+          },
+          "name": "Entrance mat",
+          "appearance": {
+            "style": "jute"
+          }
+        },
         {
           "id": "bar_counter_1",
           "floorId": "floor_0",

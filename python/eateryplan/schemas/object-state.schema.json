@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.5.0/object-state.schema.json",
-  "title": "Eatery Plan Object State v1.5.0",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.6.0/object-state.schema.json",
+  "title": "Eatery Plan Object State v1.6.0",
   "description": "Live state of any plan object (component): active/passive, how far it is open, device power. Kept outside the plan like table state; objectId refers to an id in the plan. Values here override the plan's defaults.",
   "type": "object",
   "additionalProperties": false,
@@ -19,7 +19,8 @@
     "schemaVersion": {
       "enum": [
         "1.4.0",
-        "1.5.0"
+        "1.5.0",
+        "1.6.0"
       ]
     },
     "planId": {

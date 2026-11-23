@@ -125,4 +125,9 @@ React Native example renders one `<G>` per run.
 - Sofas and armchairs: classic, modern, chesterfield (tufted), scandinavian (wood frame); corner sofa.
 - Parasols: round or square/rectangular from the shape; classic, striped, scalloped, solid, cantilever (side pole).
 
+- Rugs (1.6.0): persian (border, medallion, corner pieces), kilim (stepped bands), moroccan (trellis), striped,
+  geometric, shag (pile texture), jute (weave), floral, bordered, abstract, chevron, braided (coiled rings). Round/oval
+  from an ellipse, rectangular/square from a rect; woven rectangular rugs get fringes. Motifs are SVG patterns that fill
+  the rug's own outline, so they never spill out, and they rotate with the rug.
+
 `examples/showcase.json` is a gallery of every variant.

@@ -51,7 +51,7 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.5.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -76,7 +76,7 @@ test("wall height changes the depth", () => {
 });
 
 test("every climate device kind draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.5.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.climateDevice.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
@@ -144,7 +144,7 @@ test("plain theme fades inactive objects too", async () => {
 
 test("gallery: every floor, table style, seat kind and parasol variant renders", () => {
   const gallery = load("showcase.json");
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.5.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
   const sc = buildIllustratedScene(gallery);
   assert.ok(!/NaN|undefined/.test(toSvg(sc)));
   const floors = new Set(gallery.floors[0].zones.map((z) => z.appearance?.floor));
@@ -169,4 +169,19 @@ test("seats use real sizes when the floor has a scale", () => {
   const seatPaths = (p) => buildIllustratedScene(p).items.filter((i) => i.layer === "chairs" && i.ref.id === t.id).length;
   assert.equal(seatPaths(small), seatPaths(big));
   assert.ok(mpu > 0);
+});
+
+test("every rug style renders, round and rectangular, with patterns kept inside the rug", () => {
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.6.0/eateryplan.schema.json", import.meta.url), "utf8"));
+  const RUGS = ["persian", "kilim", "moroccan", "striped", "geometric", "shag", "jute", "floral", "bordered", "abstract", "chevron", "braided"];
+  for (const r of RUGS) assert.ok(schema.$defs.appearance.properties.style.enum.includes(r), r);
+  const plan = structuredClone(load("showcase.json"));
+  plan.floors[0].fixtures = RUGS.flatMap((style, i) => [
+    { id: `rr_${i}`, floorId: "floor_0", kind: "rug", appearance: { style }, shape: { kind: "rect", x: 40 + (i % 6) * 150, y: 300, width: 120, height: 80, rotationDeg: 15 } },
+    { id: `rc_${i}`, floorId: "floor_0", kind: "rug", appearance: { style }, shape: { kind: "ellipse", cx: 100 + (i % 6) * 150, cy: 500, rx: 50, ry: 40 } }]);
+  const sc = buildIllustratedScene(plan);
+  assert.ok(!/NaN|undefined/.test(toSvg(sc)));
+  for (const f of plan.floors[0].fixtures) assert.ok(sc.items.filter((i) => i.ref?.id === f.id).length >= 2, f.id);
+  const rugPatterns = sc.defs.filter((d) => d.id.startsWith("ep-rug-rr_0"));
+  assert.ok(rugPatterns.every((d) => d.rotation === 15), "rug patterns rotate with the rug");
 });

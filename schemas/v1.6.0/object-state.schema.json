@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eatery-plan/main/schemas/v1.6.0/object-state.schema.json",
+  "title": "Eatery Plan Object State v1.6.0",
+  "description": "Live state of any plan object (component): active/passive, how far it is open, device power. Kept outside the plan like table state; objectId refers to an id in the plan. Values here override the plan's defaults.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "planId",
+    "generatedAt",
+    "objects"
+  ],
+  "properties": {
+    "format": {
+      "const": "eateryplan-object-state"
+    },
+    "schemaVersion": {
+      "enum": [
+        "1.4.0",
+        "1.5.0",
+        "1.6.0"
+      ]
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "planRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objectState"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+      },
+      "additionalProperties": true,
+      "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+    }
+  },
+  "$defs": {
+    "objectState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objectId"
+      ],
+      "properties": {
+        "objectId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "false = passive: closed, out of service or disabled."
+        },
+        "open": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0 = closed, 1 = fully open. Pergola louvers / retractable roofs, folding and sliding glass walls, doors and windows."
+        },
+        "power": {
+          "enum": [
+            "on",
+            "off"
+          ],
+          "description": "Climate devices."
+        },
+        "mode": {
+          "type": "string",
+          "description": "Free-form device mode, e.g. cooling, heating, fan."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "extensions": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+          },
+          "additionalProperties": true,
+          "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+        }
+      }
+    }
+  }
+}

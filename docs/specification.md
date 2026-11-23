@@ -1,4 +1,4 @@
-# Eatery Plan 1.5.0 — Specification
+# Eatery Plan 1.6.0 — Specification
 
 Eatery Plan describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eateryplan", schemaVersion: "1.5.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eateryplan", schemaVersion: "1.6.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -98,7 +98,7 @@ map it to textures, symbols and shading; the same plan can be shown in a plain o
 | `color`, `accentColor` | all | `#RRGGBB` — main and secondary colour (e.g. the two colours of a checker floor) |
 | `tablecloth` | tables | `#RRGGBB` |
 | `tableSetting` | tables | `none`, `plates`, `plates_glasses` |
-| `style` | tables, sofas, armchairs, parasols | tables: `classic`, `modern`, `rustic`, `industrial`, `bistro`, `scandinavian`; sofas/armchairs: `classic`, `modern`, `chesterfield`, `scandinavian`; parasols: `classic`, `striped`, `scalloped`, `solid`, `cantilever` |
+| `style` | tables, sofas, armchairs, parasols, rugs | tables: `classic`, `modern`, `rustic`, `industrial`, `bistro`, `scandinavian`; sofas/armchairs: `classic`, `modern`, `chesterfield`, `scandinavian`; parasols: `classic`, `striped`, `scalloped`, `solid`, `cantilever`; rugs: `persian`, `kilim`, `moroccan`, `striped`, `geometric`, `shag`, `jute`, `floral`, `bordered`, `abstract`, `chevron`, `braided` |
 | `roof` | pergolas | `slatted`, `louvered` (aluminium bioclimatic), `glass`, `fabric`, `solid` — `color` is the frame, `accentColor` the roof |
 
 Tables MAY also have `chairStyle`: `kind` (`chair`, `armchair`, `stool`, `stool_backrest`, `bistro`, `cafe`, `tub`,
@@ -175,7 +175,7 @@ Every plan object is a component that can be switched on and off.
 
 - **Default** in the plan: optional `active` (default `true`) on zones, walls, openings, tables, fixtures, climate
   devices, sensors and labels — e.g. a terrace closed for the winter or a table taken out of service.
-- **Live** in an object-state document ([`object-state`](../schemas/v1.5.0/object-state.schema.json),
+- **Live** in an object-state document ([`object-state`](../schemas/v1.6.0/object-state.schema.json),
   `format: "eateryplan-object-state"`): one entry per `objectId` with any of
   - `active`: `true` / `false`
   - `open`: `0` (closed) … `1` (fully open) — pergola louvers or retractable roofs, `glass_folding` / `glass_sliding`
