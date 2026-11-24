@@ -43,7 +43,7 @@ an external system can publish state without knowing plan ids:
 
 ```json
 {
-  "format": "eaterior-table-state", "schemaVersion": "1.9.0", "planId": "restaurant_001",
+  "format": "eaterior-table-state", "schemaVersion": "1.10.0", "planId": "restaurant_001",
   "source": "pos", "generatedAt": "2026-11-23T19:30:00Z",
   "tables": [
     { "externalRef": { "system": "pos", "id": "T-A1" }, "status": "occupied", "guestCount": 2, "orderId": "ord-88213",
@@ -54,7 +54,7 @@ an external system can publish state without knowing plan ids:
 
 ```json
 {
-  "format": "eaterior-object-state", "schemaVersion": "1.9.0", "planId": "restaurant_001",
+  "format": "eaterior-object-state", "schemaVersion": "1.10.0", "planId": "restaurant_001",
   "source": "bms", "generatedAt": "2026-11-23T20:00:00Z",
   "objects": [
     { "externalRef": { "system": "bms", "id": "heater-3" }, "power": "on", "level": 0.8 },

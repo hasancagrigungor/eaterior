@@ -12,8 +12,8 @@ from jsonschema import Draft202012Validator
 
 from . import geometry as g
 
-SCHEMA_VERSION = "1.9.0"
-SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0")
+SCHEMA_VERSION = "1.10.0"
+SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0", "1.10.0")
 LEGACY_FORMATS = {"eateryplan": "eaterior", "eateryplan-table-state": "eaterior-table-state",
                   "eateryplan-object-state": "eaterior-object-state", "eateryplan-telemetry": "eaterior-telemetry"}
 BOUNDS_TOLERANCE = 0.01  # objects may exceed the floor by 1 % of its size
@@ -114,8 +114,9 @@ def _jpath(parts) -> str:
     return "$" + "".join(f"[{x}]" if isinstance(x, int) else f".{x}" for x in parts)
 
 
-def schema_check(doc, schema, report: Report):
-    v = Draft202012Validator(schema, format_checker=Draft202012Validator.FORMAT_CHECKER)
+def schema_check(doc, schema, report: Report, registry=None):
+    kw = {"registry": registry} if registry is not None else {}
+    v = Draft202012Validator(schema, format_checker=Draft202012Validator.FORMAT_CHECKER, **kw)
     for e in sorted(v.iter_errors(doc), key=lambda e: list(map(str, e.absolute_path))):
         report.error("schema", _jpath(e.absolute_path), e.message)
     if isinstance(doc, dict) and (new := LEGACY_FORMATS.get(doc.get("format"))):
@@ -493,4 +494,52 @@ def check_object_state(plan: dict, doc: dict) -> Report:
         for fld in ("power", "level"):
             if fld in s and not powered:
                 r.error("no_power", f"{p}.{fld}", f"'{oid}' is not a climate device or appliance")
+    return r
+
+
+# ---------------------------------------------------------------- catalogs (1.10)
+_SAFE_SCHEMES = ("https://", "http://")
+
+
+def check_catalog(cat: dict) -> Report:
+    """A publisher's product catalog: structure, unique ids, valid object kinds, safe asset links."""
+    from referencing import Registry, Resource
+    r = Report()
+    plan_schema = load_schema("eaterior.schema.json")
+    registry = Registry().with_resource(plan_schema["$id"], Resource.from_contents(plan_schema))
+    schema = load_schema("catalog.schema.json")
+    schema_check(cat, schema, r, registry)
+    if not isinstance(cat, dict) or not isinstance(cat.get("items"), list):
+        return r
+    kinds = schema.get("x-eaterior-kinds", {})
+    seen = {}
+    for i, it in enumerate(cat["items"]):
+        if not isinstance(it, dict):
+            continue
+        p = f"$.items[{i}]"
+        iid = it.get("id")
+        if iid in seen:
+            r.error("duplicate_id", f"{p}.id", f"'{iid}' already used by {seen[iid]}")
+        seen.setdefault(iid, p)
+        tpl = it.get("template") or {}
+        kind, typ = tpl.get("kind"), it.get("type")
+        if typ in kinds and kind is not None and kind not in kinds[typ]:
+            r.error("bad_kind", f"{p}.template.kind", f"'{kind}' is not a {typ} kind")
+        if typ == "fixture" and kind is None:
+            r.error("missing_kind", f"{p}.template.kind", "fixtures need a kind")
+        if typ == "climateDevice" and kind is None:
+            r.error("missing_kind", f"{p}.template.kind", "climate devices need a kind")
+        if tpl.get("performance") and typ != "climateDevice":
+            r.warn("performance_ignored", f"{p}.template.performance", "performance is only used on climate devices")
+        vids = [v.get("id") for v in it.get("variants", []) if isinstance(v, dict)]
+        if len(vids) != len(set(vids)):
+            r.error("duplicate_variant", f"{p}.variants", "variant ids must be unique")
+        for k, url in (it.get("assets") or {}).items():
+            if not isinstance(url, str):
+                continue
+            low = url.strip().lower()
+            if ":" in low.split("/")[0] and not low.startswith(_SAFE_SCHEMES):
+                r.error("unsafe_url", f"{p}.assets.{k}", "assets must be https:// links or relative paths")
+            elif low.startswith("http://"):
+                r.warn("insecure_url", f"{p}.assets.{k}", "use https://")
     return r

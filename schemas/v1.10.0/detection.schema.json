@@ -1,0 +1,580 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.10.0/detection.schema.json",
+  "title": "Eaterior Image Detection v1.10.0",
+  "description": "Intermediate format for converting a drawn floor plan image into Eaterior. All coordinates are IMAGE PIXELS (origin top-left). Designed to be usable as a strict structured-output schema for vision models: every object has additionalProperties=false, all fields are required (use null when unknown), no oneOf, no numeric/string constraints, no recursion. Convert with `eaterior import`, which normalises coordinates, snaps walls, attaches openings to walls and validates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "image",
+    "scale",
+    "rooms",
+    "walls",
+    "openings",
+    "tables",
+    "fixtures",
+    "climateDevices",
+    "labels",
+    "notes"
+  ],
+  "properties": {
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "widthPx",
+        "heightPx"
+      ],
+      "properties": {
+        "widthPx": {
+          "type": "number"
+        },
+        "heightPx": {
+          "type": "number"
+        }
+      }
+    },
+    "scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pixelsPerMeter",
+        "evidence"
+      ],
+      "properties": {
+        "pixelsPerMeter": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "enum": [
+                "dimension_label",
+                "scale_bar",
+                "user_input"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "description": "Only fill when the drawing states a dimension or scale bar. Never guess."
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "kind",
+          "polygon",
+          "confidence"
+        ],
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "dining",
+              "terrace",
+              "bar",
+              "kitchen",
+              "storage",
+              "restroom",
+              "corridor",
+              "entrance",
+              "staff",
+              "outdoor",
+              "other"
+            ]
+          },
+          "polygon": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "x",
+                "y"
+              ],
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        }
+      }
+    },
+    "walls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "x1",
+          "y1",
+          "x2",
+          "y2",
+          "thicknessPx",
+          "kind",
+          "confidence"
+        ],
+        "properties": {
+          "x1": {
+            "type": "number"
+          },
+          "y1": {
+            "type": "number"
+          },
+          "x2": {
+            "type": "number"
+          },
+          "y2": {
+            "type": "number"
+          },
+          "thicknessPx": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "solid",
+              "glass",
+              "partition",
+              "external",
+              "half_height",
+              "glass_folding",
+              "glass_sliding"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        }
+      }
+    },
+    "openings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "x",
+          "y",
+          "widthPx",
+          "swing",
+          "confidence"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "door",
+              "window",
+              "archway"
+            ]
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "widthPx": {
+            "type": "number"
+          },
+          "swing": {
+            "anyOf": [
+              {
+                "enum": [
+                  "none",
+                  "left",
+                  "right",
+                  "double",
+                  "sliding"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        },
+        "description": "Centre point of the opening; the importer attaches it to the nearest wall."
+      }
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "shape",
+          "cx",
+          "cy",
+          "width",
+          "height",
+          "rotationDeg",
+          "seats",
+          "kind",
+          "confidence"
+        ],
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shape": {
+            "enum": [
+              "round",
+              "oval",
+              "rect"
+            ]
+          },
+          "cx": {
+            "type": "number"
+          },
+          "cy": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "rotationDeg": {
+            "type": "number"
+          },
+          "seats": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "standard",
+                  "high",
+                  "bar_stool",
+                  "booth",
+                  "sofa",
+                  "communal",
+                  "outdoor",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "shape",
+          "cx",
+          "cy",
+          "width",
+          "height",
+          "rotationDeg",
+          "name",
+          "confidence"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "counter",
+              "bar_counter",
+              "prep_counter",
+              "sofa",
+              "chair",
+              "armchair",
+              "bench",
+              "pouf",
+              "lounge_chair",
+              "corner_sofa",
+              "bar_stool",
+              "plant",
+              "planter",
+              "tree",
+              "parasol",
+              "pergola",
+              "palm_tree",
+              "rug",
+              "sink",
+              "hand_sink",
+              "stove",
+              "oven",
+              "fridge",
+              "freezer",
+              "dishwasher",
+              "coffee_machine",
+              "display_case",
+              "wine_rack",
+              "shelf",
+              "host_stand",
+              "pos_terminal",
+              "tv",
+              "piano",
+              "toilet",
+              "urinal",
+              "stairs",
+              "elevator",
+              "column",
+              "equipment",
+              "other"
+            ]
+          },
+          "shape": {
+            "enum": [
+              "round",
+              "oval",
+              "rect"
+            ]
+          },
+          "cx": {
+            "type": "number"
+          },
+          "cy": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "rotationDeg": {
+            "type": "number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        }
+      }
+    },
+    "climateDevices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "cx",
+          "cy",
+          "width",
+          "height",
+          "rotationDeg",
+          "mount",
+          "confidence"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "air_conditioner",
+              "hvac_indoor_unit",
+              "hvac_outdoor_unit",
+              "ventilation_fan",
+              "exhaust_hood",
+              "air_supply_vent",
+              "air_return_vent",
+              "air_purifier",
+              "heater",
+              "radiator",
+              "underfloor_heating",
+              "thermostat",
+              "humidifier",
+              "dehumidifier",
+              "ceiling_cassette",
+              "ventilation_duct",
+              "patio_heater",
+              "wall_heater",
+              "other"
+            ]
+          },
+          "cx": {
+            "type": "number"
+          },
+          "cy": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "rotationDeg": {
+            "type": "number"
+          },
+          "mount": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ceiling",
+                  "wall",
+                  "floor",
+                  "window",
+                  "duct",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        }
+      }
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "x",
+          "y",
+          "dimension",
+          "confidence"
+        ],
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "dimension": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "x1",
+                  "y1",
+                  "x2",
+                  "y2",
+                  "valueMeters"
+                ],
+                "properties": {
+                  "x1": {
+                    "type": "number"
+                  },
+                  "y1": {
+                    "type": "number"
+                  },
+                  "x2": {
+                    "type": "number"
+                  },
+                  "y2": {
+                    "type": "number"
+                  },
+                  "valueMeters": {
+                    "type": "number"
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "description": "0..1"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ambiguities the detector could not resolve."
+    }
+  }
+}

@@ -8,7 +8,7 @@
  * `fill: "url(#id)"`. toSvg() renders it; react-native-svg supports the same Defs/Pattern/LinearGradient.
  */
 import { shapeToPath, shapeCenter, WallGeom, autoChairs, circlePath, f, rot, asMap, formatReadings,
-  objectStateMap, stateMap, resolveState, applyInactive } from "./eaterior-render.mjs";
+  objectStateMap, stateMap, resolveState, applyInactive, productImageItem } from "./eaterior-render.mjs";
 
 export const ILLUSTRATED_LAYERS = ["background", "shadow", "zones", "fixtures", "walls", "openings", "chairs",
   "tables", "canopy", "climate", "badges", "sensors", "labels", "review"];
@@ -1377,7 +1377,13 @@ export function buildIllustratedScene(plan, options = {}) {
     review(d, z, "zone");
   }
 
-  for (const fx of ordered(floor.fixtures)) { drawFixture(fx, ctx); review(shapeToPath(fx.shape), fx, "fixture"); }
+  // catalog products: the app may supply a top-view image that replaces the generic symbol (1.10)
+  const productImg = (o, type, layer) => productImageItem(o, type, layer, options);
+  for (const fx of ordered(floor.fixtures)) {
+    const img = productImg(fx, "fixture", fx.kind === "rug" ? "rugs" : "fixtures");
+    if (img) push(img); else drawFixture(fx, ctx);
+    review(shapeToPath(fx.shape), fx, "fixture");
+  }
 
   // walls (white, with an outline) and openings
   const openingsByWall = new Map();
@@ -1469,9 +1475,15 @@ export function buildIllustratedScene(plan, options = {}) {
 
   for (const t of ordered(floor.tables)) {
     drawTable(options.showChairs === false ? { ...t, seats: 0, chairs: [] } : t, ctx, states.get(t.id));
+    const img = productImg(t, "table", "tables");
+    if (img) push(img); // the product's table top over the generic one; chairs stay
     review(shapeToPath(t.shape), t, "table");
   }
-  for (const dv of ordered(floor.climateDevices)) { drawClimate(dv, ctx); review(shapeToPath(dv.shape), dv, "climateDevice"); }
+  for (const dv of ordered(floor.climateDevices)) {
+    const img = productImg(dv, "climateDevice", "climate");
+    if (img) push(img); else drawClimate(dv, ctx);
+    review(shapeToPath(dv.shape), dv, "climateDevice");
+  }
 
   for (const s of ordered(floor.environmentalSensors)) {
     const { x, y } = s.position, ref = { type: "sensor", id: s.id };

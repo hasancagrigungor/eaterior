@@ -1,0 +1,49 @@
+{
+  "format": "eaterior-catalog",
+  "schemaVersion": "1.10.0",
+  "id": "example-furniture",
+  "name": "Example Furniture Co. — restaurant collection",
+  "version": "2026.11",
+  "updatedAt": "2026-11-24T10:00:00Z",
+  "publisher": { "name": "Example Furniture Co.", "url": "https://example.com" },
+  "license": "CC-BY-4.0",
+  "items": [
+    {
+      "id": "bistro-round-70",
+      "name": "Bistro round table Ø70",
+      "brand": "Example Furniture Co.",
+      "type": "table",
+      "category": "tables",
+      "sku": "EFC-BT-70",
+      "tags": ["bistro", "marble"],
+      "template": { "kind": "standard", "shape": "ellipse", "widthM": 0.7, "depthM": 0.7, "heightM": 0.75, "seats": 2,
+        "appearance": { "style": "bistro", "material": "marble" }, "chairStyle": { "kind": "bistro", "material": "wood" } },
+      "variants": [
+        { "id": "d60", "name": "Ø60", "sku": "EFC-BT-60", "widthM": 0.6, "depthM": 0.6 },
+        { "id": "d80", "name": "Ø80", "sku": "EFC-BT-80", "widthM": 0.8, "depthM": 0.8, "seats": 3 }
+      ],
+      "assets": { "thumbnail": "assets/bistro-round-70.png", "topView": "assets/bistro-round-70-top.svg", "datasheet": "https://example.com/bt70.pdf" }
+    },
+    {
+      "id": "lounge-sofa-3",
+      "name": "Lounge sofa, three seats",
+      "brand": "Example Furniture Co.",
+      "type": "fixture",
+      "category": "seating",
+      "sku": "EFC-LS-3",
+      "sponsored": true,
+      "template": { "kind": "sofa", "widthM": 2.1, "depthM": 0.9, "appearance": { "style": "chesterfield", "material": "leather", "color": "#6B3A2A" } }
+    },
+    {
+      "id": "eco-3600",
+      "name": "Kitchen ecology unit 3600 m³/h",
+      "brand": "Example Air",
+      "type": "climateDevice",
+      "category": "hvac",
+      "sku": "EA-ECO-3600",
+      "template": { "kind": "ecology_unit", "widthM": 2.0, "depthM": 0.7, "mount": "ceiling",
+        "capabilities": ["ventilation", "air_quality", "fan_speed", "power_switch"],
+        "performance": { "airflowM3h": 3600, "electricalPowerW": 1500, "externalStaticPressurePa": 450, "filterClass": "metal + ESP + active carbon" } }
+    }
+  ]
+}

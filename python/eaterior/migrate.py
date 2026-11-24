@@ -7,9 +7,9 @@ from datetime import datetime, timezone
 from .validate import SCHEMA_VERSION
 
 _V = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0")
-_V8 = _V + ("1.8.0",)
+_V8 = _V + ("1.8.0", "1.9.0")
 # "eateryplan" is the pre-1.8 name of this format; "cafeplan" the name before that.
-LEGACY = ({("cafeplan", v) for v in ("1.0.0", "1.1.0", "1.1.1")} | {("eateryplan", v) for v in _V8 + ("1.9.0",)}
+LEGACY = ({("cafeplan", v) for v in ("1.0.0", "1.1.0", "1.1.1")} | {("eateryplan", v) for v in _V8 + ("1.10.0",)}
           | {("eaterior", v) for v in _V8})
 
 

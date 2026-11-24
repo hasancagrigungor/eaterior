@@ -1,4 +1,4 @@
-# Eaterior 1.9.0 — Specification
+# Eaterior 1.10.0 — Specification
 
 Eaterior describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eaterior", schemaVersion: "1.9.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eaterior", schemaVersion: "1.10.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -196,7 +196,7 @@ Every plan object is a component that can be switched on and off.
 
 - **Default** in the plan: optional `active` (default `true`) on zones, walls, openings, tables, fixtures, climate
   devices, sensors and labels — e.g. a terrace closed for the winter or a table taken out of service.
-- **Live** in an object-state document ([`object-state`](../schemas/v1.9.0/object-state.schema.json),
+- **Live** in an object-state document ([`object-state`](../schemas/v1.10.0/object-state.schema.json),
   `format: "eaterior-object-state"`): one entry per `objectId` with any of
   - `active`: `true` / `false`
   - `open`: `0` (closed) … `1` (fully open) — pergola louvers or retractable roofs, `glass_folding` / `glass_sliding`
@@ -207,6 +207,15 @@ Every plan object is a component that can be switched on and off.
 Live values override the plan's defaults. Like table state, the object state never changes the plan or its revision.
 `eaterior check-objects plan.json objects.json` checks references and that `open` / `power` are used only where they
 apply.
+
+## 7b. Product catalogs (1.10.0)
+
+Tables, fixtures and climate devices MAY carry a `product` reference (`catalog`, `item`, and optionally `variant`,
+`version`, `brand`, `name`, `sku`, `url`, `sponsored`). It identifies the catalog product the object was made from.
+The object MUST still hold its own size and fields, so a plan stays complete without the catalog. Catalogs are
+separate documents (`format: "eaterior-catalog"`,
+[`catalog.schema.json`](../schemas/v1.10.0/catalog.schema.json)) that anyone may publish. See
+[catalog.md](catalog.md).
 
 ## 8. Extensibility and versioning
 

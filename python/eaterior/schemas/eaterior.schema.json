@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.9.0/eaterior.schema.json",
-  "title": "Eaterior v1.9.0",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.10.0/eaterior.schema.json",
+  "title": "Eaterior v1.10.0",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -32,7 +32,8 @@
         "1.6.0",
         "1.7.0",
         "1.8.0",
-        "1.9.0"
+        "1.9.0",
+        "1.10.0"
       ],
       "description": "All 1.x documents remain valid. Legacy CafePlan 1.x files are converted with `eaterior migrate`."
     },
@@ -904,6 +905,9 @@
             "$ref": "#/$defs/externalRef"
           },
           "description": "Links to records in any number of external systems. Each (system, id) pair is unique in the plan."
+        },
+        "product": {
+          "$ref": "#/$defs/product"
         }
       },
       "required": [
@@ -1035,6 +1039,9 @@
             "$ref": "#/$defs/externalRef"
           },
           "description": "Links to records in any number of external systems. Each (system, id) pair is unique in the plan."
+        },
+        "product": {
+          "$ref": "#/$defs/product"
         }
       },
       "required": [
@@ -1545,6 +1552,9 @@
               "description": "Rectangular duct connection height, mm."
             }
           }
+        },
+        "product": {
+          "$ref": "#/$defs/product"
         }
       }
     },
@@ -2022,6 +2032,59 @@
           "type": "string",
           "maxLength": 64,
           "description": "Optional record type in that system (table, area, device …)."
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalog",
+        "item"
+      ],
+      "description": "Which catalog product this object is (1.10). The object keeps its own size and appearance, so the plan stays complete without the catalog; this only identifies the product.",
+      "properties": {
+        "catalog": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Catalog id or URL (see catalog.schema.json)."
+        },
+        "item": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Item id inside that catalog."
+        },
+        "variant": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Catalog version the object was taken from."
+        },
+        "brand": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "sku": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 500
+        },
+        "sponsored": {
+          "type": "boolean",
+          "description": "The catalog marked this item as sponsored."
         }
       }
     }

@@ -29,9 +29,9 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **One plan, every screen.** Geometry is stored in floor units with a fixed origin and axis convention; clients
   scale it to fit. The aspect ratio of the real room is kept.
 - **Physical layout only.** Orders, reservations, live table status and sensor readings stay in your existing
-  systems and are joined by id ([table state](schemas/v1.9.0/table-state.schema.json),
-  [telemetry](schemas/v1.9.0/environment-telemetry.schema.json)).
-- **Made to be generated.** A pixel-based [detection format](schemas/v1.9.0/detection.schema.json) and a
+  systems and are joined by id ([table state](schemas/v1.10.0/table-state.schema.json),
+  [telemetry](schemas/v1.10.0/environment-telemetry.schema.json)).
+- **Made to be generated.** A pixel-based [detection format](schemas/v1.10.0/detection.schema.json) and a
   deterministic importer turn any drawing into a validated plan, with confidence and review flags.
 - **Strictly validated.** JSON Schema for structure, plus a reference validator for references and geometry.
 - **Looks are data, drawing is code.** Optional `appearance` fields (floor finish, material, colours, chair style)
@@ -41,14 +41,17 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **Connects to anything.** `externalRefs` link each object to records in POS, reservation, kitchen, building-management
   or IoT systems, and live documents can use those systems' own ids — a digital twin of the venue
   ([integration guide](docs/integration.md)).
+- **Open product catalogs.** Brands publish their furniture and equipment as an
+  [`eaterior-catalog`](docs/catalog.md) at any URL; editors offer the products as components, and placed objects
+  keep a `product` reference.
 - **Extensible.** Every object has a namespaced `extensions` map.
 
 ## What is in the repository
 
 ```
-schemas/v1.9.0/     eaterior · table-state · object-state · environment-telemetry · detection (JSON Schema 2020-12)
+schemas/v1.10.0/     eaterior · table-state · object-state · environment-telemetry · detection · catalog (JSON Schema 2020-12)
 examples/           sample plan, live table state, telemetry, a detection and the plan imported from it
-docs/               specification · rendering contract · image import · integration
+docs/               specification · rendering contract · image import · integration · catalogs
 python/eaterior/  validator, migrator, detection importer — `pip install eaterior`
 js/                 UI library (plain + illustrated themes) → SVG / react-native-svg / Canvas — `npm install eaterior`
 demo/               browser viewer
@@ -138,7 +141,7 @@ cd js && npm test
 
 ## Status
 
-Format version **1.9.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
+Format version **1.10.0** (all 1.x documents stay valid). The format follows semantic versioning; see [CHANGELOG.md](CHANGELOG.md) and the versioning
 rules in the [specification](docs/specification.md#8-extensibility-and-versioning). Issues and pull requests are
 welcome.
 

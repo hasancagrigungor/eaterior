@@ -33,6 +33,8 @@ def main(argv=None) -> int:
     p.add_argument("plan"); p.add_argument("state"); p.add_argument("--json", action="store_true")
     p = sub.add_parser("check-telemetry", help="validate a sensor reading against a plan")
     p.add_argument("plan"); p.add_argument("telemetry"); p.add_argument("--json", action="store_true")
+    p = sub.add_parser("check-catalog", help="validate a product catalog (eaterior-catalog)")
+    p.add_argument("catalog"); p.add_argument("--json", action="store_true")
     p = sub.add_parser("check-objects", help="validate live component state (active, open, power) against a plan")
     p.add_argument("plan"); p.add_argument("objects"); p.add_argument("--json", action="store_true")
     p = sub.add_parser("migrate", help="upgrade an older or legacy CafePlan 1.x file")
@@ -74,6 +76,9 @@ def main(argv=None) -> int:
                 print(f"note: {n}")
             print(f"written: {a.dst}" if rep.ok else "Imported plan is invalid; nothing written.")
         return code
+
+    if a.cmd == "check-catalog":
+        return _emit(v.check_catalog(_load(a.catalog)), a.json)
 
     plan = _load(a.plan)
     if a.cmd == "validate":

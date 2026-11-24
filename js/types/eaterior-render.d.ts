@@ -23,7 +23,7 @@ export interface PathItem {
   inactive?: boolean;
 }
 export interface TextItem { type: "text"; x: number; y: number; text: string; fontSize: number; fill: string; weight?: number; rotation?: number; opacity?: number; layer: string; ref?: ObjectRef }
-export interface ImageItem { type: "image"; href: string; x: number; y: number; width: number; height: number; opacity?: number; rotation?: number; layer: string }
+export interface ImageItem { type: "image"; href: string; x: number; y: number; width: number; height: number; opacity?: number; rotation?: number; fit?: "fill" | "contain"; layer: string; ref?: ObjectRef }
 export type SceneItem = PathItem | TextItem | ImageItem;
 
 export interface PatternDef { type: "pattern"; id: string; width: number; height: number; rotation?: number; items: PathItem[] }
@@ -56,6 +56,8 @@ export interface SceneOptions {
   readings?: StateInput;
   theme?: Record<string, any>;
   resolveAsset?: (asset: Record<string, any>) => string | null;
+  /** 1.10: top-view image URL for an object with a `product` reference (from its catalog), or null for the generic symbol. */
+  resolveProductImage?: (obj: Record<string, any>, type: "table" | "fixture" | "climateDevice") => string | null | undefined;
   showBackground?: boolean;
   showChairs?: boolean;
   showZoneNames?: boolean;
@@ -96,3 +98,11 @@ export class WallGeom {
   tangentAt(t: number): [number, number];
   segmentPath(t0: number, t1: number, extendStart?: number, extendEnd?: number): string;
 }
+
+/** 1.10: image item for an object's catalog product, if options.resolveProductImage returns a URL. */
+export function productImageItem(obj: Record<string, any>, type: "table" | "fixture" | "climateDevice", layer: string, options?: SceneOptions): ImageItem | null;
+/** 1.10: turn an eaterior-catalog item into an Eaterior object centred at `at`, with a `product` reference. */
+export function catalogItemToObject(item: Record<string, any>, opts: {
+  id: string; floorId: string; at: [number, number]; metersPerUnit?: number; variant?: string;
+  catalog?: string; catalogVersion?: string; number?: string; zoneId?: string;
+}): Record<string, any>;

@@ -48,6 +48,61 @@ const CLIMATE_CODE = {
   ecology_unit: "ECO", air_handling_unit: "AHU", heat_recovery_unit: "HRV", fan_coil: "FCU", air_curtain: "AC-C", other: "",
 };
 
+// ------------------------------------------------------------------ catalog products (1.10)
+/**
+ * Image item for an object that references a catalog product, when the app resolves a top-view image for it
+ * (options.resolveProductImage(obj, type) → URL or null). The image fills the object's own box and rotation.
+ */
+export function productImageItem(obj, type, layer, options) {
+  if (!obj.product || typeof options?.resolveProductImage !== "function") return null;
+  const href = options.resolveProductImage(obj, type);
+  if (!href) return null;
+  const s = obj.shape;
+  let x, y, w, h;
+  if (s.kind === "rect") { x = s.x; y = s.y; w = s.width; h = s.height; }
+  else if (s.kind === "ellipse") { x = s.cx - s.rx; y = s.cy - s.ry; w = s.rx * 2; h = s.ry * 2; }
+  else return null;
+  return { type: "image", href, x, y, width: w, height: h, rotation: s.rotationDeg || 0, opacity: 1, fit: "contain", layer, ref: { type, id: obj.id } };
+}
+
+/**
+ * Turn a catalog item (eaterior-catalog) into an Eaterior object centred at `at` (floor units).
+ * `metersPerUnit` converts the item's real size; `variant` picks a variant id. The object carries a `product` reference.
+ */
+export function catalogItemToObject(item, { id, floorId, at, metersPerUnit, variant, catalog, catalogVersion, number, zoneId } = {}) {
+  const tpl = item.template || {};
+  const v = (item.variants || []).find((x) => x.id === variant) || null;
+  const u = 1 / (metersPerUnit || 0.02);
+  const wm = v?.widthM ?? tpl.widthM, dm = v?.depthM ?? tpl.depthM;
+  const w = wm * u, h = dm * u, [cx, cy] = at || [0, 0];
+  const shape = tpl.shape === "ellipse" ? { kind: "ellipse", cx, cy, rx: w / 2, ry: h / 2 } : { kind: "rect", x: cx - w / 2, y: cy - h / 2, width: w, height: h };
+  const appearance = { ...(tpl.appearance || {}), ...(v?.appearance || {}) };
+  const product = { catalog: catalog || "unknown", item: item.id };
+  if (v) product.variant = v.id;
+  if (catalogVersion) product.version = catalogVersion;
+  if (item.brand) product.brand = item.brand;
+  product.name = v ? `${item.name} ${v.name}` : item.name;
+  const sku = v?.sku || item.sku;
+  if (sku) product.sku = sku;
+  if (item.url) product.url = item.url;
+  if (item.sponsored) product.sponsored = true;
+  const o = { id, floorId, shape, product };
+  if (zoneId) o.zoneId = zoneId;
+  if (Object.keys(appearance).length) o.appearance = appearance;
+  if (item.type === "table") {
+    Object.assign(o, { number: number ?? "1", seats: v?.seats ?? tpl.seats ?? 2, kind: tpl.kind || "standard" });
+    if (tpl.chairStyle) o.chairStyle = tpl.chairStyle;
+  } else if (item.type === "climateDevice") {
+    Object.assign(o, { kind: tpl.kind, name: product.name });
+    if (tpl.mount) o.mount = tpl.mount;
+    if (tpl.capabilities) o.capabilities = tpl.capabilities;
+    if (tpl.performance) o.performance = { ...tpl.performance };
+  } else {
+    Object.assign(o, { kind: tpl.kind, name: product.name });
+  }
+  return o;
+}
+
 // ------------------------------------------------------------------ math
 export const f = (n) => (Math.round(n * 100) / 100).toString();
 const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -385,6 +440,8 @@ export function buildScene(plan, options = {}) {
     const d = shapeToPath(fx.shape);
     items.push({ type: "path", d, fill: fx.style?.fill || theme.fixture.fill, stroke: fx.style?.stroke || theme.fixture.stroke,
       strokeWidth: unit * 0.2, layer: "fixtures", ref: ref("fixture", fx) });
+    const img = productImageItem(fx, "fixture", "fixtures", options);
+    if (img) items.push(img);
     review(d, fx, "fixture");
   }
 
@@ -468,6 +525,8 @@ export function buildScene(plan, options = {}) {
     const [cx, cy] = shapeCenter(t.shape);
     items.push({ type: "text", x: cx, y: cy, text: t.number, fontSize: unit * 2.4, weight: 600, fill: theme.table.text,
       rotation: 0, layer: "tables", ref: ref("table", t) });
+    const img = productImageItem(t, "table", "tables", options);
+    if (img) items.splice(items.length - 1, 0, img); // under the table number
     review(d, t, "table");
   }
 
@@ -480,6 +539,8 @@ export function buildScene(plan, options = {}) {
     const code = CLIMATE_CODE[dv.kind] ?? "";
     if (code) items.push({ type: "text", x: cx, y: cy, text: code, fontSize: unit * 1.5, weight: 600,
       fill: theme.climate.text, rotation: 0, layer: "climate", ref: ref("climateDevice", dv) });
+    const img = productImageItem(dv, "climateDevice", "climate", options);
+    if (img) items.push(img);
     if (dv.airflowDirectionDeg != null) {
       const a = (dv.airflowDirectionDeg * Math.PI) / 180, len = unit * 6;
       const s = [cx + Math.cos(a) * unit * 2, cy + Math.sin(a) * unit * 2], e = [cx + Math.cos(a) * len, cy + Math.sin(a) * len];
@@ -592,7 +653,7 @@ export function toSvg(scene, { title, className, animate = false } = {}) {
     } else if (it.type === "image") {
       const cx = it.x + it.width / 2, cy = it.y + it.height / 2;
       out.push(`<image href="${esc(it.href)}" x="${f(it.x)}" y="${f(it.y)}" width="${f(it.width)}" height="${f(it.height)}"` +
-        ` opacity="${f(it.opacity)}" preserveAspectRatio="none"${it.rotation ? ` transform="rotate(${f(it.rotation)} ${f(cx)} ${f(cy)})"` : ""}/>`);
+        ` opacity="${f(it.opacity ?? 1)}" preserveAspectRatio="${it.fit === "contain" ? "xMidYMid meet" : "none"}"${it.rotation ? ` transform="rotate(${f(it.rotation)} ${f(cx)} ${f(cy)})"` : ""}${data}/>`);
     }
   }
   out.push("</svg>");

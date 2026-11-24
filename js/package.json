@@ -1,6 +1,6 @@
 {
   "name": "eaterior",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Render Eaterior restaurant, cafe and bar floor plans on the web, React Native or Canvas — plain or illustrated, with live table and device state",
   "type": "module",
   "main": "./src/eaterior-render.mjs",

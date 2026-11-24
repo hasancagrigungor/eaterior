@@ -8,7 +8,7 @@ image ──► detection.json (pixels) ──► eaterior import ──► plan
 ```
 
 1. **Detect.** Something reads the image and fills
-   [`detection.schema.json`](../schemas/v1.9.0/detection.schema.json) in **image pixel coordinates**. It can be a
+   [`detection.schema.json`](../schemas/v1.10.0/detection.schema.json) in **image pixel coordinates**. It can be a
    vision-capable language model, a classic computer-vision pipeline, or a person clicking on the image.
 2. **Import.** `eaterior import` converts the detection into a plan and validates it. Nothing is saved if the
    result is invalid.

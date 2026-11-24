@@ -50,7 +50,7 @@ class Examples(unittest.TestCase):
 
     def test_eaterior_1_0_0_upgrades(self):
         new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
-        self.assertEqual(new["schemaVersion"], "1.9.0")
+        self.assertEqual(new["schemaVersion"], "1.10.0")
         self.assertTrue(validate_plan(new).ok)
 
     def test_imported_example_is_valid(self):
@@ -224,7 +224,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.9.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.10.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -331,7 +331,7 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.9.0"
+        canon = ROOT / "schemas" / "v1.10.0"
         packaged = ROOT / "python" / "eaterior" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))
@@ -351,7 +351,7 @@ class LegacyName(unittest.TestCase):
     def test_old_identifier_migrates(self):
         old = copy.deepcopy(PLAN); old["format"] = "eateryplan"; old["schemaVersion"] = "1.7.0"
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.9.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.10.0"))
         rep = validate_plan(new)
         self.assertTrue(rep.ok and not any(i.code == "legacy_format" for i in rep.warnings))
 
@@ -387,3 +387,32 @@ class Hvac19(unittest.TestCase):
                    {"floor": "wood_planks", "plankWidthCm": 12}):
             self.assertTrue(validate_plan(self.plan_with(appearance=ap)).ok, ap)
         self.assertFalse(validate_plan(self.plan_with(appearance={"tileSizeCm": 1})).ok)
+
+
+class Catalog110(unittest.TestCase):
+    """1.10.0: open product catalogs and product references on objects."""
+
+    def test_example_catalog_is_valid(self):
+        from eaterior import check_catalog
+        rep = check_catalog(load("catalog.json"))
+        self.assertTrue(rep.ok, rep.format())
+
+    def test_catalog_rules(self):
+        from eaterior import check_catalog
+        cat = load("catalog.json")
+        bad = copy.deepcopy(cat); bad["items"][1]["template"]["kind"] = "spaceship"
+        self.assertIn("bad_kind", codes(check_catalog(bad)))
+        self.assertFalse(check_catalog(bad).ok)
+        dup = copy.deepcopy(cat); dup["items"].append(copy.deepcopy(dup["items"][0]))
+        self.assertIn("duplicate_id", codes(check_catalog(dup)))
+        js = copy.deepcopy(cat); js["items"][0]["assets"]["thumbnail"] = "javascript:alert(1)"
+        self.assertIn("unsafe_url", codes(check_catalog(js)))
+        wrong = copy.deepcopy(cat); wrong["items"][0]["template"]["kind"] = "pergola"  # a fixture-only kind on a table item
+        self.assertIn("bad_kind", codes(check_catalog(wrong)))
+
+    def test_plan_with_product_reference(self):
+        p = copy.deepcopy(load("restaurant.json"))
+        p["floors"][0]["tables"][0]["product"] = {"catalog": "example-furniture", "item": "bistro-round-70", "brand": "Example Furniture Co.", "sku": "EFC-BT-70", "sponsored": False}
+        self.assertTrue(validate_plan(p).ok, validate_plan(p).format())
+        p["floors"][0]["tables"][0]["product"] = {"item": "x"}
+        self.assertFalse(validate_plan(p).ok)

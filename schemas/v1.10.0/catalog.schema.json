@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.10.0/catalog.schema.json",
+  "title": "Eaterior Catalog v1.10.0",
+  "description": "A publisher's product catalog (furniture, equipment, HVAC …) that editors can offer as ready-made components. A catalog is data only. Anyone can publish one at any URL; clients choose which catalogs to load.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "id",
+    "name",
+    "publisher",
+    "items"
+  ],
+  "properties": {
+    "format": {
+      "const": "eaterior-catalog"
+    },
+    "schemaVersion": {
+      "enum": [
+        "1.10.0"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,79}$",
+      "description": "Stable catalog id, e.g. \"acme-furniture\"."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "version": {
+      "type": "string",
+      "maxLength": 40
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publisher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 300
+        },
+        "logo": {
+          "type": "string",
+          "format": "uri-reference",
+          "maxLength": 500
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Set by the hosting service after it verified the publisher."
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "$ref": "#/$defs/item"
+      }
+    },
+    "extensions": {
+      "$ref": "eaterior.schema.json#/$defs/extensions"
+    }
+  },
+  "$defs": {
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "widthM",
+        "depthM"
+      ],
+      "description": "What to place: real size plus the Eaterior fields of the object.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "shape": {
+          "enum": [
+            "rect",
+            "ellipse"
+          ],
+          "description": "rect (default) or ellipse (round / oval)."
+        },
+        "widthM": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 50
+        },
+        "depthM": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 50
+        },
+        "heightM": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 20
+        },
+        "seats": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "mount": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "maxItems": 20
+        },
+        "appearance": {
+          "$ref": "eaterior.schema.json#/$defs/appearance"
+        },
+        "chairStyle": {
+          "$ref": "eaterior.schema.json#/$defs/chairStyle"
+        },
+        "performance": {
+          "$ref": "eaterior.schema.json#/$defs/climateDevice/properties/performance"
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "type",
+        "template"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "brand": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "type": {
+          "enum": [
+            "table",
+            "fixture",
+            "climateDevice"
+          ],
+          "description": "Which Eaterior object the item becomes."
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Free text for grouping, e.g. seating, tables, hvac, kitchen, outdoor, decor."
+        },
+        "sku": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "maxItems": 30
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 500
+        },
+        "sponsored": {
+          "type": "boolean"
+        },
+        "template": {
+          "$ref": "#/$defs/template"
+        },
+        "variants": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "sku": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "widthM": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 50
+              },
+              "depthM": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 50
+              },
+              "seats": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "appearance": {
+                "$ref": "eaterior.schema.json#/$defs/appearance"
+              }
+            }
+          }
+        },
+        "assets": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "thumbnail": {
+              "type": "string",
+              "format": "uri-reference",
+              "maxLength": 500,
+              "description": "Picture for the component list (PNG/JPEG/WebP/SVG)."
+            },
+            "topView": {
+              "type": "string",
+              "format": "uri-reference",
+              "maxLength": 500,
+              "description": "Top-down drawing at the item's real size, drawn in place of the generic symbol."
+            },
+            "model3d": {
+              "type": "string",
+              "format": "uri-reference",
+              "maxLength": 500,
+              "description": "3D model (glTF / GLB)."
+            },
+            "datasheet": {
+              "type": "string",
+              "format": "uri-reference",
+              "maxLength": 500,
+              "description": "Technical data sheet (PDF)."
+            },
+            "cad": {
+              "type": "string",
+              "format": "uri-reference",
+              "maxLength": 500,
+              "description": "CAD block (DXF / DWG)."
+            }
+          }
+        },
+        "extensions": {
+          "$ref": "eaterior.schema.json#/$defs/extensions"
+        }
+      }
+    }
+  },
+  "x-eaterior-kinds": {
+    "table": [
+      "standard",
+      "high",
+      "bar_stool",
+      "booth",
+      "sofa",
+      "communal",
+      "outdoor",
+      "other"
+    ],
+    "fixture": [
+      "counter",
+      "bar_counter",
+      "prep_counter",
+      "sofa",
+      "chair",
+      "armchair",
+      "bench",
+      "pouf",
+      "lounge_chair",
+      "corner_sofa",
+      "bar_stool",
+      "plant",
+      "planter",
+      "tree",
+      "parasol",
+      "pergola",
+      "palm_tree",
+      "rug",
+      "sink",
+      "hand_sink",
+      "stove",
+      "oven",
+      "fridge",
+      "freezer",
+      "dishwasher",
+      "coffee_machine",
+      "display_case",
+      "wine_rack",
+      "shelf",
+      "host_stand",
+      "pos_terminal",
+      "tv",
+      "piano",
+      "toilet",
+      "urinal",
+      "stairs",
+      "elevator",
+      "column",
+      "equipment",
+      "other"
+    ],
+    "climateDevice": [
+      "air_conditioner",
+      "hvac_indoor_unit",
+      "hvac_outdoor_unit",
+      "ventilation_fan",
+      "exhaust_hood",
+      "air_supply_vent",
+      "air_return_vent",
+      "air_purifier",
+      "heater",
+      "radiator",
+      "underfloor_heating",
+      "thermostat",
+      "humidifier",
+      "dehumidifier",
+      "ceiling_cassette",
+      "ventilation_duct",
+      "patio_heater",
+      "wall_heater",
+      "other",
+      "ecology_unit",
+      "air_handling_unit",
+      "heat_recovery_unit",
+      "fan_coil",
+      "air_curtain"
+    ]
+  }
+}

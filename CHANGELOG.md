@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.10.0 — 2026-11-24
+
+- **Product catalogs.** A new document type, `eaterior-catalog` (`schemas/v1.10.0/catalog.schema.json`). In it,
+  manufacturers and dealers list products with real size, kind, appearance, HVAC performance, variants and assets
+  (thumbnail, top view, 3D model, datasheet, CAD). Anyone can publish a catalog; clients choose which to load.
+- Tables, fixtures and climate devices may carry a `product` reference (catalog, item, variant, version, brand,
+  name, SKU, URL, sponsored). Plans stay complete without the catalog.
+- Python: `eaterior check-catalog` / `check_catalog()`.
+- JS: `catalogItemToObject()`, which places a catalog item as an object, and the `resolveProductImage` scene
+  option, which draws product top views in both themes.
+- Docs: [docs/catalog.md](docs/catalog.md). Example: `examples/catalog.json`. All 1.x documents stay valid.
+
 ## 1.9.0 — 2026-11-24
 
 - HVAC: new climate device kinds `ecology_unit` (kitchen exhaust ecology unit), `air_handling_unit`, `heat_recovery_unit`,
