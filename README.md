@@ -41,6 +41,8 @@ Dashed amber outlines mark objects that need a person to confirm them.
 - **Connects to anything.** `externalRefs` link each object to records in POS, reservation, kitchen, building-management
   or IoT systems, and live documents can use those systems' own ids — a digital twin of the venue
   ([integration guide](docs/integration.md)).
+- **Knows where it is.** An optional `venue` block holds the name, logo, address, map position (WGS 84),
+  time zone, contact details and opening hours.
 - **Open product catalogs.** Brands publish their furniture and equipment as an
   [`eaterior-catalog`](docs/catalog.md) at any URL; editors offer the products as components, and placed objects
   keep a `product` reference.

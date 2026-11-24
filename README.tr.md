@@ -24,6 +24,8 @@ masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya foto
   açık/kapalı ve açık/kapalı (güç) yapılabilir; plan değişmez.
 - **Her sisteme bağlanır.** `externalRefs` ile her nesne adisyon, rezervasyon, mutfak, bina yönetimi ya da IoT
   sistemlerindeki kayıtlara bağlanır; canlı durumlar o sistemlerin kendi id'leriyle gönderilebilir (dijital ikiz).
+- **Nerede olduğunu bilir.** İsteğe bağlı `venue` bloğu mekânın adını, logosunu, adresini, harita konumunu
+  (WGS 84), saat dilimini, iletişim bilgilerini ve çalışma saatlerini tutar.
 - **Açık ürün katalogları.** Markalar mobilya ve ekipmanlarını herhangi bir adreste bir
   [`eaterior-catalog`](docs/catalog.md) olarak yayınlar; editörler bu ürünleri bileşen olarak sunar, yerleştirilen
   nesne `product` referansını taşır.

@@ -143,6 +143,23 @@ def semantic_check(plan: dict, r: Report):
     if prov.get("sourceAssetId") and prov["sourceAssetId"] not in asset_ids:
         r.error("missing_ref", "$.provenance.sourceAssetId", f"'{prov['sourceAssetId']}' is not in assets")
 
+    venue = plan.get("venue") or {}
+    logo = venue.get("logo") or {}
+    if logo.get("assetId"):
+        la = next((a for a in plan.get("assets", []) if a["id"] == logo["assetId"]), None)
+        if la is None:
+            r.error("missing_ref", "$.venue.logo.assetId", f"'{logo['assetId']}' is not in assets")
+        elif not str(la.get("mimeType", "")).startswith("image/"):
+            r.warn("logo_not_image", "$.venue.logo.assetId", "the logo asset is not an image")
+    for oi, oh in enumerate(venue.get("openingHours", [])):
+        if oh["open"] == oh["close"]:
+            r.warn("empty_hours", f"$.venue.openingHours[{oi}]", "open and close are the same time")
+    if venue.get("seatingCapacity") is not None:
+        seats = sum(t.get("seats", 0) for fl in plan["floors"] for t in fl.get("tables", []))
+        if seats > venue["seatingCapacity"]:
+            r.warn("over_capacity", "$.venue.seatingCapacity",
+                   f"the plan has {seats} seats, more than the declared capacity {venue['seatingCapacity']}")
+
     all_tables = {t["id"] for fl in plan["floors"] for t in fl.get("tables", [])}
     table_numbers, ext_tables, ext_devices = {}, {}, {}
     ext_refs: dict[tuple, str] = {}

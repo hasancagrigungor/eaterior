@@ -24,6 +24,7 @@ rewritten because a table was seated or the temperature moved.
 ```
 plan
 ├── format: "eaterior", schemaVersion: "1.10.0" (all 1.x versions still valid), planId, name, revision
+├── venue?               the venue: name, logo, address, geo position, hours, contact (1.10)
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -40,6 +41,26 @@ plan
 ```
 
 `revision` MUST be incremented on every saved change. Clients use it to detect stale live data.
+
+### Venue (1.10.0)
+
+`venue` describes the place the plan belongs to. Every field is optional.
+
+| Field | Meaning |
+|---|---|
+| `name`, `legalName`, `brand`, `branch` | Venue name shown to guests, legal entity, chain and branch. The plan `name` may differ (for example "Ground floor v3"). |
+| `logo` | `{assetId}`, an image in `assets`, or `{url}`, an absolute URL. |
+| `address` | `line1`, `line2`, `district`, `city`, `region`, `postalCode`, `country` (ISO 3166-1 alpha-2), or `formatted` as one line. |
+| `geo` | `lat`, `lon` (WGS 84), optional `accuracyM`, `altitudeM`, and `northDeg`: the bearing of true north on the plan, clockwise from the plan's up direction. |
+| `timezone`, `currency` | IANA time zone (`Europe/Istanbul`) and ISO 4217 currency (`TRY`). |
+| `phone`, `email`, `website`, `social` | Contact details; `social` maps a network name to a profile URL. |
+| `venueType`, `cuisine`, `seatingCapacity`, `areaM2` | Kind of venue, cuisines, declared capacity and floor area. |
+| `openingHours[]` | `{days: ["mo"…"su"], open: "HH:MM", close: "HH:MM"}`. `close` may be earlier than `open` for hours past midnight. |
+| `externalIds` | Ids in other systems, for example `googlePlaceId`, `osm`, or a POS store id. |
+
+The validator reports a logo asset that does not exist (`missing_ref`) and warns when the logo asset is not an image
+(`logo_not_image`), when an opening-hours entry has the same open and close time (`empty_hours`), and when the plan
+has more seats than `seatingCapacity` (`over_capacity`).
 
 ## 3. Coordinate system
 

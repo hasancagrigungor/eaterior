@@ -1,12 +1,62 @@
 {
   "format": "eaterior",
-  "schemaVersion": "1.9.0",
+  "schemaVersion": "1.10.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
   "locale": "en",
   "createdAt": "2026-11-23T10:00:00Z",
   "updatedAt": "2026-11-23T10:00:00Z",
+  "venue": {
+    "name": "Garden Bistro",
+    "brand": "Garden Bistro",
+    "branch": "Riverside",
+    "address": {
+      "line1": "12 Example Street",
+      "city": "Springfield",
+      "postalCode": "00000",
+      "country": "US"
+    },
+    "geo": {
+      "lat": 40.7128,
+      "lon": -74.006,
+      "northDeg": 0
+    },
+    "timezone": "America/New_York",
+    "currency": "USD",
+    "phone": "+1 555 0100",
+    "website": "https://example.com",
+    "venueType": "bistro",
+    "cuisine": [
+      "bistro",
+      "brunch"
+    ],
+    "seatingCapacity": 90,
+    "openingHours": [
+      {
+        "days": [
+          "mo",
+          "tu",
+          "we",
+          "th",
+          "fr"
+        ],
+        "open": "08:00",
+        "close": "23:00"
+      },
+      {
+        "days": [
+          "sa",
+          "su"
+        ],
+        "open": "09:00",
+        "close": "01:00"
+      }
+    ],
+    "externalIds": {
+      "pos": "store-12"
+    }
+  },
   "provenance": {
     "method": "manual",
     "createdAt": "2026-11-23T10:00:00Z"

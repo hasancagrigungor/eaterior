@@ -1,7 +1,19 @@
 /** Eaterior reference renderer: plan JSON -> platform-neutral display list -> SVG / react-native-svg / Canvas. */
 
 /** An Eaterior document (see schemas/ in the repository for the full JSON Schema). */
-export type Eaterior = { format: "eaterior"; schemaVersion: string; planId: string; floors: Array<Record<string, any>>; [k: string]: any };
+export type Weekday = "mo" | "tu" | "we" | "th" | "fr" | "sa" | "su";
+/** 1.10: the venue the plan belongs to. */
+export interface Venue {
+  name?: string; legalName?: string; brand?: string; branch?: string;
+  logo?: { assetId?: string; url?: string };
+  address?: { line1?: string; line2?: string; district?: string; city?: string; region?: string; postalCode?: string; country?: string; formatted?: string };
+  geo?: { lat: number; lon: number; accuracyM?: number; altitudeM?: number; northDeg?: number };
+  timezone?: string; currency?: string; phone?: string; email?: string; website?: string; social?: Record<string, string>;
+  cuisine?: string[]; venueType?: string; seatingCapacity?: number; areaM2?: number;
+  openingHours?: Array<{ days: Weekday[]; open: string; close: string }>;
+  externalIds?: Record<string, string>; extensions?: Record<string, unknown>;
+}
+export type Eaterior = { format: "eaterior"; schemaVersion: string; planId: string; venue?: Venue; floors: Array<Record<string, any>>; [k: string]: any };
 
 export interface ObjectRef { type: string; id: string }
 

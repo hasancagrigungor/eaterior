@@ -7,6 +7,9 @@
   (thumbnail, top view, 3D model, datasheet, CAD). Anyone can publish a catalog; clients choose which to load.
 - Tables, fixtures and climate devices may carry a `product` reference (catalog, item, variant, version, brand,
   name, SKU, URL, sponsored). Plans stay complete without the catalog.
+- **Venue details.** An optional `venue` block on the plan: name, legal name, brand and branch, logo, address,
+  WGS 84 position with north bearing, time zone, currency, contact and social links, venue type, cuisine,
+  capacity, area, opening hours and external ids. Validator codes: `logo_not_image`, `empty_hours`, `over_capacity`.
 - Python: `eaterior check-catalog` / `check_catalog()`.
 - JS: `catalogItemToObject()`, which places a catalog item as an object, and the `resolveProductImage` scene
   option, which draws product top views in both themes.

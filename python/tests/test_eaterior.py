@@ -416,3 +416,31 @@ class Catalog110(unittest.TestCase):
         self.assertTrue(validate_plan(p).ok, validate_plan(p).format())
         p["floors"][0]["tables"][0]["product"] = {"item": "x"}
         self.assertFalse(validate_plan(p).ok)
+
+
+class Venue110(unittest.TestCase):
+    """1.10.0: venue identity, address, location and hours."""
+
+    def test_example_venue_is_valid(self):
+        rep = validate_plan(load("restaurant.json"))
+        self.assertTrue(rep.ok, rep.format())
+        self.assertIn("venue", load("restaurant.json"))
+
+    def test_bad_values_and_refs(self):
+        import copy
+        base = load("restaurant.json")
+        cases = [({"geo": {"lat": 95, "lon": 0}}, "schema"), ({"address": {"country": "Turkey"}}, "schema"),
+                 ({"openingHours": [{"days": ["mon"], "open": "9", "close": "23:00"}]}, "schema"),
+                 ({"logo": {"assetId": "nope"}}, "missing_ref")]
+        for patch, code in cases:
+            d = copy.deepcopy(base); d["venue"] = {**d["venue"], **patch}
+            rep = validate_plan(d)
+            self.assertFalse(rep.ok, patch)
+            if code != "schema":
+                self.assertIn(code, [i.code for i in rep.errors], patch)
+        d = copy.deepcopy(base); d["venue"]["seatingCapacity"] = 10
+        self.assertIn("over_capacity", [i.code for i in validate_plan(d).warnings])
+        d = copy.deepcopy(base)
+        d["assets"] = [{"id": "doc1", "mimeType": "application/pdf", "url": "x.pdf"}]
+        d["venue"]["logo"] = {"assetId": "doc1"}
+        self.assertIn("logo_not_image", [i.code for i in validate_plan(d).warnings])
