@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.9.0 — 2026-11-24
+
+- HVAC: new climate device kinds `ecology_unit` (kitchen exhaust ecology unit), `air_handling_unit`, `heat_recovery_unit`,
+  `fan_coil`, `air_curtain`; optional `performance` block on every device (airflow, fresh/exhaust air, cooling/heating
+  capacity, electrical power, supply temperature, external static pressure, sound level, COP/EER, heat recovery
+  efficiency, filter class, refrigerant, duct size).
+- Floors: `appearance.tileSizeCm` and `appearance.plankWidthCm` (real tile / plank sizes) and new finishes
+  `tile_hexagon`, `tile_subway`, `epoxy`.
+- Illustrated renderer draws the new devices (and outdoor units) and uses the real tile / plank sizes; the plain
+  theme labels them ECO, AHU, HRV, FCU, AC-C.
+- All 1.x documents stay valid. Example restaurant gains device performance values and a kitchen ecology unit;
+  the component gallery shows the new floors.
+
 ## JS 1.8.1 — 2026-11-24
 
 - Illustrated renderer, 3D walls: a wall that ends on the body of another wall (T junction) now stops at that wall's

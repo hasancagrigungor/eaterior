@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.8.0/table-state.schema.json",
-  "title": "Eaterior Table State v1.8.0",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.9.0/table-state.schema.json",
+  "title": "Eaterior Table State v1.9.0",
   "description": "Live table status, kept separate from plan geometry and produced by the POS / order system. tableId refers to table.id in the plan. Status colours belong to the client theme.",
   "type": "object",
   "additionalProperties": false,
@@ -31,7 +31,8 @@
         "1.5.0",
         "1.6.0",
         "1.7.0",
-        "1.8.0"
+        "1.8.0",
+        "1.9.0"
       ]
     },
     "planId": {

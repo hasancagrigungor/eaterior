@@ -1,6 +1,6 @@
 {
   "format": "eaterior",
-  "schemaVersion": "1.8.0",
+  "schemaVersion": "1.9.0",
   "planId": "restaurant_001",
   "name": "Garden Bistro",
   "revision": 1,
@@ -2141,7 +2141,17 @@
               "id": "ac-1",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "airflowM3h": 1080,
+            "coolingCapacityW": 7100,
+            "heatingCapacityW": 8000,
+            "electricalPowerW": 2150,
+            "eer": 3.3,
+            "cop": 3.7,
+            "refrigerant": "R32",
+            "soundPressureDbA": 38
+          }
         },
         {
           "id": "ac_3",
@@ -2166,7 +2176,15 @@
               "id": "ac-3",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "airflowM3h": 900,
+            "coolingCapacityW": 5000,
+            "heatingCapacityW": 5600,
+            "electricalPowerW": 1500,
+            "refrigerant": "R32",
+            "soundPressureDbA": 36
+          }
         },
         {
           "id": "duct_1",
@@ -2259,7 +2277,10 @@
               "id": "heater-2",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "heatingCapacityW": 12000
+          }
         },
         {
           "id": "heater_3",
@@ -2282,7 +2303,11 @@
               "id": "heater-3",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "heatingCapacityW": 2000,
+            "electricalPowerW": 2000
+          }
         },
         {
           "id": "ac_2",
@@ -2308,7 +2333,14 @@
               "id": "ac-2",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "airflowM3h": 650,
+            "coolingCapacityW": 3500,
+            "heatingCapacityW": 4000,
+            "electricalPowerW": 1050,
+            "refrigerant": "R32"
+          }
         },
         {
           "id": "hood_1",
@@ -2330,7 +2362,11 @@
               "id": "hood-1",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "exhaustAirM3h": 3600,
+            "filterClass": "baffle (metal)"
+          }
         },
         {
           "id": "vent_1",
@@ -2351,7 +2387,11 @@
               "id": "vent-1",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "airflowM3h": 400,
+            "supplyAirTemperatureC": 20
+          }
         },
         {
           "id": "heater_1",
@@ -2373,7 +2413,40 @@
               "id": "heater-1",
               "type": "device"
             }
-          ]
+          ],
+          "performance": {
+            "heatingCapacityW": 12000
+          }
+        },
+        {
+          "id": "eco_1",
+          "floorId": "floor_0",
+          "zoneId": "zone_kitchen",
+          "name": "Kitchen ecology unit",
+          "kind": "ecology_unit",
+          "mount": "ceiling",
+          "shape": {
+            "kind": "rect",
+            "x": 780,
+            "y": 186,
+            "width": 92,
+            "height": 32
+          },
+          "capabilities": [
+            "ventilation",
+            "air_quality",
+            "fan_speed",
+            "power_switch"
+          ],
+          "performance": {
+            "airflowM3h": 3600,
+            "electricalPowerW": 1500,
+            "externalStaticPressurePa": 450,
+            "filterClass": "metal mesh + ESP + active carbon",
+            "ductWidthMm": 500,
+            "ductHeightMm": 400,
+            "soundPressureDbA": 62
+          }
         }
       ],
       "environmentalSensors": [

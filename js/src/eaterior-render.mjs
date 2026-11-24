@@ -44,7 +44,8 @@ export const DEFAULT_THEME = {
 const CLIMATE_CODE = {
   air_conditioner: "AC", hvac_indoor_unit: "HVAC", hvac_outdoor_unit: "ODU", ventilation_fan: "FAN",
   exhaust_hood: "HOOD", ceiling_cassette: "AC", ventilation_duct: "DUCT", patio_heater: "HEAT", wall_heater: "HEAT", air_supply_vent: "SUP", air_return_vent: "RET", air_purifier: "AIR", heater: "HEAT",
-  radiator: "RAD", underfloor_heating: "UFH", thermostat: "T", humidifier: "HUM", dehumidifier: "DHUM", other: "",
+  radiator: "RAD", underfloor_heating: "UFH", thermostat: "T", humidifier: "HUM", dehumidifier: "DHUM",
+  ecology_unit: "ECO", air_handling_unit: "AHU", heat_recovery_unit: "HRV", fan_coil: "FCU", air_curtain: "AC-C", other: "",
 };
 
 // ------------------------------------------------------------------ math

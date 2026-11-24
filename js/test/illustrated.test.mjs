@@ -51,7 +51,7 @@ test("booth tables get benches instead of chairs", () => {
 });
 
 test("every fixture kind in the schema draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.9.0/eaterior.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.fixture.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].fixtures = kinds.map((k, i) => ({ id: `fx_${i}`, floorId: "floor_0", kind: k,
@@ -76,7 +76,7 @@ test("wall height changes the depth", () => {
 });
 
 test("every climate device kind draws something", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.9.0/eaterior.schema.json", import.meta.url), "utf8"));
   const kinds = schema.$defs.climateDevice.properties.kind.enum;
   const plan = structuredClone(restaurant);
   plan.floors[0].climateDevices = kinds.map((k, i) => ({ id: `cd_${i}`, floorId: "floor_0", kind: k,
@@ -144,7 +144,7 @@ test("plain theme fades inactive objects too", async () => {
 
 test("gallery: every floor, table style, seat kind and parasol variant renders", () => {
   const gallery = load("showcase.json");
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.9.0/eaterior.schema.json", import.meta.url), "utf8"));
   const sc = buildIllustratedScene(gallery);
   assert.ok(!/NaN|undefined/.test(toSvg(sc)));
   const floors = new Set(gallery.floors[0].zones.map((z) => z.appearance?.floor));
@@ -172,7 +172,7 @@ test("seats use real sizes when the floor has a scale", () => {
 });
 
 test("every rug style renders, round and rectangular, with patterns kept inside the rug", () => {
-  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.8.0/eaterior.schema.json", import.meta.url), "utf8"));
+  const schema = JSON.parse(readFileSync(new URL("../../schemas/v1.9.0/eaterior.schema.json", import.meta.url), "utf8"));
   const RUGS = ["persian", "kilim", "moroccan", "striped", "geometric", "shag", "jute", "floral", "bordered", "abstract", "chevron", "braided"];
   for (const r of RUGS) assert.ok(schema.$defs.appearance.properties.style.enum.includes(r), r);
   const plan = structuredClone(load("showcase.json"));
@@ -225,4 +225,19 @@ test("3D walls: a T junction stops at the host wall's face (no overshoot)", () =
   assert.ok(hostTop && teeTop);
   // the T wall's top must start at (or below) the near edge of the host's top, never cross it
   assert.ok(Math.min(...ys(teeTop.d)) >= Math.max(...ys(hostTop.d)) - 0.5, `tee top ${Math.min(...ys(teeTop.d))} crosses host top ${Math.max(...ys(hostTop.d))}`);
+});
+
+test("1.9 HVAC kinds draw their own symbols and floor sizes change the pattern", () => {
+  const dev = (id, kind, x) => ({ id, floorId: "f", kind, mount: "ceiling", shape: { kind: "rect", x, y: 40, width: 80, height: 30 } });
+  const base = (zoneAp) => ({ format: "eaterior", schemaVersion: "1.9.0", planId: "h", name: "h", revision: 1, floors: [{
+    id: "f", name: "f", level: 0, coordinateSpace: { unit: "unit", origin: "top-left", xAxis: "right", yAxis: "down", width: 600, height: 200,
+      realWorldScale: { metersPerUnit: 0.02, source: "user_input" } },
+    zones: [{ id: "z", floorId: "f", name: "z", kind: "dining", shape: { kind: "rect", x: 0, y: 0, width: 600, height: 200 }, appearance: zoneAp }],
+    walls: [], openings: [], tables: [], fixtures: [], environmentalSensors: [],
+    climateDevices: ["ecology_unit", "air_handling_unit", "heat_recovery_unit", "air_curtain", "hvac_outdoor_unit"].map((k, i) => dev(`d${i}`, k, 20 + i * 110)) }] });
+  const scene = buildIllustratedScene(base({ floor: "tile_square" }), {});
+  for (let i = 0; i < 5; i++) assert.ok(scene.items.filter((it) => it.ref?.id === `d${i}`).length >= 4, `device d${i} has a symbol`);
+  const size = (ap) => buildIllustratedScene(base(ap), {}).defs.find((d) => d.id === "ep-floor-z").width;
+  assert.ok(Math.abs(size({ floor: "tile_square", tileSizeCm: 60 }) / size({ floor: "tile_square", tileSizeCm: 30 }) - 2) < 1e-6, "60 cm tiles are twice 30 cm");
+  for (const fl of ["tile_hexagon", "tile_subway", "epoxy"]) assert.ok(buildIllustratedScene(base({ floor: fl }), {}).defs.find((d) => d.id === "ep-floor-z").items.length > 0, fl);
 });

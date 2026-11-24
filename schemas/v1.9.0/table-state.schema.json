@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hasancagrigungor/eaterior/main/schemas/v1.9.0/table-state.schema.json",
+  "title": "Eaterior Table State v1.9.0",
+  "description": "Live table status, kept separate from plan geometry and produced by the POS / order system. tableId refers to table.id in the plan. Status colours belong to the client theme.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "schemaVersion",
+    "planId",
+    "generatedAt",
+    "tables"
+  ],
+  "properties": {
+    "format": {
+      "enum": [
+        "eaterior-table-state",
+        "eateryplan-table-state"
+      ],
+      "description": "\"eaterior-table-state\" is the identifier written since 1.8.0. \"eateryplan-table-state\" is the pre-1.8 name of the same format and stays accepted when reading."
+    },
+    "schemaVersion": {
+      "enum": [
+        "1.0.0",
+        "1.1.0",
+        "1.1.1",
+        "1.2.0",
+        "1.3.0",
+        "1.4.0",
+        "1.5.0",
+        "1.6.0",
+        "1.7.0",
+        "1.8.0",
+        "1.9.0"
+      ]
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "planRevision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Plan revision this state was produced for. Clients reload the plan on mismatch."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tableState"
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+      },
+      "additionalProperties": true,
+      "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+    },
+    "source": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "System that produced this document, e.g. 'pos' or 'bms'."
+    }
+  },
+  "$defs": {
+    "tableState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "updatedAt"
+      ],
+      "properties": {
+        "tableId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "occupied",
+            "reserved",
+            "blocked",
+            "cleaning",
+            "unknown"
+          ]
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "since": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the table entered this status."
+        },
+        "guestCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Open order reference in the POS."
+        },
+        "reservationId": {
+          "type": "string"
+        },
+        "reservedFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reservedUntil": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "mergedWithTableIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+          },
+          "description": "Tables currently joined with this one."
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "extensions": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9_]*)+$"
+          },
+          "additionalProperties": true,
+          "description": "Application-specific or forward-compatible data. Keys must be namespaced (e.g. 'acme.priceTier'). Clients ignore unknown keys and preserve them on save."
+        },
+        "externalRef": {
+          "$ref": "#/$defs/externalRef",
+          "description": "Identify the object by its id in an external system instead of tableId."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "tableId"
+          ]
+        },
+        {
+          "required": [
+            "externalRef"
+          ]
+        }
+      ]
+    },
+    "externalRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "system",
+        "id"
+      ],
+      "description": "A record in an external system (POS, reservations, BMS/IoT, inventory …) that this object corresponds to.",
+      "properties": {
+        "system": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+          "description": "Lower-case system name, e.g. 'pos', 'bms', 'reservations'."
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "The record's id in that system."
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Optional record type in that system (table, area, device …)."
+        }
+      }
+    }
+  }
+}

@@ -12,8 +12,8 @@ from jsonschema import Draft202012Validator
 
 from . import geometry as g
 
-SCHEMA_VERSION = "1.8.0"
-SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0")
+SCHEMA_VERSION = "1.9.0"
+SUPPORTED_VERSIONS = ("1.0.0", "1.1.0", "1.1.1", "1.2.0", "1.3.0", "1.4.0", "1.5.0", "1.6.0", "1.7.0", "1.8.0", "1.9.0")
 LEGACY_FORMATS = {"eateryplan": "eaterior", "eateryplan-table-state": "eaterior-table-state",
                   "eateryplan-object-state": "eaterior-object-state", "eateryplan-telemetry": "eaterior-telemetry"}
 BOUNDS_TOLERANCE = 0.01  # objects may exceed the floor by 1 % of its size

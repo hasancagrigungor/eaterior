@@ -1,4 +1,4 @@
-# Eaterior 1.8.0 — Specification
+# Eaterior 1.9.0 — Specification
 
 Eaterior describes the **physical layout** of restaurants, cafes, bars and similar venues as JSON, so one
 plan can be drawn identically on iOS, Android, desktop and the web. The normative definition is
@@ -23,7 +23,7 @@ rewritten because a table was seated or the temperature moved.
 
 ```
 plan
-├── format: "eaterior", schemaVersion: "1.8.0" (all 1.x versions still valid), planId, name, revision
+├── format: "eaterior", schemaVersion: "1.9.0" (all 1.x versions still valid), planId, name, revision
 ├── provenance?          how the plan was made (manual, image_import, text_prompt, cad_import)
 ├── assets[]?            images/PDFs referenced by the plan (e.g. the original drawing)
 ├── extensions?          namespaced application data
@@ -93,7 +93,9 @@ map it to textures, symbols and shading; the same plan can be shown in a plain o
 
 | Field | Used on | Values |
 |---|---|---|
-| `floor` | zones | `wood_planks`, `wood_wide_planks`, `wood_herringbone`, `wood_chevron`, `wood_basketweave`, `tile_checker`, `tile_square`, `marble`, `terrazzo`, `concrete`, `carpet`, `terrace_deck`, `grass`, `stone` |
+| `floor` | zones | `wood_planks`, `wood_wide_planks`, `wood_herringbone`, `wood_chevron`, `wood_basketweave`, `tile_checker`, `tile_square`, `tile_hexagon`, `tile_subway`, `marble`, `terrazzo`, `concrete`, `epoxy`, `carpet`, `terrace_deck`, `grass`, `stone` |
+| `tileSizeCm` (1.9) | zones | tile / slab size in cm (tiles, hexagons across flats, subway tile length, stone, marble) |
+| `plankWidthCm` (1.9) | zones | plank / strip width in cm (wood floors, decking) |
 | `material` | tables, fixtures, devices | `wood`, `wood_light`, `wood_dark`, `marble`, `metal`, `aluminium`, `glass`, `fabric`, `leather`, `plastic`, `stone`, `concrete` |
 | `color`, `accentColor` | all | `#RRGGBB` — main and secondary colour (e.g. the two colours of a checker floor) |
 | `tablecloth` | tables | `#RRGGBB` |
@@ -122,6 +124,21 @@ plank and tile sizes. Without a scale everything stays proportional to the plan.
 Climate devices (1.2.0) add `ceiling_cassette` (ceiling-recessed AC), `ventilation_duct` (a duct run: long rect,
 polygon or path), `patio_heater` and `wall_heater`. An `air_conditioner` with `mount: "ceiling"` is also drawn as a
 cassette.
+
+HVAC equipment (1.9.0) adds `ecology_unit` (kitchen exhaust ecology unit: grease, smoke and odour filtration before
+discharge), `air_handling_unit` (AHU), `heat_recovery_unit` (HRV / ERV), `fan_coil` and `air_curtain`. Any climate device
+MAY carry `performance`, its rated or design values; all fields are optional and must be ≥ 0 unless noted:
+
+| Field | Unit | Field | Unit |
+|---|---|---|---|
+| `airflowM3h` | m³/h | `freshAirM3h`, `exhaustAirM3h` | m³/h |
+| `coolingCapacityW`, `heatingCapacityW` | W | `electricalPowerW` | W |
+| `supplyAirTemperatureC` | °C (−30…80) | `externalStaticPressurePa` | Pa |
+| `soundPressureDbA` | dB(A) | `cop`, `eer` | — |
+| `heatRecoveryEfficiencyPct` | % (0…100) | `filterClass`, `refrigerant` | text |
+| `ductDiameterMm` | mm | `ductWidthMm`, `ductHeightMm` | mm |
+
+These values are for ventilation, load and energy checks; they do not change how a device is drawn.
 
 ### Walls and openings
 
@@ -179,7 +196,7 @@ Every plan object is a component that can be switched on and off.
 
 - **Default** in the plan: optional `active` (default `true`) on zones, walls, openings, tables, fixtures, climate
   devices, sensors and labels — e.g. a terrace closed for the winter or a table taken out of service.
-- **Live** in an object-state document ([`object-state`](../schemas/v1.8.0/object-state.schema.json),
+- **Live** in an object-state document ([`object-state`](../schemas/v1.9.0/object-state.schema.json),
   `format: "eaterior-object-state"`): one entry per `objectId` with any of
   - `active`: `true` / `false`
   - `open`: `0` (closed) … `1` (fully open) — pergola louvers or retractable roofs, `glass_folding` / `glass_sliding`

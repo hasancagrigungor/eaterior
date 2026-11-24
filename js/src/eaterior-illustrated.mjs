@@ -127,9 +127,12 @@ function floorPattern(id, spec, M) {
   };
   const r = rng(id);
   let w, h, rotation = 0;
+  // real module sizes (1.9): tile / slab size and plank width in cm
+  const tileM = (def) => (spec.tileSizeCm > 0 ? spec.tileSizeCm / 100 : def);
+  const plankM = (def) => (spec.plankWidthCm > 0 ? spec.plankWidthCm / 100 : def);
   switch (spec.floor) {
     case "wood_planks": {
-      const pw = M(0.2), pl = M(1.4);
+      const pw = M(plankM(0.2)), pl = M(Math.max(1.4, plankM(0.2) * 7));
       w = pl; h = pw * 4;
       const shades = [c, darken(c, 0.07), lighten(c, 0.06), darken(c, 0.12)];
       [0, 0.5, 0.25, 0.75].forEach((o, row) => {
@@ -148,7 +151,7 @@ function floorPattern(id, spec, M) {
       break;
     }
     case "terrace_deck": {
-      const pw = M(0.14);
+      const pw = M(plankM(0.14));
       w = M(2); h = pw * 2;
       for (const [y0, sh] of [[0, c], [pw, darken(c, 0.06)]]) {
         rect(0, y0, w, pw, sh, { stroke: darken(c, 0.4), strokeWidth: pw * 0.14 });
@@ -159,7 +162,7 @@ function floorPattern(id, spec, M) {
       break;
     }
     case "wood_herringbone": {
-      const s = M(0.28), t = s * 0.45;
+      const s = M(plankM(0.126) / 0.45), t = s * 0.45;
       w = 2 * s; h = 2 * t;
       for (let k = -4; k <= 4; k++) {
         const y = k * t, f1 = k % 2 ? darken(c, 0.1) : lighten(c, 0.05), f2 = k % 2 ? lighten(c, 0.05) : darken(c, 0.1);
@@ -172,7 +175,7 @@ function floorPattern(id, spec, M) {
       break;
     }
     case "wood_wide_planks": {
-      const pw = M(0.3), pl = M(2.2);
+      const pw = M(plankM(0.3)), pl = M(Math.max(2.2, plankM(0.3) * 7));
       w = pl; h = pw * 4;
       const shades = [c, lighten(c, 0.05), darken(c, 0.06), lighten(c, 0.02)];
       [0, 0.4, 0.75, 0.2].forEach((o, row) => {
@@ -214,20 +217,20 @@ function floorPattern(id, spec, M) {
       break;
     }
     case "tile_checker": {
-      const ts = M(0.3), b = a || "#F7F3EE", grout = darken(b, 0.18);
+      const ts = M(tileM(0.3)), b = a || "#F7F3EE", grout = darken(b, 0.18);
       w = h = 2 * ts;
       tile(0, 0, ts, c, grout); tile(ts, 0, ts, b, grout); tile(0, ts, ts, b, grout); tile(ts, ts, ts, c, grout);
       break;
     }
     case "tile_square": {
-      const ts = M(0.3);
+      const ts = M(tileM(0.3));
       w = h = 2 * ts;
       const fills = [c, darken(c, 0.04), lighten(c, 0.04), c];
       [[0, 0], [ts, 0], [0, ts], [ts, ts]].forEach(([x, y], i) => tile(x, y, ts, a && i % 3 === 0 ? mix(c, a, 0.35) : fills[i], darken(c, 0.2)));
       break;
     }
     case "stone": {
-      const ts = M(0.4);
+      const ts = M(tileM(0.4));
       w = 2 * ts; h = 2 * ts;
       rect(0, 0, w, h, darken(c, 0.25));
       for (const [x, y, ww] of [[0, 0, ts], [ts, 0, ts], [-ts / 2, ts, ts], [ts / 2, ts, ts], [1.5 * ts, ts, ts]]) {
@@ -240,7 +243,7 @@ function floorPattern(id, spec, M) {
       break;
     }
     case "marble": {
-      w = h = M(1.2);
+      w = h = M(tileM(0.6) * 2);
       rect(0, 0, w, h, c);
       const v = darken(c, 0.22);
       for (let k = 0; k < 4; k++) {
@@ -266,6 +269,40 @@ function floorPattern(id, spec, M) {
       for (let i = 0; i < 26; i++) {
         const x = r() * w, y = r() * h, l = M(0.06) * (0.6 + r());
         line(x, y, x + l * (r() - 0.5) * 0.6, y - l, i % 3 ? darken(c, 0.15) : lighten(c, 0.2), M(0.012));
+      }
+      break;
+    }
+    case "tile_hexagon": {
+      // pointy-top hexagons; size = width across flats
+      const a2 = M(tileM(0.2)), R = a2 / Math.sqrt(3), grout = darken(c, 0.22);
+      w = a2; h = 3 * R;
+      rect(0, 0, w, h, grout);
+      const hex = (cx, cy, fill) => {
+        const pts = [0, 1, 2, 3, 4, 5].map((k) => { const t = (Math.PI / 3) * k + Math.PI / 6; return [cx + R * 0.93 * Math.cos(t), cy + R * 0.93 * Math.sin(t)]; });
+        items.push({ type: "path", d: pts.map((q, i) => `${i ? "L" : "M"}${f(q[0])} ${f(q[1])}`).join(" ") + " Z", fill });
+        line(pts[3][0], pts[3][1], pts[4][0], pts[4][1], lighten(fill, 0.3), R * 0.05, 0.7);
+      };
+      const shades = [c, a ? mix(c, a, 0.5) : lighten(c, 0.05), darken(c, 0.05)];
+      [[w / 2, R], [0, 2.5 * R], [w, 2.5 * R], [0, -0.5 * R], [w, -0.5 * R], [w / 2, 4 * R]].forEach(([x, y], i) => hex(x, y, shades[i % 3]));
+      break;
+    }
+    case "tile_subway": {
+      // metro tiles (length x length/2) in running bond
+      const L2 = M(tileM(0.15)), H2 = L2 / 2, grout = lighten(c, 0.4);
+      w = L2; h = 2 * H2;
+      rect(0, 0, w, h, grout);
+      const brick = (x, y, fill) => { const g = H2 * 0.07; rect(x + g, y + g, L2 - 2 * g, H2 - 2 * g, fill); line(x + g, y + g * 1.5, x + L2 - g, y + g * 1.5, lighten(fill, 0.35), g * 0.8, 0.7); };
+      brick(0, 0, c); brick(-L2 / 2, H2, darken(c, 0.04)); brick(L2 / 2, H2, a ? mix(c, a, 0.4) : lighten(c, 0.03));
+      break;
+    }
+    case "epoxy": {
+      // seamless resin: soft gloss streaks, no joints
+      w = h = M(2);
+      rect(0, 0, w, h, c);
+      for (let k = 0; k < 5; k++) {
+        const y0 = r() * h;
+        items.push({ type: "path", d: `M0 ${f(y0)} C${f(w * 0.3)} ${f(y0 - M(0.3))} ${f(w * 0.6)} ${f(y0 + M(0.3))} ${f(w)} ${f(y0)}`, fill: "none",
+          stroke: k % 2 ? lighten(c, 0.25) : darken(c, 0.06), strokeWidth: M(0.06 + r() * 0.08), opacity: 0.18 });
       }
       break;
     }
@@ -1167,6 +1204,68 @@ function drawClimate(dv, ctx) {
     return;
   }
 
+  if (dv.kind === "ecology_unit") {
+    // kitchen exhaust ecology unit: stainless box, filter stages (metal mesh · electrostatic · active carbon), fan
+    panel("#D5DBE0", Math.min(w, h) * 0.06);
+    const long = w >= h, L = long ? w : h, S = long ? h : w;
+    const R = (a, b, la, lb, r = 0) => (long ? p.rect(a, b, la, lb, r) : p.rect(b, a, lb, la, r));
+    const stages = [["#9AA6AF", 0.18], ["#F2C14E", 0.2], ["#3E4A52", 0.2]];
+    let x = -L / 2 + L * 0.06;
+    for (const [col, frac] of stages) {
+      out(R(x, -S * 0.38, L * frac, S * 0.76, S * 0.04), grad(col), { stroke: "#56636D", strokeWidth: u * 0.08 });
+      for (let k = 1; k < 5; k++) lineOut(long ? p.line(x + (L * frac * k) / 5, -S * 0.32, x + (L * frac * k) / 5, S * 0.32) : p.line(-S * 0.32, x + (L * frac * k) / 5, S * 0.32, x + (L * frac * k) / 5), "#FFFFFF", u * 0.06, 0.45);
+      x += L * frac + L * 0.03;
+    }
+    const fx = -L / 2 + L * 0.82, fr = Math.min(S * 0.34, L * 0.12);
+    const fc = long ? [fx, 0] : [0, fx];
+    out(p.circle(fc[0], fc[1], fr), grad("#EEF1F3"), { stroke: "#56636D", strokeWidth: u * 0.1 });
+    for (let k = 0; k < 4; k++) { const t = (Math.PI / 2) * k + (on ? lvl : 0); lineOut(p.line(fc[0], fc[1], fc[0] + Math.cos(t) * fr * 0.85, fc[1] + Math.sin(t) * fr * 0.85), "#56636D", u * 0.14, 0.9); }
+    out(p.circle(w * 0.42 * (long ? 1 : 0) + (long ? 0 : w * 0.3), -h * 0.36, Math.min(w, h) * 0.06), on ? "#34D399" : "#EF4444");
+    return;
+  }
+  if (dv.kind === "air_handling_unit" || dv.kind === "heat_recovery_unit") {
+    panel("#E3E8EC", Math.min(w, h) * 0.05);
+    const long = w >= h, L = long ? w : h, S = long ? h : w;
+    const R = (a, b, la, lb) => (long ? p.rect(a, b, la, lb, 0) : p.rect(b, a, lb, la, 0));
+    const at = (a, b) => (long ? [a, b] : [b, a]);
+    if (dv.kind === "heat_recovery_unit") {
+      // cross-flow core in the middle, four duct stubs
+      const s2 = Math.min(S, L) * 0.38;
+      out(p.raw((P) => `M${P(...at(0, -s2))} L${P(...at(s2, 0))} L${P(...at(0, s2))} L${P(...at(-s2, 0))} Z`), grad("#C9D3DA"), { stroke: "#56636D", strokeWidth: u * 0.1 });
+      lineOut(p.raw((P) => `M${P(...at(-s2 / 2, -s2 / 2))} L${P(...at(s2 / 2, s2 / 2))} M${P(...at(s2 / 2, -s2 / 2))} L${P(...at(-s2 / 2, s2 / 2))}`), "#7F8C96", u * 0.08, 0.8);
+      for (const sx of [-1, 1]) for (const sy of [-1, 1]) out(R(sx * L * 0.42 - L * 0.04, sy * S * 0.28 - S * 0.1, L * 0.08, S * 0.2), sx * sy > 0 ? "#3BA7D9" : "#E4572E", { opacity: 0.55 });
+      return;
+    }
+    // AHU sections: filter · coil · fan
+    out(R(-L * 0.44, -S * 0.36, L * 0.18, S * 0.72), grad("#F6F7F8"), { stroke: "#7F8C96", strokeWidth: u * 0.08 });
+    for (let k = 1; k < 6; k++) lineOut(long ? p.line(-L * 0.44 + (L * 0.18 * k) / 6, -S * 0.36, -L * 0.44 + (L * 0.18 * k) / 6 - L * 0.02, S * 0.36) : p.line(-S * 0.36, -L * 0.44 + (L * 0.18 * k) / 6, S * 0.36, -L * 0.44 + (L * 0.18 * k) / 6 - L * 0.02), "#AAB6BF", u * 0.06);
+    out(R(-L * 0.22, -S * 0.36, L * 0.2, S * 0.72), grad("#C9D3DA"), { stroke: "#7F8C96", strokeWidth: u * 0.08 });
+    const zig = [];
+    for (let k = 0; k <= 8; k++) zig.push(at(-L * 0.2 + (L * 0.16 * k) / 8, k % 2 ? -S * 0.28 : S * 0.28));
+    lineOut(p.raw((P) => zig.map((q, i) => `${i ? "L" : "M"}${P(q[0], q[1])}`).join(" ")), on ? "#3BA7D9" : "#7F8C96", u * 0.12, 0.9);
+    const fc = at(L * 0.22, 0), fr = Math.min(S * 0.33, L * 0.18);
+    out(p.circle(fc[0], fc[1], fr), grad("#EEF1F3"), { stroke: "#56636D", strokeWidth: u * 0.1 });
+    for (let k = 0; k < 6; k++) { const t = (Math.PI / 3) * k + (on ? lvl : 0); lineOut(p.line(fc[0], fc[1], fc[0] + Math.cos(t) * fr * 0.85, fc[1] + Math.sin(t) * fr * 0.85), "#56636D", u * 0.12, 0.85); }
+    return;
+  }
+  if (dv.kind === "air_curtain") {
+    panel("#F4F6F8", Math.min(w, h) * 0.3);
+    const long = w >= h, L = long ? w : h, S = long ? h : w;
+    for (let x = -L * 0.42; x <= L * 0.42; x += Math.max(u * 0.8, L / 24)) lineOut(long ? p.line(x, -S * 0.2, x, S * 0.2) : p.line(-S * 0.2, x, S * 0.2, x), "#9AA9B4", u * 0.08);
+    if (on) for (let k = 0; k < 3; k++) {
+      const off = S * (0.9 + k * 0.6);
+      lineOut(long ? p.line(-L * 0.4, off, L * 0.4, off) : p.line(off, -L * 0.4, off, L * 0.4), "#3BA7D9", u * 0.14, (0.5 - k * 0.12) * (0.5 + 0.5 * lvl));
+    }
+    return;
+  }
+  if (dv.kind === "hvac_outdoor_unit") {
+    panel("#E9EDF0", Math.min(w, h) * 0.06);
+    const fr = Math.min(w, h) * 0.36;
+    out(p.circle(-w * 0.1, 0, fr), "#5B6770", { opacity: 0.85 });
+    for (let k = 0; k < 3; k++) { const t = (Math.PI * 2 * k) / 3 + (on ? lvl : 0); out(p.ellipse(-w * 0.1 + Math.cos(t) * fr * 0.45, Math.sin(t) * fr * 0.45, fr * 0.42, fr * 0.2), "#C3CAD0", { opacity: 0.9 }); }
+    for (let k = 1; k < 5; k++) lineOut(p.line(w * 0.3, -h * 0.4 + (h * 0.8 * k) / 5, w * 0.45, -h * 0.4 + (h * 0.8 * k) / 5), "#9AA9B4", u * 0.08);
+    return;
+  }
   const c = dv.appearance?.color || theme.materials[dv.appearance?.material] || (dv.kind === "exhaust_hood" ? "#C5CCD2" : "#FFFFFF");
   if (dv.kind === "exhaust_hood") {
     out(p.rect(-w / 2, -h / 2, w, h, u * 0.4), c, { opacity: 0.18 });
@@ -1174,7 +1273,7 @@ function drawClimate(dv, ctx) {
     return;
   }
   panel(c);
-  if (["air_conditioner", "hvac_indoor_unit"].includes(dv.kind)) {
+  if (["air_conditioner", "hvac_indoor_unit", "fan_coil"].includes(dv.kind)) {
     out(p.rect(-w * 0.44, h * 0.08, w * 0.88, h * 0.26, h * 0.1), grad("#DCE3E8"));
     for (let i = 1; i <= 3; i++) lineOut(p.line(-w * 0.4, h * 0.08 + (h * 0.26 * i) / 4, w * 0.4, h * 0.08 + (h * 0.26 * i) / 4), "#AAB6BF", u * 0.07);
     out(p.circle(w * 0.38, -h * 0.22, Math.min(w, h) * 0.08), on ? "#34D399" : "#EF4444");

@@ -50,7 +50,7 @@ class Examples(unittest.TestCase):
 
     def test_eaterior_1_0_0_upgrades(self):
         new, _ = migrate(dict(PLAN, schemaVersion="1.0.0"))
-        self.assertEqual(new["schemaVersion"], "1.8.0")
+        self.assertEqual(new["schemaVersion"], "1.9.0")
         self.assertTrue(validate_plan(new).ok)
 
     def test_imported_example_is_valid(self):
@@ -224,7 +224,7 @@ class Migration(unittest.TestCase):
         for f in old["floors"]:
             del f["climateDevices"], f["environmentalSensors"]
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.8.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.9.0"))
         self.assertEqual(new["revision"], PLAN["revision"] + 1)
         self.assertTrue(validate_plan(new).ok)
 
@@ -331,7 +331,7 @@ if __name__ == "__main__":
 
 class PackagedSchemas(unittest.TestCase):
     def test_packaged_schemas_match_canonical(self):
-        canon = ROOT / "schemas" / "v1.8.0"
+        canon = ROOT / "schemas" / "v1.9.0"
         packaged = ROOT / "python" / "eaterior" / "schemas"
         names = sorted(p.name for p in canon.glob("*.json"))
         self.assertEqual(names, sorted(p.name for p in packaged.glob("*.json")))
@@ -351,6 +351,39 @@ class LegacyName(unittest.TestCase):
     def test_old_identifier_migrates(self):
         old = copy.deepcopy(PLAN); old["format"] = "eateryplan"; old["schemaVersion"] = "1.7.0"
         new, _ = migrate(old)
-        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.8.0"))
+        self.assertEqual((new["format"], new["schemaVersion"]), ("eaterior", "1.9.0"))
         rep = validate_plan(new)
         self.assertTrue(rep.ok and not any(i.code == "legacy_format" for i in rep.warnings))
+
+
+class Hvac19(unittest.TestCase):
+    """1.9.0: HVAC performance values, new device kinds, floor module sizes."""
+
+    def plan_with(self, device=None, appearance=None):
+        p = copy.deepcopy(load("restaurant.json"))
+        f = p["floors"][0]
+        if device:
+            f["climateDevices"].append({"id": "dev_x", "floorId": f["id"], "shape": {"kind": "rect", "x": 600, "y": 200, "width": 40, "height": 20}, **device})
+        if appearance:
+            f["zones"][0]["appearance"] = {**f["zones"][0].get("appearance", {}), **appearance}
+        return p
+
+    def test_sample_restaurant_with_ecology_unit_is_valid(self):
+        rep = validate_plan(load("restaurant.json"))
+        self.assertTrue(rep.ok, rep.format())
+
+    def test_new_kinds_and_performance(self):
+        for kind in ("ecology_unit", "air_handling_unit", "heat_recovery_unit", "fan_coil", "air_curtain"):
+            rep = validate_plan(self.plan_with({"kind": kind, "performance": {"airflowM3h": 2000, "electricalPowerW": 900, "heatRecoveryEfficiencyPct": 75}}))
+            self.assertTrue(rep.ok, (kind, rep.format()))
+
+    def test_bad_performance_values_rejected(self):
+        for perf in ({"airflowM3h": -5}, {"heatRecoveryEfficiencyPct": 140}, {"unknownField": 1}):
+            rep = validate_plan(self.plan_with({"kind": "fan_coil", "performance": perf}))
+            self.assertFalse(rep.ok, perf)
+
+    def test_floor_sizes_and_finishes(self):
+        for ap in ({"floor": "tile_hexagon", "tileSizeCm": 20}, {"floor": "tile_subway", "tileSizeCm": 15}, {"floor": "epoxy"},
+                   {"floor": "wood_planks", "plankWidthCm": 12}):
+            self.assertTrue(validate_plan(self.plan_with(appearance=ap)).ok, ap)
+        self.assertFalse(validate_plan(self.plan_with(appearance={"tileSizeCm": 1})).ok)
