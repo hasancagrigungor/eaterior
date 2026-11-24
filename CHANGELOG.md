@@ -1,5 +1,11 @@
 # Changelog
 
+## JS 1.8.1 — 2026-11-24
+
+- Illustrated renderer, 3D walls: a wall that ends on the body of another wall (T junction) now stops at that wall's
+  face instead of extending through it, and its end cap is not drawn. Wall faces are painted far-to-near so the
+  nearer wall covers the one behind it. No format change.
+
 ## 1.8.0 — 2026-11-23
 
 - **Renamed to Eaterior** (formerly Eatery Plan). Format identifier `eaterior`; live documents use

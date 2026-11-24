@@ -210,3 +210,19 @@ test("door leaf follows the open state", () => {
   const b = buildIllustratedScene(restaurant, { objectStates: { objects: [{ objectId: "door_1", open: 0.9 }] } });
   assert.notEqual(leaf(a), leaf(b));
 });
+
+test("3D walls: a T junction stops at the host wall's face (no overshoot)", () => {
+  const W = (id, a, b, t) => ({ id, floorId: "f", a: { x: a[0], y: a[1] }, b: { x: b[0], y: b[1] }, thickness: t, kind: "solid" });
+  const plan = { format: "eaterior", schemaVersion: "1.8.0", planId: "t", name: "t", revision: 1, floors: [{
+    id: "f", name: "f", level: 0, coordinateSpace: { unit: "unit", origin: "top-left", xAxis: "right", yAxis: "down", width: 400, height: 300,
+      realWorldScale: { metersPerUnit: 0.02, source: "user_input" } },
+    zones: [], walls: [W("host", [20, 20], [380, 20], 12), W("tee", [200, 20], [200, 250], 8)], openings: [], tables: [], fixtures: [],
+    climateDevices: [], environmentalSensors: [] }] };
+  const scene = buildIllustratedScene(plan, { walls3d: true });
+  const ys = (d) => [...d.matchAll(/[ML]\s*(-?[\d.]+)\s+(-?[\d.]+)/g)].map((m) => +m[2]);
+  const top = (id) => scene.items.filter((i) => i.ref?.type === "wall" && i.ref.id === id && i.type === "path" && i.fill !== "none").pop();
+  const hostTop = top("host"), teeTop = top("tee");
+  assert.ok(hostTop && teeTop);
+  // the T wall's top must start at (or below) the near edge of the host's top, never cross it
+  assert.ok(Math.min(...ys(teeTop.d)) >= Math.max(...ys(hostTop.d)) - 0.5, `tee top ${Math.min(...ys(teeTop.d))} crosses host top ${Math.max(...ys(hostTop.d))}`);
+});

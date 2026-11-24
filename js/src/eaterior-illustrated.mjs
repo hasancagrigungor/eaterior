@@ -1471,6 +1471,22 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
   const poly = (pts) => pts.map((q, i) => `${i ? "L" : "M"}${f(q[0])} ${f(q[1])}`).join(" ") + " Z";
   const faceColor = theme.wallFace || "#E4ECF1";
 
+  // T junctions: a wall end that lands on the body of another straight wall stops at that wall's face
+  // (no half-thickness extension, no end cap), so it does not poke through or draw its top over the host.
+  const teeHost = (w, end) => {
+    const p = [w[end].x, w[end].y];
+    for (const { w: v } of wallData) {
+      if (v === w || v.bulge) continue;
+      const dx = v.b.x - v.a.x, dy = v.b.y - v.a.y, L = Math.hypot(dx, dy);
+      if (L < 1e-6) continue;
+      const t = ((p[0] - v.a.x) * dx + (p[1] - v.a.y) * dy) / (L * L);
+      if (t * L < v.thickness / 2 || (1 - t) * L < v.thickness / 2) continue; // at the host's end: a corner, not a T
+      const d = Math.abs(((p[0] - v.a.x) * dy - (p[1] - v.a.y) * dx) / L);
+      if (d <= Math.max(v.thickness / 2, u * 0.05)) return v.thickness;
+    }
+    return 0;
+  };
+
   for (const { w, g, gaps, solid, color, open } of wallData) {
     const isGlass = GLASS.has(w.kind);
     const hgt = w.heightMeters ?? (w.kind === "half_height" ? 1.1 : isGlass ? 2.4 : 2.8);
@@ -1511,14 +1527,17 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
       }
       continue;
     }
+    const teeA = g.curved ? 0 : teeHost(w, "a"), teeB = g.curved ? 0 : teeHost(w, "b");
     for (const [t0, t1] of solid) {
       const n = g.curved ? Math.max(2, Math.ceil(16 * (t1 - t0))) : 1;
       const samples = [];
       for (let i = 0; i <= n; i++) {
         const t = t0 + ((t1 - t0) * i) / n, [tx, ty] = g.tangentAt(t);
         let p = g.pointAt(t);
-        if (!g.curved && i === 0 && t0 === 0) p = [p[0] - tx * T / 2, p[1] - ty * T / 2];
-        if (!g.curved && i === n && t1 === 1) p = [p[0] + tx * T / 2, p[1] + ty * T / 2];
+        // corners: extend by half the own thickness; T ends: pull back to the host wall's face
+        const e0 = teeA ? -teeA / 2 : T / 2, e1 = teeB ? -teeB / 2 : T / 2;
+        if (!g.curved && i === 0 && t0 === 0) p = [p[0] - tx * e0, p[1] - ty * e0];
+        if (!g.curved && i === n && t1 === 1) p = [p[0] + tx * e1, p[1] + ty * e1];
         samples.push({ p, nrm: [-ty, tx], tan: [tx, ty] });
       }
       const Ls = samples.map(({ p, nrm }) => [p[0] + nrm[0] * T / 2, p[1] + nrm[1] * T / 2]);
@@ -1532,15 +1551,16 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
             fill: theme.shadow, opacity: op, layer: "zones" });
         }
         faces.push({ type: "path", d: poly([a, b, lift(b), lift(a)]), fill: mix(faceColor, "#7F95A3", shade),
-          stroke: mix(faceColor, "#7F95A3", shade + 0.15), strokeWidth: u * 0.06, layer: "walls", ref });
+          stroke: mix(faceColor, "#7F95A3", shade + 0.15), strokeWidth: u * 0.06, layer: "walls", ref,
+          dist: Math.hypot(mid[0] - cam[0], mid[1] - cam[1]) });
       };
       for (let i = 0; i < n; i++) {
         const nm = samples[i].nrm;
         face(Ls[i], Ls[i + 1], nm);
         face(Rs[i + 1], Rs[i], [-nm[0], -nm[1]]);
       }
-      face(Rs[0], Ls[0], [-samples[0].tan[0], -samples[0].tan[1]]);
-      face(Ls[n], Rs[n], samples[n].tan);
+      if (!(t0 === 0 && teeA)) face(Rs[0], Ls[0], [-samples[0].tan[0], -samples[0].tan[1]]);
+      if (!(t1 === 1 && teeB)) face(Ls[n], Rs[n], samples[n].tan);
 
       // windows: decal on the visible face, glass line on the top
       if (!g.curved) {
@@ -1569,7 +1589,9 @@ function drawWalls3D(wallData, { theme, push, u, M, cam, depth }) {
     }
   }
   for (const it of aos) push(it);
-  for (const it of faces) push(it);
+  // painter's order: faces farther from the camera first, so a wall in front covers the one behind it
+  faces.sort((a, b) => (b.dist ?? 0) - (a.dist ?? 0));
+  for (const it of faces) { delete it.dist; push(it); }
   for (const it of decals) push(it);
   for (const it of tops.filter((t) => t.order === 0)) { delete it.order; push(it); }
   for (const it of tops.filter((t) => t.order === 1)) { delete it.order; push(it); }

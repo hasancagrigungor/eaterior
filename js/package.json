@@ -1,24 +1,58 @@
 {
   "name": "eaterior",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "Render Eaterior restaurant, cafe and bar floor plans on the web, React Native or Canvas — plain or illustrated, with live table and device state",
   "type": "module",
   "main": "./src/eaterior-render.mjs",
   "types": "./types/eaterior-render.d.ts",
   "exports": {
-    ".": { "types": "./types/eaterior-render.d.ts", "default": "./src/eaterior-render.mjs" },
-    "./illustrated": { "types": "./types/eaterior-illustrated.d.ts", "default": "./src/eaterior-illustrated.mjs" },
+    ".": {
+      "types": "./types/eaterior-render.d.ts",
+      "default": "./src/eaterior-render.mjs"
+    },
+    "./illustrated": {
+      "types": "./types/eaterior-illustrated.d.ts",
+      "default": "./src/eaterior-illustrated.mjs"
+    },
     "./package.json": "./package.json"
   },
-  "bin": { "eaterior-render": "bin/render.mjs" },
-  "files": ["src", "bin", "types", "README.md", "LICENSE"],
+  "bin": {
+    "eaterior-render": "bin/render.mjs"
+  },
+  "files": [
+    "src",
+    "bin",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
   "sideEffects": false,
-  "engines": { "node": ">=18" },
-  "scripts": { "test": "node --test test/*.test.mjs" },
-  "keywords": ["floor-plan", "restaurant", "cafe", "bar", "svg", "react-native", "digital-twin", "pos", "renderer"],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "keywords": [
+    "floor-plan",
+    "restaurant",
+    "cafe",
+    "bar",
+    "svg",
+    "react-native",
+    "digital-twin",
+    "pos",
+    "renderer"
+  ],
   "homepage": "https://github.com/hasancagrigungor/eaterior#readme",
-  "repository": { "type": "git", "url": "git+https://github.com/hasancagrigungor/eaterior.git", "directory": "js" },
-  "bugs": { "url": "https://github.com/hasancagrigungor/eaterior/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hasancagrigungor/eaterior.git",
+    "directory": "js"
+  },
+  "bugs": {
+    "url": "https://github.com/hasancagrigungor/eaterior/issues"
+  },
   "author": "Hasan Cagri Gungor",
   "license": "MIT"
 }
