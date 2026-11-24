@@ -24,6 +24,9 @@ masaüstünde birebir aynı çizilir; kâğıda çizilmiş bir plandan veya foto
   açık/kapalı ve açık/kapalı (güç) yapılabilir; plan değişmez.
 - **Her sisteme bağlanır.** `externalRefs` ile her nesne adisyon, rezervasyon, mutfak, bina yönetimi ya da IoT
   sistemlerindeki kayıtlara bağlanır; canlı durumlar o sistemlerin kendi id'leriyle gönderilebilir (dijital ikiz).
+- **Açık ürün katalogları.** Markalar mobilya ve ekipmanlarını herhangi bir adreste bir
+  [`eaterior-catalog`](docs/catalog.md) olarak yayınlar; editörler bu ürünleri bileşen olarak sunar, yerleştirilen
+  nesne `product` referansını taşır.
 - **Genişletilebilir.** Her nesnede uygulamaya özel veriler için `extensions` alanı vardır.
 
 ## Kullanım
